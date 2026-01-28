@@ -1,0 +1,257 @@
+// knowledge/services.json
+{
+  "services": [
+    {
+      "id": "solar_panel_cleaning",
+      "name": "Solar Panel Cleaning",
+      "short_description": "Solar panel cleaning using pure, filtered water and a purpose-built solar brush to improve panel cleanliness without harsh chemicals.",
+      "minimum_charge_usd": 149,
+      "includes": [
+        "Cleaning with a purpose-built solar panel brush",
+        "Pure water cleaning using mobile RO/DI filtration (reverse osmosis + deionization) using the customer’s water source",
+        "Safety-first approach with attention to roof conditions, access, and nearby hazards"
+      ],
+      "excludes": [
+        "Any chemical cleaning agents on solar panels",
+        "Roof repairs or electrical work",
+        "Guaranteed production or savings claims without system data"
+      ],
+      "why_it_matters": [
+        "Real-world dust, grime, pollen, and environmental buildup can reduce the light reaching PV cells and lower energy production.",
+        "In many systems, cells/modules are wired in series so a shaded/dirty section can limit current and reduce output; bypass diodes help but losses can still be significant."
+      ],
+      "required_for_quote": [
+        { "field": "panel_count", "label": "Number of solar panels", "type": "number", "required": true },
+        {
+          "field": "solar_mounting",
+          "label": "Where are the panels mounted?",
+          "type": "enum",
+          "required": true,
+          "options": ["first_story_roof", "second_story_roof", "ground_mount", "mixed", "unknown"]
+        },
+        {
+          "field": "water_access",
+          "label": "Is there a working outdoor water spigot within ~100 feet of the panels (or near the work area)?",
+          "type": "enum",
+          "required": false,
+          "options": ["yes", "no", "not_sure"]
+        },
+        {
+          "field": "last_cleaned",
+          "label": "When were the panels last cleaned?",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "common_add_ons": [
+        "Bird proofing / panel skirting (metal/PVC) to reduce nesting under panels"
+      ],
+      "common_questions": [
+        {
+          "q": "Do I really need to clean my solar panels?",
+          "a": "In most real-world environments, yes. Dust and grime can build up over months and reduce the light getting into the cells. Since many PV components are wired in series, a dirty/shaded section can drag down output for part of the system. Cleaning helps restore the panel surface so the system can perform closer to its potential."
+        },
+        {
+          "q": "Do you use soap or chemicals on the panels?",
+          "a": "No. We clean panels using pure, filtered water and a purpose-built solar brush. Many panels have coatings and manufacturer guidance that can be affected by chemicals, so we avoid them."
+        },
+        {
+          "q": "How do you price solar panel cleaning?",
+          "a": "Pricing depends on several factors such as the number of panels, mounting type (roof vs ground), access and safety considerations, and job conditions. If you tell me your panel count and where they’re mounted, I can give you a quote and help you book."
+        }
+      ],
+      "handoff_triggers": [
+        "Customer asks for guaranteed energy production improvements or specific % gains",
+        "Unusual access/safety constraints (e.g., extreme height, major roof hazards, no safe access)",
+        "Customer requests chemical cleaning on solar panels"
+      ]
+    },
+    {
+      "id": "roof_cleaning",
+      "name": "Roof Cleaning",
+      "short_description": "Professional roof cleaning to remove organic growth and staining while prioritizing roof-surface and human safety.",
+      "includes": [
+        "Initial visual assessment of roof condition and access",
+        "Targeted cleaning using methods appropriate for the roof type (soft wash when applicable)",
+        "Rinse-down of surrounding areas affected by runoff as needed",
+        "Before/after photos when requested (availability may vary by job)"
+      ],
+      "excludes": [
+        "Roof repairs, leak diagnosis, or replacement of broken tiles/shingles pre-existing to our service (we fix what we broke)",
+        "Gutter cleaning (unless quoted as an add-on)",
+        "Mold remediation inside the home/attic",
+        "Painting or sealing/coating unless explicitly quoted"
+      ],
+      "required_for_quote": [
+        { "field": "roof_sqft", "label": "Approximate roof square footage", "type": "number", "units": "sqft", "required": true },
+        {
+          "field": "roof_type",
+          "label": "Roof surface type",
+          "type": "enum",
+          "required": true,
+          "options": ["clay_tile", "concrete_tile", "asphalt_shingle", "metal", "unknown"]
+        },
+        {
+          "field": "access_notes",
+          "label": "Anything that affects access (steep pitch, fragile tile, tight driveway, height, lift needed)",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "common_questions": [
+        {
+          "q": "Will roof cleaning damage my roof?",
+          "a": "The goal is to match the method to the roof type and condition. Some roofs (especially older or fragile tile) require extra care and a gentler process. If anything looks high-risk or unusual, we’ll recommend a human assessment before final pricing."
+        },
+        {
+          "q": "Do you use high pressure on roofs?",
+          "a": "Roof cleaning is typically not a “blast it with mega pressure” job. We test and adjust pressure so it’s enough to do the job but not excessive. Some roof surfaces are better served by soft wash methods, and the right approach depends on roof type and condition."
+        },
+        {
+          "q": "How long does it take?",
+          "a": "Most residential roof cleanings are completed in 1–2 days, but complexity, roof type, and access can extend the timeline. If it sounds complex, we can have a human confirm the details."
+        },
+        {
+          "q": "Do I need to be home?",
+          "a": "Not always, as long as we have access and the job details are confirmed. Please share any gate/lock instructions or outdoor pet notes and a human can finalize logistics if needed."
+        },
+        {
+          "q": "What about plants and landscaping?",
+          "a": "We aim to protect surrounding areas and rinse as appropriate, but please let us know about sensitive plants or sentimental items so we can plan accordingly."
+        }
+      ],
+      "upsells_and_addons": [
+        "Gutter exterior brightening (quoted separately)",
+        "Gutter cleaning (quoted separately)",
+        "House wash / soft wash of siding",
+        "Driveway / patio cleaning"
+      ],
+      "handoff_triggers": [
+        "Roof type is unknown and customer cannot estimate",
+        "Customer reports leaks, broken tiles, or active roof damage",
+        "Access requires special equipment (e.g., boom lift) or tight access constraints",
+        "Customer asks for guarantees or wants a binding schedule confirmation"
+      ]
+    },
+    {
+      "id": "pressure_washing",
+      "name": "Pressure Washing",
+      "short_description": "High-impact cleaning for hard exterior surfaces like concrete, pavers, and other durable areas. SunSweeper can also support water reclamation needs when required for compliance (quoted separately as needed).",
+      "includes": [
+        "Surface assessment and selection of appropriate pressure/attachments",
+        "Cleaning of the agreed exterior surfaces",
+        "Basic rinse-down of surrounding overspray areas as needed"
+      ],
+      "excludes": [
+        "Paint stripping or restoration unless explicitly quoted",
+        "Oil stain removal guarantees (results vary by stain age/type)",
+        "Water reclamation/compliance requirements unless explicitly quoted",
+        "Sealing/coating after washing unless explicitly quoted"
+      ],
+      "required_for_quote": [
+        { "field": "surface_type", "label": "What needs cleaning (driveway, patio, walkway, pavers, etc.)", "type": "string", "required": true },
+        { "field": "surface_sqft", "label": "Approximate square footage of the area", "type": "number", "units": "sqft", "required": true },
+        {
+          "field": "stains_notes",
+          "label": "Any heavy staining (oil, rust, algae, tire marks) or special concerns?",
+          "type": "string",
+          "required": false
+        },
+        {
+          "field": "compliance_reclamation_needed",
+          "label": "Do you need water reclamation / runoff compliance support?",
+          "type": "enum",
+          "required": false,
+          "options": ["yes", "no", "not_sure"]
+        }
+      ],
+      "common_questions": [
+        {
+          "q": "Can you remove oil stains?",
+          "a": "Oil removal depends on how old the stain is and what has soaked into the surface. We can improve it significantly in many cases, but we avoid promising a perfect result without seeing it."
+        },
+        {
+          "q": "Will pressure washing etch concrete?",
+          "a": "It can if done incorrectly. We use the right technique and equipment for the surface to reduce the risk of etching. If you’re worried about delicate surfaces, we can have a human confirm the best approach."
+        },
+        {
+          "q": "Do you clean pavers?",
+          "a": "Yes, but pavers can require different care depending on joint sand, sealing, and condition. If you know whether they’re sealed, that helps with quoting."
+        },
+        {
+          "q": "How often should I do it?",
+          "a": "It depends on shade, weather, landscaping, and use. Many customers do it annually or as needed when buildup becomes visible."
+        }
+      ],
+      "upsells_and_addons": [
+        "Soft wash house wash (if grime/mildew on siding)",
+        "Roof cleaning (if staining/growth is also present)",
+        "Fence cleaning (wood/vinyl—method depends on material)"
+      ],
+      "handoff_triggers": [
+        "Customer wants guaranteed stain removal",
+        "Commercial site with strict compliance requirements (runoff rules, reclamation, off-hours work)",
+        "Surface is painted, coated, or delicate and the customer wants a firm outcome guarantee"
+      ]
+    },
+    {
+      "id": "soft_washing",
+      "name": "Soft Washing",
+      "short_description": "Low-pressure cleaning for surfaces that need a gentler approach, like siding, stucco, and delicate exterior finishes.",
+      "includes": [
+        "Assessment of exterior material and condition",
+        "Application of a low-pressure cleaning solution where appropriate",
+        "Gentle rinse to remove organic buildup and staining"
+      ],
+      "excludes": [
+        "Interior mold remediation",
+        "Paint repair or repainting",
+        "Sealing/coating unless explicitly quoted",
+        "Guaranteed removal of all oxidation or deep staining without evaluation"
+      ],
+      "required_for_quote": [
+        {
+          "field": "surface_material",
+          "label": "What surface are we cleaning (stucco, siding, painted surfaces, fence, etc.)?",
+          "type": "string",
+          "required": true
+        },
+        { "field": "surface_sqft", "label": "Approximate square footage", "type": "number", "units": "sqft", "required": true },
+        {
+          "field": "concerns_notes",
+          "label": "Any sensitive landscaping, pets, paint issues, or special concerns?",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "common_questions": [
+        {
+          "q": "What’s the difference between soft washing and pressure washing?",
+          "a": "Pressure washing relies more on force; soft washing relies more on chemistry and gentle rinsing. Soft washing is often used on surfaces that could be damaged or marked by high pressure."
+        },
+        {
+          "q": "Is it safe for plants and pets?",
+          "a": "We try to protect surrounding areas and rinse appropriately, but please mention sensitive plants and pets. If you’re concerned, we can have a human confirm the plan."
+        },
+        {
+          "q": "Will it remove all stains?",
+          "a": "Soft washing is very effective on organic growth and surface grime, but results can vary with oxidation, paint condition, and deeply set staining. We avoid promising perfection without seeing it."
+        },
+        {
+          "q": "How long will it stay clean?",
+          "a": "It depends on shade, moisture, and local conditions. Many customers see longer-lasting results in sunnier, drier areas and shorter intervals in shaded or damp areas."
+        }
+      ],
+      "upsells_and_addons": [
+        "Pressure washing of hard surfaces (driveway/patio)",
+        "Roof cleaning (if staining/growth is also present)",
+        "Solar panel cleaning (for homeowners with solar)"
+      ],
+      "handoff_triggers": [
+        "Customer asks about specific chemicals and wants exact product names/percentages",
+        "Customer has severe paint failure, oxidation, or prior damage concerns",
+        "Customer requests guaranteed outcomes"
+      ]
+    }
+  ]
+}

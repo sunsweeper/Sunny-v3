@@ -1,0 +1,66 @@
+{
+  "currency": "USD",
+  "pricing_rules": {
+    "roof_cleaning": {
+      "description": "Roof cleaning pricing based on roof surface type and square footage.",
+      "methods": {
+        "pressure_wash": {
+          "applicable_roof_types": ["clay_tile", "concrete_tile", "metal"],
+          "rate_per_sqft": 0.65,
+          "notes": "Used for durable roof surfaces where pressure washing is appropriate."
+        },
+        "soft_wash": {
+          "applicable_roof_types": ["asphalt_shingle"],
+          "rate_per_sqft": 0.40,
+          "notes": "Used for asphalt shingle roofs to minimize surface damage."
+        }
+      },
+      "minimum_charge_usd": null,
+      "customer_visible_pricing": {
+        "show_calculation": false,
+        "show_total_only": true
+      }
+    },
+    "house_wash": {
+      "description": "Soft wash house cleaning for siding and exterior surfaces.",
+      "rate_per_sqft": 0.40,
+      "minimum_charge_usd": null,
+      "special_notes": [
+        "If the customer mentions black streaks, Sunny should explain that low-cost spot treatments may be available depending on scope.",
+        "Sunny must not auto-discount or quote a reduced price without confirming scope."
+      ],
+      "customer_visible_pricing": {
+        "show_calculation": false,
+        "show_total_only": true
+      }
+    },
+    "solar_panel_cleaning": {
+      "description": "Solar panel cleaning using pure, filtered, deionized water and a purpose-built solar brush. No chemicals are ever used.",
+      "water_policy": {
+        "uses_customer_water": true,
+        "filtration": "mobile RO/DI (reverse osmosis + deionization)",
+        "chemicals_used": false,
+        "warranty_safe_statement": "Panels are cleaned according to manufacturer-intended methods to avoid warranty issues."
+      },
+      "panel_tiers": [
+        { "min": 1, "max": 13, "job_total_usd": 149 },
+        { "min": 14, "max": 20, "internal_rate_per_panel": 11.5 },
+        { "min": 21, "max": 25, "internal_rate_per_panel": 11.0 },
+        { "min": 26, "max": 30, "internal_rate_per_panel": 10.5 },
+        { "min": 31, "max": 40, "internal_rate_per_panel": 9.0 },
+        { "min": 41, "max": 60, "internal_rate_per_panel": 8.0 }
+      ],
+      "minimum_charge_usd": 149,
+      "escalation_rules": {
+        "max_panels_for_auto_quote": 60,
+        "escalate_over_max": true,
+        "escalation_reason": "Large systems require a human review for access, safety, and logistics."
+      },
+      "customer_visible_pricing": {
+        "show_rate_per_panel": false,
+        "show_calculation": false,
+        "show_total_only": true
+      }
+    }
+  }
+}
