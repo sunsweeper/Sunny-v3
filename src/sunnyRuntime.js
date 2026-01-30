@@ -843,4 +843,4 @@ function createSunnyRuntime({
   return { handleMessage };
 }
 
-export { createSunnyRuntime };
+export { SAFE_FAIL_MESSAGE, createSunnyRuntime };
