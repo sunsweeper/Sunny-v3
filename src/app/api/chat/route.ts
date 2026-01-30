@@ -135,7 +135,9 @@ export async function POST(request: Request) {
       completion.choices[0]?.message?.content?.trim() || SAFE_FAIL_MESSAGE;
 
     return NextResponse.json({ reply: openAiReply, state });
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   } catch (error) {
     console.error("Chat API error:", error);
     return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: {} });

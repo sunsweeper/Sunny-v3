@@ -61,7 +61,9 @@ export default function Page() {
 
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
       setCurrentState(data.state ?? currentState);
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     } catch (error) {
       console.error("Chat fetch error:", error);
       setMessages((prev) => [
@@ -85,10 +87,10 @@ export default function Page() {
 
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-slate-950 text-white">
+ codex/implement-sunny-chatbot-interface-c5wdp8
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.25),_transparent_55%),linear-gradient(135deg,_#0f172a_0%,_#020617_45%,_#1e293b_100%)]" />
       <div className="pointer-events-none absolute left-[-10%] top-[-20%] h-[420px] w-[420px] rounded-full bg-amber-400/20 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-[-20%] right-[-10%] h-[520px] w-[520px] rounded-full bg-sky-500/20 blur-[140px]" />
-
       <header className="relative z-10 border-b border-white/10 bg-black/40 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-5">
           <div>
@@ -103,12 +105,43 @@ export default function Page() {
           <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200">Online</span>
         </div>
       </header>
-
       <section className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6">
         <div className="flex-1 space-y-5 overflow-y-auto rounded-3xl border border-white/10 bg-black/70 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur">
           {!hasMessages && (
             <p className="text-sm text-white/60">
               Say hi, ask a random question, or dive into cleaning help whenever you want.
+=======
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0b1d3a] via-[#13284d] to-[#d1a23a] opacity-90" />
+        <div className="absolute inset-0 bg-[url('/sunny-background.png')] bg-cover bg-center opacity-60" />
+        <div className="absolute -top-32 -right-24 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-950/80 to-transparent" />
+      </div>
+      <section className="relative z-10 mx-auto flex w-full max-w-[900px] flex-1 flex-col gap-6 px-4 py-10">
+        <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/40 p-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-lg font-semibold">
+              ☀️
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/80">
+                SunSweeper
+              </p>
+              <h1 className="text-xl font-semibold text-white">Sunny Assistant</h1>
+              <p className="text-sm text-slate-200/80">Relaxed, friendly, and here to help.</p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-100">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            Online
+          </span>
+        </header>
+        <div className="flex-1 space-y-4 overflow-y-auto rounded-2xl border border-white/10 bg-black/70 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
+          {!hasMessages && (
+            <p className="text-sm text-slate-300/80">
+              Say hi, ask a question, or talk shop when you&apos;re ready.
+ main
             </p>
           )}
 
@@ -117,29 +150,53 @@ export default function Page() {
             return (
               <div
                 key={`${message.role}-${index}`}
-                className={`flex items-end gap-3 ${
-                  isUser ? "justify-end" : "justify-start"
+ codex/implement-sunny-chatbot-interface-fqtpxz
+              className={`flex items-end gap-3 ${
+                isUser ? "justify-end" : "justify-start"
+              }`}
+            >
+              {!isUser && (
+                <div className="relative h-10 w-10 overflow-hidden rounded-full border border-white/20">
+                  <Image
+                    src="/sunny-avatar.png"
+                    alt="Sunny with SunSweeper"
+                    fill
+                    className="object-cover"
+                    sizes="40px"
+                  />
+                </div>
+              )}
+              <div
+                className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
+                  isUser
+                    ? "bg-teal-600 text-white"
+                    : "bg-emerald-700 text-white"
                 }`}
               >
+                {message.content}
+=======
+              className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+            >
+              <div className={`flex max-w-[85%] items-end gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
                 {!isUser && (
-                  <div className="relative h-10 w-10 overflow-hidden rounded-full border border-white/20">
+                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10">
                     <Image
                       src="/sunny-avatar.png"
-                      alt="Sunny the Silkie chicken"
-                      fill
-                      className="object-cover"
-                      sizes="40px"
+                      alt="Sunny avatar"
+                      width={40}
+                      height={40}
+                      className="h-full w-full object-cover"
                     />
                   </div>
                 )}
                 <div
-                  className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
-                    isUser
-                      ? "bg-teal-600 text-white"
-                      : "bg-emerald-700 text-white"
+                  className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
+                    isUser ? "bg-teal-600 text-white" : "bg-green-700 text-white"
                   }`}
                 >
-                  {message.content}
+                  <p className="whitespace-pre-wrap">{message.content}</p>
+                </div>
+
                 </div>
               </div>
             );
@@ -169,7 +226,7 @@ export default function Page() {
           <div ref={endRef} />
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-black/70 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.3)] backdrop-blur">
+        <div className="rounded-2xl border border-white/10 bg-black/70 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.25)] backdrop-blur">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <label className="sr-only" htmlFor="chat-input">
               Message Sunny
@@ -180,28 +237,32 @@ export default function Page() {
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleKeyDown}
               rows={2}
-              placeholder="Say hi, ask anything, or talk solar..."
-              className="min-h-[52px] flex-1 resize-none rounded-full border border-slate-700 bg-slate-900/80 px-5 py-3 text-sm text-white placeholder:text-white/40 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-300/30"
+              placeholder="Type a message or just say hi..."
+              className="min-h-[52px] flex-1 resize-none rounded-full border border-gray-700 bg-gray-900 px-5 py-3 text-sm text-white placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/30"
             />
             <button
               type="button"
               onClick={() => void handleSend()}
               disabled={isLoading || !input.trim()}
-              className="inline-flex h-[52px] w-[52px] items-center justify-center rounded-full bg-amber-400 text-slate-900 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-amber-400/40"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-emerald-800"
               aria-label="Send message"
             >
               <svg
                 viewBox="0 0 24 24"
-                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="h-5 w-5"
-                fill="currentColor"
               >
-                <path d="M3.4 20.6a1 1 0 0 1-1.2-1.2l2.2-7.4L2.2 4.6A1 1 0 0 1 3.4 3.4l18 7a1 1 0 0 1 0 1.9l-18 7Z" />
+                <path d="M22 2 11 13" />
+                <path d="m22 2-7 20-4-9-9-4Z" />
               </svg>
             </button>
           </div>
-          <p className="mt-3 text-xs text-white/50">
-            Sunny follows your lead—chat casually or ask about cleanings when you’re ready.
+          <p className="mt-2 text-xs text-slate-300/80">
+            Sunny follows your lead — ask anything or dive into services when you&apos;re ready.
           </p>
         </div>
       </section>
