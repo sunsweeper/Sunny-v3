@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -31,10 +30,8 @@ export default function Page() {
     if (!trimmed || isLoading) {
       return;
     }
-
     const userMessage: Message = { role: "user", content: trimmed };
     const nextMessages = [...messages, userMessage];
-
     setMessages(nextMessages);
     setInput("");
     setIsLoading(true);
@@ -84,6 +81,7 @@ export default function Page() {
 
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-slate-950 text-white">
+      {/* Background effects */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-[#0b1d3a] via-[#13284d] to-[#d1a23a] opacity-90" />
         <div className="absolute inset-0 bg-[url('/sunny-background.png')] bg-cover bg-center opacity-60" />
@@ -130,7 +128,7 @@ export default function Page() {
                   {!isUser && (
                     <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10">
                       <Image
-                        src="/sunny-avatar.png"
+                        src="/Sunny-Avatar.jpg"
                         alt="Sunny avatar"
                         width={40}
                         height={40}
@@ -155,7 +153,7 @@ export default function Page() {
               <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 text-sm text-slate-200">
                 <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10">
                   <Image
-                    src="/sunny-avatar.png"
+                    src="/Sunny-Avatar.jpg"
                     alt="Sunny avatar"
                     width={40}
                     height={40}
@@ -179,6 +177,7 @@ export default function Page() {
               </div>
             </div>
           )}
+
           <div ref={endRef} />
         </div>
 
