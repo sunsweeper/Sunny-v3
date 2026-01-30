@@ -1,5 +1,1 @@
-const { createSunnyRuntime } = require('./sunnyRuntime');
-
-module.exports = {
-  createSunnyRuntime,
-};
+export { createSunnyRuntime } from './sunnyRuntime.js';
