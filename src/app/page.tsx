@@ -80,37 +80,43 @@ export default function Page() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col overflow-hidden bg-slate-950 text-white">
+    <main className="relative flex min-h-screen flex-col overflow-hidden bg-[#0a1d3a] text-white">
       {/* Background effects */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0b1d3a] via-[#13284d] to-[#d1a23a] opacity-90" />
-        <div className="absolute inset-0 bg-[url('/sunny-background.png')] bg-cover bg-center opacity-60" />
-        <div className="absolute -top-32 -right-24 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-950/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a1d3a] via-[#0d2447] to-[#102b54]" />
+        <div className="absolute inset-0 bg-[url('/sunny-background.png')] bg-cover bg-center opacity-25" />
+        <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-amber-300/15 blur-3xl" />
+        <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-[#08162d] to-transparent" />
       </div>
 
       <section className="relative z-10 mx-auto flex w-full max-w-[900px] flex-1 flex-col gap-6 px-4 py-10">
-        <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/40 p-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-lg font-semibold">
-              ☀️
+        <header className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-300/20 text-2xl">
+                ☀️
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">
+                  SunSweeper
+                </p>
+                <p className="text-xs text-slate-200/80">
+                  The Solar Panel and roof cleaning experts
+                </p>
+              </div>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/80">
-                SunSweeper
-              </p>
-              <h1 className="text-xl font-semibold text-white">Sunny Assistant</h1>
+              <h1 className="text-2xl font-semibold text-white">Sunny Assistant</h1>
               <p className="text-sm text-slate-200/80">Relaxed, friendly, and here to help.</p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-100">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            Online
-          </span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-amber-300/10 px-4 py-2 text-xs font-semibold text-amber-200">
+            <span className="h-2 w-2 rounded-full bg-amber-300" />
+            805-938-1515 Call or text for a live human
+          </div>
         </header>
 
-        <div className="flex-1 space-y-4 overflow-y-auto rounded-2xl border border-white/10 bg-black/70 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
+        <div className="flex-1 space-y-4 overflow-y-auto rounded-2xl border border-white/10 bg-black/60 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
           {!hasMessages && (
             <p className="text-sm text-slate-300/80">
               Say hi, ask a question, or talk shop when you&apos;re ready.
@@ -138,7 +144,7 @@ export default function Page() {
                   )}
                   <div
                     className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
-                      isUser ? "bg-teal-600 text-white" : "bg-green-700 text-white"
+                      isUser ? "bg-amber-600/80 text-white" : "bg-gray-800/90 text-white"
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{message.content}</p>
@@ -150,7 +156,7 @@ export default function Page() {
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 text-sm text-slate-200">
+              <div className="flex items-center gap-3 rounded-2xl bg-gray-800/80 px-4 py-3 text-sm text-slate-200">
                 <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10">
                   <Image
                     src="/sunny-avatar.jpg"  // ← fixed here too
@@ -161,15 +167,15 @@ export default function Page() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span>Sunny is thinking</span>
+                  <span>Sunny is responding...</span>
                   <span className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-300" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-amber-300" />
                     <span
-                      className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-300"
+                      className="h-1.5 w-1.5 animate-bounce rounded-full bg-amber-300"
                       style={{ animationDelay: "150ms" }}
                     />
                     <span
-                      className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-300"
+                      className="h-1.5 w-1.5 animate-bounce rounded-full bg-amber-300"
                       style={{ animationDelay: "300ms" }}
                     />
                   </span>
@@ -181,7 +187,7 @@ export default function Page() {
           <div ref={endRef} />
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-black/70 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.25)] backdrop-blur">
+        <div className="rounded-2xl border border-white/10 bg-black/60 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.25)] backdrop-blur">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <label className="sr-only" htmlFor="chat-input">
               Message Sunny
@@ -193,13 +199,13 @@ export default function Page() {
               onKeyDown={handleKeyDown}
               rows={2}
               placeholder="Type a message or just say hi..."
-              className="min-h-[52px] flex-1 resize-none rounded-full border border-gray-700 bg-gray-900 px-5 py-3 text-sm text-white placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/30"
+              className="min-h-[52px] flex-1 resize-none rounded-xl border border-white/10 bg-[#0a1933] px-5 py-3 text-sm text-white placeholder:text-slate-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200/40"
             />
             <button
               type="button"
               onClick={() => void handleSend()}
               disabled={isLoading || !input.trim()}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-emerald-800"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 text-[#0a1d3a] transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-amber-400/50"
               aria-label="Send message"
             >
               <svg
