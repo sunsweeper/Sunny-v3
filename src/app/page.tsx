@@ -128,7 +128,7 @@ export default function Page() {
                   {!isUser && (
                     <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10">
                       <Image
-                        src="/Sunny-Avatar.jpg"
+                        src="/sunny-avatar.jpg"  // ← fixed to lowercase .jpg
                         alt="Sunny avatar"
                         width={40}
                         height={40}
@@ -153,7 +153,7 @@ export default function Page() {
               <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 text-sm text-slate-200">
                 <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10">
                   <Image
-                    src="/Sunny-Avatar.jpg"
+                    src="/sunny-avatar.jpg"  // ← fixed here too
                     alt="Sunny avatar"
                     width={40}
                     height={40}
