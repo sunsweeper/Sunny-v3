@@ -834,7 +834,7 @@ function createSunnyRuntime({
       return { reply, state: updatedState };
     }
 
-    const reply = 'How can I help with SunSweeper services or a quote today?';
+    const reply = "Hey! What's up? 😊";
     logOutcome(logger, { intent: detectedIntent, outcome: updatedState.outcome, pricingPath: null });
     writeOutcomeRecord(outcomeLogPath, buildOutcomeRecord(updatedState), logger);
     return { reply, state: updatedState };
