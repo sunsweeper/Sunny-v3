@@ -135,6 +135,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ reply: openAiReply, state });
   } catch (error) {
+    console.error("Chat API error:", error);
     return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: {} });
   }
 }

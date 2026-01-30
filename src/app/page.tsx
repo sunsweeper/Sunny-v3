@@ -62,6 +62,7 @@ export default function Page() {
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
       setCurrentState(data.state ?? currentState);
     } catch (error) {
+      console.error("Chat fetch error:", error);
       setMessages((prev) => [
         ...prev,
         {
