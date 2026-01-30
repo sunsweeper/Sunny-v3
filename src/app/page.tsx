@@ -80,21 +80,27 @@ export default function Page() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-b from-[#0a1d3a] via-[#071329] to-[#020617] text-white">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#0a1d3a] via-[#071329] to-[#020617] text-white">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,214,102,0.15),_transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(17,36,74,0.8),_transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,214,102,0.18),_transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(8,20,40,0.8),_transparent_60%)]" />
       </div>
 
-      <section className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-4 pb-10 pt-8 sm:px-6">
+      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-[900px] flex-col gap-8 px-4 pb-10 pt-8 sm:px-6">
         <header className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-300/20 text-3xl shadow-[0_0_30px_rgba(253,224,71,0.35)]">
-                ☀️
+            <div className="flex items-start gap-4">
+              <div className="h-16 w-16 overflow-hidden rounded-full bg-amber-300/10 shadow-[0_0_32px_rgba(253,224,71,0.35)]">
+                <Image
+                  src="/logo.png"
+                  alt="SunSweeper logo"
+                  width={64}
+                  height={64}
+                  className="h-full w-full object-contain"
+                />
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-200">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-200/90">
                   SunSweeper
                 </p>
                 <p className="text-sm text-amber-100/90">
@@ -109,16 +115,19 @@ export default function Page() {
               <p className="mt-2 text-sm text-slate-200/80">
                 Relaxed, friendly, and here to help.
               </p>
+              <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-100">
+                <span className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_10px_rgba(253,224,71,0.7)]" />
+                <span>Online</span>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-full border border-amber-300/40 bg-amber-300/15 px-5 py-3 text-sm font-semibold text-amber-200 shadow-[0_0_20px_rgba(253,224,71,0.15)]">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-300 shadow-[0_0_12px_rgba(253,224,71,0.7)]" />
+          <div className="flex items-center gap-3 rounded-full border border-amber-300/40 bg-amber-300/15 px-5 py-3 text-sm font-semibold text-amber-200 shadow-[0_0_20px_rgba(253,224,71,0.2)]">
             <span className="text-amber-100">805-938-1515 Call or text for a live human</span>
           </div>
         </header>
 
         <div className="flex flex-1 flex-col gap-6">
-          <div className="flex-1 space-y-4 overflow-y-auto rounded-2xl border border-white/10 bg-black/70 p-5 shadow-[0_25px_70px_rgba(0,0,0,0.45)] backdrop-blur">
+          <div className="flex-1 space-y-4 overflow-y-auto rounded-xl border border-white/10 bg-black/70 p-5 shadow-[0_25px_70px_rgba(0,0,0,0.45)] backdrop-blur">
             {!hasMessages && (
               <p className="text-sm text-slate-300/80">
                 Say hi, ask a question, or talk shop when you&apos;re ready.
@@ -151,8 +160,8 @@ export default function Page() {
                     <div
                       className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
                         isUser
-                          ? "bg-amber-600 text-white"
-                          : "bg-gray-800 text-white"
+                          ? "bg-amber-600/80 text-white"
+                          : "bg-gray-800/90 text-white"
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{message.content}</p>
