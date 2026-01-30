@@ -80,74 +80,110 @@ export default function Page() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#0a1d3a] via-[#071329] to-[#020617] text-white">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,214,102,0.18),_transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(8,20,40,0.8),_transparent_60%)]" />
-      </div>
-
-      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-[900px] flex-col gap-8 px-4 pb-10 pt-8 sm:px-6">
-        <header className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-start gap-4">
-              <div className="h-16 w-16 overflow-hidden rounded-full bg-amber-300/10 shadow-[0_0_32px_rgba(253,224,71,0.35)]">
+    <main className="min-h-screen bg-[#163B5B] text-white">
+      <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-12 pt-10 sm:px-8">
+        <header className="rounded-2xl border border-white/10 bg-[#0f2f4a] px-6 py-8 shadow-[0_20px_50px_rgba(5,15,30,0.35)]">
+          <div className="flex flex-col items-center gap-8 text-center lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:text-left">
+            <div className="space-y-3 lg:pr-6">
+              <p className="text-3xl font-semibold leading-tight text-white sm:text-4xl">
+                The Solar Panel and roof cleaning experts.
+              </p>
+              <p className="text-sm text-slate-200/80">
+                Relaxed, friendly, and here to help.
+              </p>
+            </div>
+            <div className="flex items-center justify-center">
+              <div className="h-24 w-24 overflow-hidden rounded-full bg-white/10 p-2 shadow-[0_0_30px_rgba(255,255,255,0.15)] sm:h-28 sm:w-28">
                 <Image
                   src="/logo.png"
                   alt="SunSweeper logo"
-                  width={64}
-                  height={64}
+                  width={112}
+                  height={112}
                   className="h-full w-full object-contain"
                 />
               </div>
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-200/90">
-                  SunSweeper
-                </p>
-                <p className="text-sm text-amber-100/90">
-                  The Solar Panel and roof cleaning experts
-                </p>
-              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-semibold text-white sm:text-4xl">
-                Sunny Assistant
-              </h1>
-              <p className="mt-2 text-sm text-slate-200/80">
-                Relaxed, friendly, and here to help.
+            <div className="space-y-2 text-center lg:pl-6 lg:text-right">
+              <p className="text-2xl font-semibold text-white">
+                805-938-1515
               </p>
-              <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-100">
-                <span className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_10px_rgba(253,224,71,0.7)]" />
-                <span>Online</span>
-              </div>
+              <p className="text-sm text-slate-200/80">
+                Call or text for a live human
+              </p>
             </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-full border border-amber-300/40 bg-amber-300/15 px-5 py-3 text-sm font-semibold text-amber-200 shadow-[0_0_20px_rgba(253,224,71,0.2)]">
-            <span className="text-amber-100">805-938-1515 Call or text for a live human</span>
           </div>
         </header>
 
         <div className="flex flex-1 flex-col gap-6">
-          <div className="flex-1 space-y-4 overflow-y-auto rounded-xl border border-white/10 bg-black/70 p-5 shadow-[0_25px_70px_rgba(0,0,0,0.45)] backdrop-blur">
-            {!hasMessages && (
-              <p className="text-sm text-slate-300/80">
-                Say hi, ask a question, or talk shop when you&apos;re ready.
-              </p>
-            )}
+          <div className="flex-1 rounded-3xl border border-white/20 bg-[#2F7DBA] p-6 shadow-[0_28px_60px_rgba(7,19,41,0.5)]">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col items-start gap-4 rounded-2xl border border-white/20 bg-[#3A8BC7] px-5 py-4 sm:flex-row sm:items-center">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-white/40 bg-white/10">
+                  <Image
+                    src="/sunny-avatar.jpg"
+                    alt="Sunny avatar"
+                    width={64}
+                    height={64}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <p className="text-sm text-white/90">
+                  Sunny follows your lead — ask anything or dive into services
+                  when you&apos;re ready.
+                </p>
+              </div>
 
-            {messages.map((message, index) => {
-              const isUser = message.role === "user";
-              return (
-                <div
-                  key={`${message.role}-${index}`}
-                  className={`flex ${isUser ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`flex max-w-[85%] items-end gap-3 ${
-                      isUser ? "flex-row-reverse" : ""
-                    }`}
-                  >
-                    {!isUser && (
-                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10">
+              <div className="space-y-4">
+                {!hasMessages && (
+                  <p className="text-sm text-slate-100/80">
+                    Say hi, ask a question, or talk shop when you&apos;re ready.
+                  </p>
+                )}
+
+                {messages.map((message, index) => {
+                  const isUser = message.role === "user";
+                  return (
+                    <div
+                      key={`${message.role}-${index}`}
+                      className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`flex max-w-[85%] items-end gap-3 ${
+                          isUser ? "" : ""
+                        }`}
+                      >
+                        {!isUser && (
+                          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/30 bg-white/10">
+                            <Image
+                              src="/sunny-avatar.jpg"
+                              alt="Sunny avatar"
+                              width={40}
+                              height={40}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        )}
+                        {isUser && (
+                          <div className="rounded-md bg-[#15496e] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/90">
+                            You
+                          </div>
+                        )}
+                        <div
+                          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-[0_10px_25px_rgba(7,18,36,0.3)] ${
+                            isUser ? "bg-[#1E5F90] text-white" : "bg-[#3A8BC7] text-white"
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="flex items-center gap-3 rounded-2xl bg-[#3A8BC7] px-4 py-3 text-sm text-slate-100">
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/30 bg-white/10">
                         <Image
                           src="/sunny-avatar.jpg"
                           alt="Sunny avatar"
@@ -156,55 +192,30 @@ export default function Page() {
                           className="h-full w-full object-cover"
                         />
                       </div>
-                    )}
-                    <div
-                      className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
-                        isUser
-                          ? "bg-amber-600/80 text-white"
-                          : "bg-gray-800/90 text-white"
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                      <div className="flex items-center gap-2">
+                        <span>Sunny is responding...</span>
+                        <span className="flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white" />
+                          <span
+                            className="h-1.5 w-1.5 animate-bounce rounded-full bg-white"
+                            style={{ animationDelay: "150ms" }}
+                          />
+                          <span
+                            className="h-1.5 w-1.5 animate-bounce rounded-full bg-white"
+                            style={{ animationDelay: "300ms" }}
+                          />
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                )}
 
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="flex items-center gap-3 rounded-2xl bg-gray-800/90 px-4 py-3 text-sm text-slate-200">
-                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10">
-                    <Image
-                      src="/sunny-avatar.jpg"
-                      alt="Sunny avatar"
-                      width={40}
-                      height={40}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>Sunny is responding...</span>
-                    <span className="flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-amber-300" />
-                      <span
-                        className="h-1.5 w-1.5 animate-bounce rounded-full bg-amber-300"
-                        style={{ animationDelay: "150ms" }}
-                      />
-                      <span
-                        className="h-1.5 w-1.5 animate-bounce rounded-full bg-amber-300"
-                        style={{ animationDelay: "300ms" }}
-                      />
-                    </span>
-                  </div>
-                </div>
+                <div ref={endRef} />
               </div>
-            )}
-
-            <div ref={endRef} />
+            </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/70 p-4 shadow-[0_16px_50px_rgba(0,0,0,0.4)] backdrop-blur">
+          <div className="rounded-2xl border border-white/20 bg-[#2F7DBA] p-4 shadow-[0_16px_35px_rgba(7,19,41,0.4)]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <label className="sr-only" htmlFor="chat-input">
                 Message Sunny
@@ -216,13 +227,13 @@ export default function Page() {
                 onKeyDown={handleKeyDown}
                 rows={2}
                 placeholder="Type a message or just say hi..."
-                className="min-h-[52px] flex-1 resize-none rounded-full border border-white/10 bg-[#09172d] px-6 py-3 text-sm text-white placeholder:text-slate-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200/40"
+                className="min-h-[52px] flex-1 resize-none rounded-full border border-white/30 bg-[#143c5e] px-6 py-3 text-sm text-white placeholder:text-slate-200/70 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30"
               />
               <button
                 type="button"
                 onClick={() => void handleSend()}
                 disabled={isLoading || !input.trim()}
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-400 text-[#0a1d3a] transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-amber-400/50"
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#1E5F90] transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-white/60"
                 aria-label="Send message"
               >
                 <svg
@@ -239,10 +250,6 @@ export default function Page() {
                 </svg>
               </button>
             </div>
-            <p className="mt-2 text-xs text-slate-300/80">
-              Sunny follows your lead — ask anything or dive into services when
-              you&apos;re ready.
-            </p>
           </div>
         </div>
       </section>
