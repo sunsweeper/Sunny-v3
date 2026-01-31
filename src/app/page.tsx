@@ -80,7 +80,7 @@ export default function Page() {
   };
 
   return (
-    <main className="min-h-screen bg-[#1F3F5B] text-white">
+    <main className="min-h-screen bg-[#1F3F5B] font-sans text-white">
       <section className="w-full">
         <header className="w-full bg-[#1F3F5B] py-10">
           <div className="mx-auto flex flex-col items-center gap-8 px-4 text-center sm:px-8 lg:grid lg:max-w-6xl lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:text-left">
@@ -90,7 +90,7 @@ export default function Page() {
               </p>
             </div>
             <div className="flex items-center justify-center">
-              <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-[#F5B301] bg-[#1F3F5B] p-2 sm:h-32 sm:w-32">
+              <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-[#F5B301] bg-[#1F3F5B] p-2 sm:h-40 sm:w-40">
                 <Image
                   src="/logo.png"
                   alt="SunSweeper logo"
@@ -112,7 +112,7 @@ export default function Page() {
         </header>
 
         <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center gap-6 px-4 pb-12 sm:px-8">
-          <div className="w-full rounded-2xl border border-[#1E5F90] bg-[#2F7DBA] p-6 shadow-[0_18px_40px_rgba(30,95,144,0.35)] sm:p-8">
+          <div className="w-full rounded-2xl border-2 border-[#1E5F90] bg-[#2F7DBA] p-6 shadow-[0_12px_24px_#1E5F90] sm:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start">
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-[#1E5F90] bg-[#3F8FCC]">
@@ -130,7 +130,7 @@ export default function Page() {
                 </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 px-2">
                 {!hasMessages && (
                   <p className="text-sm text-[#0A1A26]">
                     Say hi, ask a question, or talk shop when you&apos;re ready.
@@ -157,12 +157,12 @@ export default function Page() {
                           </div>
                         )}
                         {isUser && (
-                          <div className="rounded-md bg-[#1F3F5B] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#F5B301]">
+                          <div className="mt-1 rounded-sm bg-[#1F3F5B] px-2 py-1 text-[10px] font-semibold tracking-wide text-[#F5B301]">
                             You
                           </div>
                         )}
                         <div
-                          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-[0_10px_20px_rgba(30,95,144,0.25)] ${
+                          className={`rounded-md px-4 py-3 text-sm leading-relaxed ${
                             isUser
                               ? "bg-[#1E5F90] text-white"
                               : "bg-[#3F8FCC] text-[#0A1A26]"
@@ -220,13 +220,13 @@ export default function Page() {
                     onKeyDown={handleKeyDown}
                     rows={2}
                     placeholder="Enter text here."
-                    className="min-h-[52px] flex-1 resize-none rounded-md border border-[#1F3F5B] bg-[#E6E6E6] px-4 py-2 text-sm text-[#0A1A26] placeholder:text-[#6B6B6B] focus:border-[#1F3F5B] focus:outline-none focus:ring-2 focus:ring-[#1F3F5B]/40"
+                    className="min-h-[52px] flex-1 resize-none rounded-md border border-[#1F3F5B] bg-[#E6E6E6] px-4 py-2 text-sm text-[#0A1A26] placeholder:text-[#6B6B6B] focus:border-[#1F3F5B] focus:outline-none focus:ring-2 focus:ring-[#1F3F5B]"
                   />
                   <button
                     type="button"
                     onClick={() => void handleSend()}
                     disabled={isLoading || !input.trim()}
-                    className="inline-flex h-11 items-center justify-center rounded-md bg-[#1E5F90] px-5 text-sm font-semibold text-white transition hover:bg-[#1F3F5B] disabled:cursor-not-allowed disabled:bg-[#1E5F90]/60"
+                    className="inline-flex h-11 items-center justify-center rounded-md bg-[#1E5F90] px-5 text-sm font-semibold text-white transition hover:bg-[#1F3F5B] disabled:cursor-not-allowed disabled:bg-[#1E5F90]"
                     aria-label="Send message"
                   >
                     Send
