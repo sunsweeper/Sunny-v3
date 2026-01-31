@@ -81,30 +81,27 @@ export default function Page() {
 
   return (
     <main className="min-h-screen bg-[#163B5B] text-white">
-      <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-12 pt-10 sm:px-8">
-        <header className="rounded-2xl border border-white/10 bg-[#0f2f4a] px-6 py-8 shadow-[0_20px_50px_rgba(5,15,30,0.35)]">
+      <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-12 pt-8 sm:px-8">
+        <header className="border-b border-white/10 pb-6 pt-2">
           <div className="flex flex-col items-center gap-8 text-center lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:text-left">
-            <div className="space-y-3 lg:pr-6">
-              <p className="text-3xl font-semibold leading-tight text-white sm:text-4xl">
+            <div className="space-y-3 lg:pr-8">
+              <p className="text-3xl font-semibold leading-tight text-white sm:text-4xl lg:text-[2.6rem]">
                 The Solar Panel and roof cleaning experts.
-              </p>
-              <p className="text-sm text-slate-200/80">
-                Relaxed, friendly, and here to help.
               </p>
             </div>
             <div className="flex items-center justify-center">
-              <div className="h-24 w-24 overflow-hidden rounded-full bg-white/10 p-2 shadow-[0_0_30px_rgba(255,255,255,0.15)] sm:h-28 sm:w-28">
+              <div className="h-28 w-28 overflow-hidden rounded-full bg-[#f4c742]/10 p-1 sm:h-32 sm:w-32">
                 <Image
                   src="/logo.png"
                   alt="SunSweeper logo"
-                  width={112}
-                  height={112}
+                  width={128}
+                  height={128}
                   className="h-full w-full object-contain"
                 />
               </div>
             </div>
-            <div className="space-y-2 text-center lg:pl-6 lg:text-right">
-              <p className="text-2xl font-semibold text-white">
+            <div className="space-y-1 text-center lg:pl-8 lg:text-right">
+              <p className="text-3xl font-semibold tracking-wide text-white">
                 805-938-1515
               </p>
               <p className="text-sm text-slate-200/80">
@@ -114,10 +111,10 @@ export default function Page() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-6">
-          <div className="flex-1 rounded-3xl border border-white/20 bg-[#2F7DBA] p-6 shadow-[0_28px_60px_rgba(7,19,41,0.5)]">
+        <div className="flex flex-1 flex-col items-center gap-6">
+          <div className="w-full rounded-3xl border border-white/15 bg-[#2F7DBA] p-6 shadow-[0_28px_60px_rgba(7,19,41,0.5)] sm:p-8">
             <div className="flex flex-col gap-6">
-              <div className="flex flex-col items-start gap-4 rounded-2xl border border-white/20 bg-[#3A8BC7] px-5 py-4 sm:flex-row sm:items-center">
+              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start">
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-white/40 bg-white/10">
                   <Image
                     src="/sunny-avatar.jpg"
@@ -127,7 +124,7 @@ export default function Page() {
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <p className="text-sm text-white/90">
+                <p className="text-lg leading-relaxed text-white/95">
                   Sunny follows your lead — ask anything or dive into services
                   when you&apos;re ready.
                 </p>
@@ -147,11 +144,7 @@ export default function Page() {
                       key={`${message.role}-${index}`}
                       className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                     >
-                      <div
-                        className={`flex max-w-[85%] items-end gap-3 ${
-                          isUser ? "" : ""
-                        }`}
-                      >
+                      <div className="flex max-w-[85%] items-start gap-3">
                         {!isUser && (
                           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/30 bg-white/10">
                             <Image
@@ -212,43 +205,32 @@ export default function Page() {
 
                 <div ref={endRef} />
               </div>
-            </div>
-          </div>
 
-          <div className="rounded-2xl border border-white/20 bg-[#2F7DBA] p-4 shadow-[0_16px_35px_rgba(7,19,41,0.4)]">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <label className="sr-only" htmlFor="chat-input">
-                Message Sunny
-              </label>
-              <textarea
-                id="chat-input"
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                onKeyDown={handleKeyDown}
-                rows={2}
-                placeholder="Type a message or just say hi..."
-                className="min-h-[52px] flex-1 resize-none rounded-full border border-white/30 bg-[#143c5e] px-6 py-3 text-sm text-white placeholder:text-slate-200/70 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30"
-              />
-              <button
-                type="button"
-                onClick={() => void handleSend()}
-                disabled={isLoading || !input.trim()}
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#1E5F90] transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-white/60"
-                aria-label="Send message"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-5 w-5"
-                >
-                  <path d="M22 2 11 13" />
-                  <path d="m22 2-7 20-4-9-9-4Z" />
-                </svg>
-              </button>
+              <div className="rounded-xl border border-white/20 bg-[#2a6ea4] p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                  <label className="sr-only" htmlFor="chat-input">
+                    Message Sunny
+                  </label>
+                  <textarea
+                    id="chat-input"
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    onKeyDown={handleKeyDown}
+                    rows={2}
+                    placeholder="Enter text here."
+                    className="min-h-[52px] flex-1 resize-none rounded-md border border-slate-200 bg-[#d4d6da] px-4 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/40"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleSend()}
+                    disabled={isLoading || !input.trim()}
+                    className="inline-flex h-11 items-center justify-center rounded-md bg-[#123a5a] px-5 text-sm font-semibold text-white transition hover:bg-[#0f2f4a] disabled:cursor-not-allowed disabled:bg-[#123a5a]/60"
+                    aria-label="Send message"
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
