@@ -153,6 +153,133 @@ export default function Page() {
         Sunny is currently undergoing beta testing. We encourage you to test him out, but as of today all quotes
         and appointments must be scheduled with a live human at 805-938-1515.
       </footer>
+
+      <footer
+        style={{
+          background: "#0f172a",
+          color: "#e5e7eb",
+          padding: "48px 24px",
+          fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+            gap: "32px",
+          }}
+        >
+          <div>
+            <strong style={{ fontSize: "18px" }}>SunSweeper, Inc.</strong>
+            <br />
+            <span>Professional Solar Panel &amp; Roof Cleaning</span>
+            <br />
+            <br />
+            Serving Santa Barbara County &amp; San Luis Obispo County
+          </div>
+
+          <div>
+            <strong>Contact</strong>
+            <br />
+            📞{" "}
+            <a href="tel:18059381515" style={{ color: "#e5e7eb" }}>
+              805-938-1515
+            </a>
+            <br />
+            ✉️{" "}
+            <a href="mailto:info@sunsweeper.com" style={{ color: "#e5e7eb" }}>
+              info@sunsweeper.com
+            </a>
+            <br />
+            🕒 8:00am – 7:30pm
+          </div>
+
+          <div>
+            <strong>Services</strong>
+            <br />
+            Solar Panel Washing
+            <br />
+            Roof Washing
+            <br />
+            Commercial Solar Cleaning
+          </div>
+
+          <div>
+            <strong>Company</strong>
+            <br />
+            <a href="/about" style={{ color: "#e5e7eb" }}>
+              About SunSweeper
+            </a>
+            <br />
+            <a href="/reviews" style={{ color: "#e5e7eb" }}>
+              Reviews
+            </a>
+            <br />
+            <a href="/contact" style={{ color: "#e5e7eb" }}>
+              Contact Us
+            </a>
+          </div>
+
+          <div>
+            <strong>Resources</strong>
+            <br />
+            <a href="/privacy-policy" style={{ color: "#e5e7eb" }}>
+              Privacy Policy
+            </a>
+            <br />
+            <a href="/terms-of-service" style={{ color: "#e5e7eb" }}>
+              Terms of Service
+            </a>
+            <br />
+            <a href="/cookie-policy" style={{ color: "#e5e7eb" }}>
+              Cookie Policy
+            </a>
+          </div>
+
+          <div>
+            <strong>Reviews</strong>
+            <br />
+            <a href="https://g.page/r/CQ52qP2TmAtxEAE/review" style={{ color: "#e5e7eb" }}>
+              Google
+            </a>
+            <br />
+            <a href="https://www.facebook.com/TheSunSweeper/reviews" style={{ color: "#e5e7eb" }}>
+              Facebook
+            </a>
+            <br />
+            <a href="https://www.yelp.com/biz/sun-sweeper-santa-maria" style={{ color: "#e5e7eb" }}>
+              Yelp
+            </a>
+            <br />
+            <a
+              href="https://www.bbb.org/us/ca/santa-maria/profile/solar-panel-cleaning/sunsweeper-1236-92093550"
+              style={{ color: "#e5e7eb" }}
+            >
+              BBB
+            </a>
+          </div>
+        </div>
+
+        <hr style={{ margin: "40px 0", borderColor: "#334155" }} />
+
+        <div style={{ maxWidth: "1200px", margin: "0 auto", textAlign: "center", fontSize: "14px", color: "#cbd5f5" }}>
+          <p>
+            <strong>Clean panels, more energy. It’s that simple.</strong>
+          </p>
+          <p>
+            Selling a home with solar? <a href="https://sunpasssolar.com" style={{ color: "#93c5fd" }}>Explore SunPass</a>
+          </p>
+          <p>
+            💬{" "}
+            <a href="#" style={{ color: "#93c5fd" }}>
+              Chat with Sunny
+            </a>
+          </p>
+          <p style={{ marginTop: "16px" }}>© 2024–2026 SunSweeper, Inc. All rights reserved.</p>
+        </div>
+      </footer>
     </main>
   );
 }
