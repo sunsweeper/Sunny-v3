@@ -86,7 +86,9 @@ export default function Page() {
         <p className="headline">The Solar Panel and roof cleaning experts.</p>
         <Image src="/logo.png" alt="SunSweeper logo" width={640} height={350} className="hero-logo" priority />
         <div className="contact-wrap">
-          <p className="phone">805-938-1515</p>
+          <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">
+            805-938-1515
+          </a>
           <p className="contact-line">
             Call <span>or</span> text <small>for a live human</small>
           </p>
@@ -96,7 +98,7 @@ export default function Page() {
       <section className="chat-shell">
         <div className="intro-row">
           <Image src="/sunny-avatar.png" alt="Sunny avatar" width={84} height={84} className="sunny-avatar" />
-          <p>
+          <p className="intro-copy">
             Hey there, I’m Sunny with SunSweeper. &nbsp;No need to search for
             information about SunSweeper, just ask me. &nbsp;I can research,
             quote prices, even schedule appointments.
@@ -148,9 +150,10 @@ export default function Page() {
             onClick={() => void handleSend()}
             disabled={isLoading || !input.trim()}
             className="send-btn"
-            aria-label="Send message"
+            aria-label="Send message to Sunny"
           >
-            Send
+            <span aria-hidden="true">➤</span>
+            <span className="send-label">Send</span>
           </button>
         </div>
       </section>
