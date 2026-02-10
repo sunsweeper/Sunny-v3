@@ -148,6 +148,11 @@ export default function Page() {
           </button>
         </div>
       </section>
+
+      <footer className="beta-footer">
+        Sunny is currently undergoing beta testing. We encourage you to test him out, but as of today all quotes
+        and appointments must be scheduled with a live human at 805-938-1515.
+      </footer>
     </main>
   );
 }
