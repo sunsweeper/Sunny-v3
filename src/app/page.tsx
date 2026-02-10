@@ -61,12 +61,22 @@ export default function Page() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeService, setActiveService] = useState<ServiceKey | null>(null);
-  const endRef = useRef<HTMLDivElement | null>(null);
+  const chatShellRef = useRef<HTMLElement | null>(null);
+  const messagesRef = useRef<HTMLDivElement | null>(null);
 
   const hasMessages = useMemo(() => messages.length > 0, [messages.length]);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    const messagesElement = messagesRef.current;
+
+    if (!messagesElement) {
+      return;
+    }
+
+    messagesElement.scrollTo({
+      top: messagesElement.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages, isLoading]);
 
   const handleSend = async () => {
@@ -128,6 +138,7 @@ export default function Page() {
     setActiveService(service);
     setMessages([{ role: "assistant", content: selectedPrompt }]);
     setCurrentState((prev) => ({ ...prev, selectedService: service }));
+    chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   return (
@@ -160,8 +171,8 @@ export default function Page() {
         </nav>
       </section>
 
-      <section className="chat-shell">
-        <div className="messages">
+      <section ref={chatShellRef} className="chat-shell">
+        <div ref={messagesRef} className="messages">
           {!hasMessages && (
             <p className="helper-text">Say hi, ask a question, or talk shop when you&apos;re ready.</p>
           )}
@@ -184,8 +195,6 @@ export default function Page() {
               </div>
             </div>
           )}
-
-          <div ref={endRef} />
         </div>
 
         <div className="input-wrap">
