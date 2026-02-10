@@ -10,7 +10,7 @@ type Message = {
 
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
-  content: "Hey there! I'm Sunny ☀️ — how's it going? Ask me anything!",
+  content: "Hey there! I’m Sunny, the SunSweeper AI. I’m here to make things easy—pricing, scheduling, service details, and clear answers about what we do and how we do it. No digging, no guessing. Just ask.",
 };
 
 export default function Page() {
