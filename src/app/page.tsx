@@ -8,9 +8,51 @@ type Message = {
   content: string;
 };
 
+type ServiceKey = "solarPanelCleaning" | "birdProofing" | "roofWashing" | "gutterCleaningRepair";
+
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
   content: "Hey there! I’m Sunny, the SunSweeper AI. I’m here to make things easy—pricing, scheduling, service details, and clear answers about what we do and how we do it. No digging, no guessing. Just ask.",
+};
+
+const SERVICE_PROMPTS: Record<ServiceKey, string[]> = {
+  solarPanelCleaning: [
+    "[Solar Panel Cleaning Placeholder Message 1]",
+    "[Solar Panel Cleaning Placeholder Message 2]",
+    "[Solar Panel Cleaning Placeholder Message 3]",
+    "[Solar Panel Cleaning Placeholder Message 4]",
+  ],
+  birdProofing: [
+    "[Bird Proofing Placeholder Message 1]",
+    "[Bird Proofing Placeholder Message 2]",
+    "[Bird Proofing Placeholder Message 3]",
+    "[Bird Proofing Placeholder Message 4]",
+  ],
+  roofWashing: [
+    "[Roof Washing Placeholder Message 1]",
+    "[Roof Washing Placeholder Message 2]",
+    "[Roof Washing Placeholder Message 3]",
+    "[Roof Washing Placeholder Message 4]",
+  ],
+  gutterCleaningRepair: [
+    "[Gutter Cleaning/Repair Placeholder Message 1]",
+    "[Gutter Cleaning/Repair Placeholder Message 2]",
+    "[Gutter Cleaning/Repair Placeholder Message 3]",
+    "[Gutter Cleaning/Repair Placeholder Message 4]",
+  ],
+};
+
+const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
+  { key: "solarPanelCleaning", label: "Solar Panel Cleaning" },
+  { key: "birdProofing", label: "Bird Proofing" },
+  { key: "roofWashing", label: "Roof Washing" },
+  { key: "gutterCleaningRepair", label: "Gutter Cleaning/Repair" },
+];
+
+const getRandomServicePrompt = (service: ServiceKey): string => {
+  const promptOptions = SERVICE_PROMPTS[service];
+  const randomIndex = Math.floor(Math.random() * promptOptions.length);
+  return promptOptions[randomIndex];
 };
 
 export default function Page() {
@@ -18,6 +60,7 @@ export default function Page() {
   const [currentState, setCurrentState] = useState<Record<string, unknown>>({});
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeService, setActiveService] = useState<ServiceKey | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const hasMessages = useMemo(() => messages.length > 0, [messages.length]);
@@ -80,6 +123,13 @@ export default function Page() {
     }
   };
 
+  const handleServiceClick = (service: ServiceKey) => {
+    const selectedPrompt = getRandomServicePrompt(service);
+    setActiveService(service);
+    setMessages([{ role: "assistant", content: selectedPrompt }]);
+    setCurrentState((prev) => ({ ...prev, selectedService: service }));
+  };
+
   return (
     <main className="page-shell">
       <section className="hero">
@@ -93,6 +143,21 @@ export default function Page() {
             Call <span>or</span> text <small>for a live human</small>
           </p>
         </div>
+        <nav className="service-nav" aria-label="Core services">
+          {SERVICE_OPTIONS.map((service) => {
+            const isActive = activeService === service.key;
+            return (
+              <button
+                key={service.key}
+                type="button"
+                className={`service-link ${isActive ? "active" : ""}`}
+                onClick={() => handleServiceClick(service.key)}
+              >
+                {service.label}
+              </button>
+            );
+          })}
+        </nav>
       </section>
 
       <section className="chat-shell">
