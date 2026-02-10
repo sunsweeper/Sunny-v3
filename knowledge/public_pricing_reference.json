@@ -1,0 +1,79 @@
+{
+  "source_file": "public/Sunny_Public_Service_Pricing_Reference.xlsx",
+  "description": "Public-safe service and pricing-positioning guidance extracted from the Sunny public pricing reference workbook.",
+  "categories": [
+    "Solar",
+    "Solar Protection",
+    "Roof",
+    "Exterior Cleaning",
+    "Gutters"
+  ],
+  "services": [
+    {
+      "category": "Solar",
+      "service": "Solar Panel Cleaning",
+      "public_pricing_positioning": "Solar panel cleaning pricing varies across California based on system size, roof design, access, and environmental conditions. On the Central Coast, marine layer residue and agricultural dust require a higher standard of care. Residential service typically starts at $149, with pricing scaling based on system size and complexity. A single, all-inclusive system price is provided rather than per-panel pricing.",
+      "sunny_usage_notes": "Never disclose per-panel rates or calculation logic. Emphasize performance restoration, system protection, and regional conditions."
+    },
+    {
+      "category": "Solar",
+      "service": "Commercial Solar Cleaning",
+      "public_pricing_positioning": "Commercial and multi-property solar cleaning is priced per site or per contract. Pricing reflects access, panel layout, volume, travel, compliance requirements, and service frequency. Volume and recurring service discounts may apply.",
+      "sunny_usage_notes": "Frame pricing as customized and proposal-based. Avoid internal estimating details."
+    },
+    {
+      "category": "Roof",
+      "service": "Roof Cleaning – Soft Wash",
+      "public_pricing_positioning": "Soft washing is priced based on roof size, pitch, material type, and organic growth level. This low-pressure method is preferred for most residential roofs and is positioned as preventative maintenance rather than cosmetic cleaning.",
+      "sunny_usage_notes": "Emphasize roof safety and insurance-friendly practices."
+    },
+    {
+      "category": "Roof",
+      "service": "Roof Cleaning – Pressure Wash",
+      "public_pricing_positioning": "Pressure washing is used selectively on durable roofing materials where appropriate. Pricing reflects roof size, access, pitch, and contamination severity.",
+      "sunny_usage_notes": "Only recommend when suitable. Avoid implying pressure is standard."
+    },
+    {
+      "category": "Exterior Cleaning",
+      "service": "Pressure Washing",
+      "public_pricing_positioning": "Surface cleaning for concrete, pavers, sidewalks, drive-thrus, and commercial hardscapes. Pricing is based on square footage, access, and service frequency. Recurring commercial service may receive preferred rates.",
+      "sunny_usage_notes": "Position as professional surface maintenance, not basic washing."
+    },
+    {
+      "category": "Exterior Cleaning",
+      "service": "Soft Washing",
+      "public_pricing_positioning": "Low-pressure exterior cleaning for siding, stucco, fencing, and painted surfaces. Pricing scales with surface area, height, and access.",
+      "sunny_usage_notes": "Often bundled with roof or solar services."
+    },
+    {
+      "category": "Gutters",
+      "service": "Gutter Cleaning",
+      "public_pricing_positioning": "Gutter cleaning is priced based on linear footage, story height, and access. Service includes manual debris removal and controlled flushing to ensure proper drainage.",
+      "sunny_usage_notes": "Avoid mechanical blowing language. Emphasize care."
+    },
+    {
+      "category": "Gutters",
+      "service": "Gutter Leak Repair",
+      "public_pricing_positioning": "Minor gutter leak repairs are priced per repair location following inspection. This service addresses seams, joints, and end caps.",
+      "sunny_usage_notes": "Clarify this is not full gutter replacement."
+    },
+    {
+      "category": "Gutters",
+      "service": "Gutter Guard Installation",
+      "public_pricing_positioning": "Gutter guard installation is priced per linear foot plus materials. Final pricing is determined after inspection of existing gutter condition and roof compatibility.",
+      "sunny_usage_notes": "Position as a long-term maintenance reduction solution."
+    },
+    {
+      "category": "Solar Protection",
+      "service": "Bird & Rodent Proofing – Installation",
+      "public_pricing_positioning": "Solar bird and rodent proofing is priced based on the linear perimeter of the solar array and system complexity. Installation prevents nesting and long-term damage beneath panels.",
+      "sunny_usage_notes": "Emphasize prevention and system longevity."
+    },
+    {
+      "category": "Solar Protection",
+      "service": "Pre-Install Bird & Rodent Eviction & Cleanup",
+      "public_pricing_positioning": "Eviction and cleanup services are priced based on contamination level and system access. This service is required prior to installing solar critter guards when nesting is present.",
+      "sunny_usage_notes": "Frame as a necessary health and safety step."
+    }
+  ]
+}
