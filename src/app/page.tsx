@@ -17,28 +17,28 @@ const INITIAL_MESSAGE: Message = {
 
 const SERVICE_PROMPTS: Record<ServiceKey, string[]> = {
   solarPanelCleaning: [
-    "[Solar Panel Cleaning Placeholder Message 1]",
-    "[Solar Panel Cleaning Placeholder Message 2]",
-    "[Solar Panel Cleaning Placeholder Message 3]",
-    "[Solar Panel Cleaning Placeholder Message 4]",
+    "Got it—you’re looking at solar panel cleaning. I can walk you through how dirt actually affects output on the Central Coast, what we see most often up there, and whether cleaning makes sense right now or later. Where would you like to start?",
+    "Solar panels don’t lose efficiency dramatically—they lose it quietly. I can help you figure out if that’s happening on your roof and what a proper cleaning actually involves. Want details, pricing, or both?",
+    "You’re in the right place. I can explain how we clean panels safely (and what we don’t do), how often systems like yours usually need it, and what kind of results people typically see. What’s most useful to you?",
+    "Panels look clean long before they are clean. If you want clarity on condition, timing, or cost—ask away. I’ll tailor this to your system and location.",
   ],
   birdProofing: [
-    "[Bird Proofing Placeholder Message 1]",
-    "[Bird Proofing Placeholder Message 2]",
-    "[Bird Proofing Placeholder Message 3]",
-    "[Bird Proofing Placeholder Message 4]",
+    "Ah—bird proofing. Where the real issue isn’t nature, it’s organized avian crime. I can explain what’s happening under your panels, why birds keep choosing the same spots, and how we shut it down—humanely and permanently. What are you seeing?",
+    "You’re not imagining it: birds treat solar panels like luxury condos… and occasionally like battlegrounds. I can break down the damage, the noise, the mess, and how we stop the cycle without harming the birds. Want the short version or the deep dive?",
+    "Bird proofing isn’t about “a few nests.” It’s about turf wars, repeat offenders, and pigeons who absolutely remember addresses. I can explain the risks and the fix—what would you like to know first?",
+    "Under-panel bird activity is basically bird-on-bird crime with a homeowner caught in the middle. If you want to know how we evict, reinforce, and keep peace on your roof—let’s talk details.",
   ],
   roofWashing: [
-    "[Roof Washing Placeholder Message 1]",
-    "[Roof Washing Placeholder Message 2]",
-    "[Roof Washing Placeholder Message 3]",
-    "[Roof Washing Placeholder Message 4]",
+    "Roof washing is one of those things people wait on until they have to deal with it. I can explain what we clean, what we never pressure, and when it’s cosmetic versus necessary. What’s going on with your roof?",
+    "Different roofs need very different care. I can help you understand what’s safe for yours, what actually removes growth, and what helps with insurance or curb appeal concerns. Where should we start?",
+    "A clean roof isn’t just about looks—it’s about longevity. I can walk you through the process, pricing, and whether now is the right time or if waiting makes sense. Your call.",
+    "Roofs don’t give warning lights, unfortunately. If you want clarity on condition, cleaning options, or next steps, I’m here to help—no pressure, just straight answers.",
   ],
   gutterCleaningRepair: [
-    "[Gutter Cleaning/Repair Placeholder Message 1]",
-    "[Gutter Cleaning/Repair Placeholder Message 2]",
-    "[Gutter Cleaning/Repair Placeholder Message 3]",
-    "[Gutter Cleaning/Repair Placeholder Message 4]",
+    "Gutters are quiet until they’re not. I can help you figure out whether you’re due for a clean, dealing with a blockage, or looking at a small repair. What made you click?",
+    "Overflow, sagging, or just peace of mind? I can explain what we check, what usually causes problems, and how to prevent repeat issues. Where would you like to start?",
+    "Gutter problems almost always show up after the damage starts. I can help you get ahead of it—or fix what’s already happening. What’s the situation?",
+    "Cleaning, repairs, or just a sanity check—gutters are one of those systems that work best when you forget about them. I can help you do exactly that.",
   ],
 };
 
