@@ -117,7 +117,7 @@ export default function Page() {
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start">
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-[#1E5F90] bg-[#3F8FCC]">
                   <Image
-                    src="/sunny-avatar.jpg"
+                    src="/sunny-avatar.png"
                     alt="Sunny avatar"
                     width={64}
                     height={64}
@@ -148,7 +148,7 @@ export default function Page() {
                         {!isUser && (
                           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[#1E5F90] bg-[#3F8FCC]">
                             <Image
-                              src="/sunny-avatar.jpg"
+                              src="/sunny-avatar.png"
                               alt="Sunny avatar"
                               width={40}
                               height={40}
@@ -180,7 +180,7 @@ export default function Page() {
                     <div className="flex items-center gap-3 rounded-2xl bg-[#3F8FCC] px-4 py-3 text-sm text-[#0A1A26]">
                       <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[#1E5F90] bg-[#3F8FCC]">
                         <Image
-                          src="/sunny-avatar.jpg"
+                          src="/sunny-avatar.png"
                           alt="Sunny avatar"
                           width={40}
                           height={40}
