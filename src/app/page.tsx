@@ -96,15 +96,6 @@ export default function Page() {
       </section>
 
       <section className="chat-shell">
-        <div className="intro-row">
-          <Image src="/sunny-avatar.png" alt="Sunny avatar" width={84} height={84} className="sunny-avatar" />
-          <p className="intro-copy">
-            Hey there, I’m Sunny with SunSweeper. &nbsp;No need to search for
-            information about SunSweeper, just ask me. &nbsp;I can research,
-            quote prices, even schedule appointments.
-          </p>
-        </div>
-
         <div className="messages">
           {!hasMessages && (
             <p className="helper-text">Say hi, ask a question, or talk shop when you&apos;re ready.</p>

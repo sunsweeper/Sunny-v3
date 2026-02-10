@@ -92,21 +92,6 @@ body {
   box-shadow: 0 16px 40px rgba(2, 15, 30, 0.2);
 }
 
-.intro-row {
-  display: flex;
-  gap: 22px;
-  align-items: flex-start;
-}
-
-.intro-copy {
-  margin: 0;
-  color: var(--ink);
-  font-size: clamp(2rem, 3vw, 4rem);
-  line-height: 1.4;
-  font-weight: 300;
-  text-wrap: pretty;
-}
-
 .sunny-avatar {
   width: clamp(58px, 5vw, 84px);
   height: auto;
@@ -114,7 +99,7 @@ body {
 }
 
 .messages {
-  margin-top: 22px;
+  margin-top: 0;
   display: grid;
   gap: 18px;
 }
@@ -258,7 +243,6 @@ body {
     border-radius: 14px;
   }
 
-  .intro-copy,
   .bubble,
   .you-tag,
   .chat-input {
@@ -277,10 +261,6 @@ body {
 
   .hero {
     gap: 10px;
-  }
-
-  .intro-row {
-    gap: 12px;
   }
 
   .messages {
