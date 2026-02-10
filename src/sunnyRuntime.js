@@ -49,13 +49,18 @@ function loadKnowledge(knowledgeDir) {
   const companyPath = path.join(knowledgeDir, 'company.json');
   const servicesPath = path.join(knowledgeDir, 'services.json');
   const pricingPath = path.join(knowledgeDir, 'pricing.json');
+  const publicPricingReferencePath = path.join(knowledgeDir, 'public_pricing_reference.json');
 
   const company = loadJsonFile(companyPath);
   const services = loadJsonFile(servicesPath);
   const pricing = loadJsonFile(pricingPath);
+  const publicPricingReference = loadJsonFile(publicPricingReferencePath);
 
-  if (!company.ok || !services.ok || !pricing.ok) {
-    return { ok: false, error: company.error || services.error || pricing.error };
+  if (!company.ok || !services.ok || !pricing.ok || !publicPricingReference.ok) {
+    return {
+      ok: false,
+      error: company.error || services.error || pricing.error || publicPricingReference.error,
+    };
   }
 
   return {
@@ -64,6 +69,7 @@ function loadKnowledge(knowledgeDir) {
       company: company.data,
       services: services.data,
       pricing: pricing.data,
+      publicPricingReference: publicPricingReference.data,
     },
   };
 }
@@ -248,6 +254,59 @@ function getMissingRequiredSlots(service, slots) {
 
 function findServiceById(knowledge, serviceId) {
   return knowledge.services.services.find((service) => service.id === serviceId) || null;
+}
+
+function normalizeText(value) {
+  return (value || '').toLowerCase();
+}
+
+function serviceToKeywords(serviceName) {
+  const normalized = normalizeText(serviceName)
+    .replace(/[–—]/g, ' ')
+    .replace(/[^a-z0-9\s&]/g, ' ');
+
+  const keywordSet = new Set(normalized.split(/\s+/).filter((token) => token.length > 2));
+  keywordSet.add(normalized.trim());
+
+  if (normalized.includes('gutter guard')) {
+    keywordSet.add('gutter guards');
+  }
+  if (normalized.includes('bird') || normalized.includes('rodent')) {
+    keywordSet.add('critter guard');
+    keywordSet.add('solar critter guard');
+    keywordSet.add('solar proofing');
+  }
+
+  return Array.from(keywordSet);
+}
+
+function findPublicServiceMatch(message, publicPricingReference) {
+  if (!publicPricingReference || !Array.isArray(publicPricingReference.services)) {
+    return null;
+  }
+
+  const normalizedMessage = normalizeText(message);
+
+  for (const entry of publicPricingReference.services) {
+    const categoryMatch = normalizedMessage.includes(normalizeText(entry.category));
+    const keywords = serviceToKeywords(entry.service);
+    const serviceMatch = keywords.some((keyword) => keyword && normalizedMessage.includes(keyword));
+
+    if (serviceMatch || categoryMatch) {
+      return entry;
+    }
+  }
+
+  return null;
+}
+
+function buildPublicReferenceResponse(entry, askToBook = false) {
+  const base = `${entry.service} (${entry.category}): ${entry.public_pricing_positioning}`;
+  if (!askToBook) {
+    return base;
+  }
+
+  return `${base} If you'd like, I can collect a few details and have a human provide a finalized quote.`;
 }
 
 function getBusinessHours(company) {
@@ -577,6 +636,7 @@ function createSunnyRuntime({
     }
 
     const service = updatedState.serviceId ? findServiceById(knowledge, updatedState.serviceId) : null;
+    const publicServiceMatch = findPublicServiceMatch(message, knowledge.publicPricingReference);
 
     if (updatedState.needsHumanFollowup || detectedIntent === 'followup_request') {
       updatedState.needsHumanFollowup = true;
@@ -605,8 +665,33 @@ function createSunnyRuntime({
       return { reply, state: updatedState };
     }
 
+    if (detectedIntent === 'service_info' && publicServiceMatch) {
+      const reply = buildPublicReferenceResponse(publicServiceMatch);
+      logOutcome(logger, {
+        intent: detectedIntent,
+        outcome: updatedState.outcome,
+        pricingPath: 'public_pricing_reference',
+      });
+      writeOutcomeRecord(outcomeLogPath, buildOutcomeRecord(updatedState), logger);
+      return { reply, state: updatedState };
+    }
+
     if (detectedIntent === 'pricing_quote' || detectedIntent === 'booking_request') {
       if (!service) {
+        if (publicServiceMatch) {
+          const reply = buildPublicReferenceResponse(
+            publicServiceMatch,
+            detectedIntent === 'pricing_quote' || detectedIntent === 'booking_request'
+          );
+          logOutcome(logger, {
+            intent: detectedIntent,
+            outcome: updatedState.outcome,
+            pricingPath: 'public_pricing_reference',
+          });
+          writeOutcomeRecord(outcomeLogPath, buildOutcomeRecord(updatedState), logger);
+          return { reply, state: updatedState };
+        }
+
         const reply = 'Which service are you interested in (solar panel cleaning, roof cleaning, pressure washing, or soft washing)?';
         logOutcome(logger, { intent: detectedIntent, outcome: updatedState.outcome, pricingPath: null });
         writeOutcomeRecord(outcomeLogPath, buildOutcomeRecord(updatedState), logger);
