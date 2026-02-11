@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,18 +46,69 @@ function loadJsonFile(filePath) {
   }
 }
 
+function loadSolarPricingWorkbook(filePath) {
+  try {
+    const worksheetXml = execFileSync('unzip', ['-p', filePath, 'xl/worksheets/sheet1.xml'], {
+      encoding: 'utf8',
+    });
+
+    const panelPriceTable = {};
+    const rowMatches = worksheetXml.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g);
+
+    for (const rowMatch of rowMatches) {
+      const rowXml = rowMatch[1];
+      const panelMatch = rowXml.match(/<c[^>]*r="A\d+"[^>]*>[\s\S]*?<v>([^<]+)<\/v>/);
+      const priceMatch = rowXml.match(/<c[^>]*r="B\d+"[^>]*>[\s\S]*?<v>([^<]+)<\/v>/);
+
+      if (!panelMatch || !priceMatch) {
+        continue;
+      }
+
+      const panelCount = Number(panelMatch[1]);
+      const totalPrice = Number(priceMatch[1]);
+      if (!Number.isFinite(panelCount) || !Number.isFinite(totalPrice) || panelCount <= 0) {
+        continue;
+      }
+
+      panelPriceTable[panelCount] = Number(totalPrice.toFixed(2));
+    }
+
+    const panelCounts = Object.keys(panelPriceTable).map(Number).sort((a, b) => a - b);
+    if (!panelCounts.length) {
+      throw new Error('No panel pricing rows were found in the solar pricing workbook');
+    }
+
+    return {
+      ok: true,
+      data: {
+        source_file: 'public/SunSweeper_Solar_Pricing_Table_1_to_100.xlsx',
+        source_sheet: 'sheet1',
+        panel_price_table: panelPriceTable,
+        max_panels_for_auto_quote: panelCounts[panelCounts.length - 1],
+      },
+    };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+
 function loadKnowledge(knowledgeDir) {
   const companyPath = path.join(knowledgeDir, 'company.json');
   const servicesPath = path.join(knowledgeDir, 'services.json');
   const pricingPath = path.join(knowledgeDir, 'pricing.json');
   const publicPricingReferencePath = path.join(knowledgeDir, 'public_pricing_reference.json');
-  const solarPricingWorkbookPath = path.join(knowledgeDir, 'solar_pricing_workbook.json');
+  const solarPricingWorkbookPath = path.join(
+    __dirname,
+    '..',
+    'public',
+    'SunSweeper_Solar_Pricing_Table_1_to_100.xlsx'
+  );
 
   const company = loadJsonFile(companyPath);
   const services = loadJsonFile(servicesPath);
   const pricing = loadJsonFile(pricingPath);
   const publicPricingReference = loadJsonFile(publicPricingReferencePath);
-  const solarPricingWorkbook = loadJsonFile(solarPricingWorkbookPath);
+  const solarPricingWorkbook = loadSolarPricingWorkbook(solarPricingWorkbookPath);
 
   if (!company.ok || !services.ok || !pricing.ok || !publicPricingReference.ok || !solarPricingWorkbook.ok) {
     return {
@@ -380,10 +432,14 @@ function isWithinHours(day, time, schedule) {
 }
 
 function getPricingForService(knowledge, serviceId) {
-  if (serviceId === 'solar_panel_cleaning' && knowledge.solarPricingWorkbook?.panel_tiers?.length) {
+  if (
+    serviceId === 'solar_panel_cleaning' &&
+    knowledge.solarPricingWorkbook?.panel_price_table &&
+    Object.keys(knowledge.solarPricingWorkbook.panel_price_table).length
+  ) {
     return {
       ...knowledge.pricing.pricing_rules[serviceId],
-      panel_tiers: knowledge.solarPricingWorkbook.panel_tiers,
+      panel_price_table: knowledge.solarPricingWorkbook.panel_price_table,
       escalation_rules: {
         ...(knowledge.pricing.pricing_rules[serviceId]?.escalation_rules || {}),
         max_panels_for_auto_quote: knowledge.solarPricingWorkbook.max_panels_for_auto_quote,
@@ -397,6 +453,19 @@ function getPricingForService(knowledge, serviceId) {
 }
 
 function calculateSolarPanelPrice(pricingRule, panelCount) {
+  if (pricingRule.panel_price_table) {
+    const total = pricingRule.panel_price_table[panelCount];
+    if (!Number.isFinite(total)) {
+      return null;
+    }
+
+    return {
+      total,
+      pricingPath: 'solar_panel_cleaning_workbook_table',
+      customerFacingPriceDescription: null,
+    };
+  }
+
   const tier = pricingRule.panel_tiers.find(
     (entry) => panelCount >= entry.min && (entry.max === null || panelCount <= entry.max)
   );
