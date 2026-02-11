@@ -847,7 +847,14 @@ function createSunnyRuntime({
 
         updatedState.slots.booking_timestamp = new Date().toISOString();
         updatedState.outcome = OUTCOME_TYPES.booked;
+        const bookingPrice = calculateSolarPanelPrice(
+          getPricingForService(knowledge, 'solar_panel_cleaning'),
+          updatedState.slots.panel_count
+        );
+
         updatedState.bookingRecord = {
+          service_id: 'solar_panel_cleaning',
+          service_name: service.name,
           client_name: updatedState.slots.client_name,
           address: updatedState.slots.address,
           panel_count: updatedState.slots.panel_count,
@@ -856,10 +863,14 @@ function createSunnyRuntime({
           email: updatedState.slots.email,
           requested_date: updatedState.slots.requested_date,
           time: updatedState.slots.time,
+          quoted_total: bookingPrice?.total ?? null,
+          quoted_total_formatted: bookingPrice
+            ? formatCurrency(bookingPrice.total, knowledge.pricing.currency)
+            : null,
           booking_timestamp: updatedState.slots.booking_timestamp,
         };
 
-        const reply = `Great—your solar panel cleaning is booked for ${updatedState.slots.requested_date} at ${updatedState.slots.time}. I’ll send this booking through now.`;
+        const reply = `Great—your solar panel cleaning is booked for ${updatedState.slots.requested_date} at ${updatedState.slots.time}. I’ll send this booking through now, and you’ll receive a booking confirmation email shortly.`;
         logOutcome(logger, {
           intent: detectedIntent,
           outcome: updatedState.outcome,

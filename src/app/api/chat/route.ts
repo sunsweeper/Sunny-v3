@@ -71,6 +71,8 @@ const GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_SHEETS_APPEND_URL = "https://sheets.googleapis.com/v4/spreadsheets";
 
 type SolarBookingRecord = {
+  service_id?: string;
+  service_name?: string;
   client_name: string;
   address: string;
   panel_count: number;
@@ -79,7 +81,17 @@ type SolarBookingRecord = {
   email: string;
   requested_date: string;
   time: string;
+  quoted_total?: number | null;
+  quoted_total_formatted?: string | null;
   booking_timestamp: string;
+};
+
+type ResendEmailBody = {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+  text: string;
 };
 
 function toBase64Url(input: string) {
@@ -182,6 +194,102 @@ async function appendSolarBookingToSheet(record: SolarBookingRecord) {
   }
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function buildBookingEmail(record: SolarBookingRecord) {
+  const serviceName = record.service_name || "Solar Panel Cleaning";
+  const total = record.quoted_total_formatted || "Pending final confirmation";
+  const details = [
+    ["Service", serviceName],
+    ["Panel count", String(record.panel_count)],
+    ["Quoted cost", total],
+    ["Date", record.requested_date],
+    ["Time", record.time],
+    ["Service address", record.address],
+    ["Panel location", record.location],
+    ["Customer name", record.client_name],
+    ["Customer phone", record.phone],
+    ["Customer email", record.email],
+  ];
+
+  const htmlRows = details
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:6px 10px;border:1px solid #ddd;"><strong>${escapeHtml(label)}</strong></td><td style="padding:6px 10px;border:1px solid #ddd;">${escapeHtml(
+          value
+        )}</td></tr>`
+    )
+    .join("");
+
+  const text = [
+    "Booking Confirmation - SunSweeper",
+    "",
+    ...details.map(([label, value]) => `${label}: ${value}`),
+  ].join("\n");
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.5;color:#111;">
+      <h2 style="margin:0 0 12px;">SunSweeper Booking Confirmation</h2>
+      <p style="margin:0 0 16px;">Thanks for booking with SunSweeper. Here are your appointment details:</p>
+      <table style="border-collapse:collapse;border:1px solid #ddd;">
+        <tbody>${htmlRows}</tbody>
+      </table>
+    </div>
+  `;
+
+  return { html, text };
+}
+
+async function sendResendEmail(body: ResendEmailBody) {
+  const apiKey = process.env.resend_api_key || process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("Resend API key is not configured.");
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const responseText = await response.text();
+    throw new Error(`Resend email request failed with status ${response.status}: ${responseText}`);
+  }
+}
+
+async function sendBookingConfirmationEmails(record: SolarBookingRecord) {
+  const from = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+  const { html, text } = buildBookingEmail(record);
+  const appointmentLabel = `${record.requested_date} at ${record.time}`;
+
+  await sendResendEmail({
+    from,
+    to: [record.email],
+    subject: `SunSweeper Booking Confirmation (${appointmentLabel})`,
+    html,
+    text,
+  });
+
+  await sendResendEmail({
+    from,
+    to: ["info@sunsweeper.com"],
+    subject: `New SunSweeper Booking - ${record.client_name}`,
+    html,
+    text,
+  });
+}
+
 export const runtime = "nodejs";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -225,16 +333,20 @@ export async function POST(request: Request) {
       !state.bookingSynced
     ) {
       try {
-        await appendSolarBookingToSheet(state.bookingRecord as SolarBookingRecord);
+        const bookingRecord = state.bookingRecord as SolarBookingRecord;
+        await appendSolarBookingToSheet(bookingRecord);
+        await sendBookingConfirmationEmails(bookingRecord);
         state.bookingSynced = true;
-        reply = `${reply} ✅ Your booking has been saved.`;
+        state.bookingEmailSent = true;
+        reply = `${reply} ✅ Your booking has been saved and your confirmation email is on the way.`;
       } catch (error) {
-        console.error("Failed to sync booking to Google Sheets:", error);
+        console.error("Failed to sync booking or send booking emails:", error);
         state.bookingSynced = false;
+        state.bookingEmailSent = false;
         state.needsHumanFollowup = true;
         state.outcome = "needs_human_followup";
         reply =
-          "I confirmed your booking request, but I couldn't save it to our booking sheet. A human will finalize this right away.";
+          "I confirmed your booking request, but I couldn't finish our confirmation steps. A human will finalize this right away.";
       }
     }
 
