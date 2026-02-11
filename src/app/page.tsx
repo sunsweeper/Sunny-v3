@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
 type Message = {
   role: "user" | "assistant";
@@ -45,7 +45,7 @@ const SERVICE_PROMPTS: Record<ServiceKey, string[]> = {
 const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "solarPanelCleaning", label: "Solar Panel Cleaning" },
   { key: "birdProofing", label: "Bird Proofing" },
-  { key: "roofWashing", label: "Roof Washing" },
+  { key: "roofWashing", label: "Roof Wash" },
   { key: "gutterCleaningRepair", label: "Gutter Cleaning/Repair" },
 ];
 
@@ -155,17 +155,23 @@ export default function Page() {
           </p>
         </div>
         <nav className="service-nav" aria-label="Core services">
-          {SERVICE_OPTIONS.map((service) => {
+          {SERVICE_OPTIONS.map((service, index) => {
             const isActive = activeService === service.key;
             return (
-              <button
-                key={service.key}
-                type="button"
-                className={`service-link ${isActive ? "active" : ""}`}
-                onClick={() => handleServiceClick(service.key)}
-              >
-                {service.label}
-              </button>
+              <Fragment key={service.key}>
+                {index > 0 && (
+                  <span className="service-divider" aria-hidden="true">
+                    |
+                  </span>
+                )}
+                <button
+                  type="button"
+                  className={`service-link ${isActive ? "active" : ""}`}
+                  onClick={() => handleServiceClick(service.key)}
+                >
+                  {service.label}
+                </button>
+              </Fragment>
             );
           })}
         </nav>
