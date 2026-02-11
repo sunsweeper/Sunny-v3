@@ -65,26 +65,26 @@
     },
     {
       "tier": "Tier 7",
-      "panel_range": "76-100 panels",
+      "panel_range": "76-99 panels",
       "customer_facing_price_description": "Tier Pricing Applied",
       "internal_calculation_logic": "Panels x 8.25",
       "notes": "Do not expose per-panel math to customer",
       "min": 76,
-      "max": 100,
+      "max": 99,
       "internal_rate_per_panel": 8.25
     },
     {
       "tier": "Tier 8",
-      "panel_range": "101+ panels",
+      "panel_range": "100+ panels",
       "customer_facing_price_description": "Custom Quote Required",
       "internal_calculation_logic": "Manual Quote",
       "notes": "Escalate for review",
-      "min": 101,
+      "min": 100,
       "max": null,
       "manual_quote": true
     }
   ],
-  "max_panels_for_auto_quote": 100,
+  "max_panels_for_auto_quote": 99,
   "rows": [
     {
       "Service Category": "Residential Solar Cleaning",
@@ -137,7 +137,7 @@
     {
       "Service Category": "Residential Solar Cleaning",
       "Tier": "Tier 7",
-      "Panel Range": "76-100 panels",
+      "Panel Range": "76-99 panels",
       "Customer Facing Price Description": "Tier Pricing Applied",
       "Internal Calculation Logic": "Panels x 8.25",
       "Notes": "Do not expose per-panel math to customer"
@@ -145,7 +145,7 @@
     {
       "Service Category": "Residential Solar Cleaning",
       "Tier": "Tier 8",
-      "Panel Range": "101+ panels",
+      "Panel Range": "100+ panels",
       "Customer Facing Price Description": "Custom Quote Required",
       "Internal Calculation Logic": "Manual Quote",
       "Notes": "Escalate for review"

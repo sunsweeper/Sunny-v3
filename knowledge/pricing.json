@@ -87,12 +87,12 @@
         },
         {
           "min": 76,
-          "max": 100,
+          "max": 99,
           "internal_rate_per_panel": 8.25,
           "customer_facing_price_description": "Tier Pricing Applied"
         },
         {
-          "min": 101,
+          "min": 100,
           "max": null,
           "manual_quote": true,
           "customer_facing_price_description": "Custom Quote Required"
@@ -100,7 +100,7 @@
       ],
       "minimum_charge_usd": 149,
       "escalation_rules": {
-        "max_panels_for_auto_quote": 100,
+        "max_panels_for_auto_quote": 99,
         "escalate_over_max": true,
         "escalation_reason": "Custom quote required above the workbook auto-quote range. Large systems require human review for access, safety, and logistics."
       },
