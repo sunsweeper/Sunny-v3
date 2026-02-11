@@ -39,10 +39,66 @@ const SERVICE_KEYWORDS = [
 function loadJsonFile(filePath) {
   try {
     const contents = fs.readFileSync(filePath, 'utf8');
-    return { ok: true, data: JSON.parse(contents) };
+    const sanitizedContents = stripJsonComments(contents).trim();
+    return { ok: true, data: JSON.parse(sanitizedContents) };
   } catch (error) {
     return { ok: false, error };
   }
+}
+
+function stripJsonComments(contents) {
+  let result = '';
+  let inString = false;
+  let escaped = false;
+
+  for (let index = 0; index < contents.length; index += 1) {
+    const char = contents[index];
+    const nextChar = contents[index + 1];
+
+    if (inString) {
+      result += char;
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      result += char;
+      continue;
+    }
+
+    if (char === '/' && nextChar === '/') {
+      while (index < contents.length && contents[index] !== '\n') {
+        index += 1;
+      }
+      if (index < contents.length) {
+        result += '\n';
+      }
+      continue;
+    }
+
+    if (char === '/' && nextChar === '*') {
+      index += 2;
+      while (index < contents.length - 1) {
+        if (contents[index] === '*' && contents[index + 1] === '/') {
+          index += 1;
+          break;
+        }
+        index += 1;
+      }
+      continue;
+    }
+
+    result += char;
+  }
+
+  return result;
 }
 
 function loadKnowledge(knowledgeDir) {
@@ -102,6 +158,11 @@ function detectIntent(message) {
   }
 
   return 'general';
+}
+
+function isQuoteBreakdownRequest(message) {
+  const normalized = message.toLowerCase();
+  return /(how\s+did\s+you\s+get|how\s+did\s+you\s+come\s+up\s+with|show\s+me\s+the\s+math|break\s*down|explain\s+(the\s+)?price|how\s+you\s+calculated|calculation)/.test(normalized);
 }
 
 function detectServiceId(message) {
@@ -165,8 +226,11 @@ function extractSlots(message, service) {
 
   for (const requirement of service.required_for_quote) {
     if (requirement.field === 'panel_count') {
+      const standalonePanelCount = message.trim().match(/^\d+$/);
       slots.panel_count =
-        extractNumberAfterKeyword(message, 'panels?') || extractNumberAfterKeyword(message, 'panel');
+        extractNumberAfterKeyword(message, 'panels?') ||
+        extractNumberAfterKeyword(message, 'panel') ||
+        (standalonePanelCount ? Number(standalonePanelCount[0]) : null);
     }
 
     if (requirement.field === 'solar_mounting') {
@@ -346,24 +410,29 @@ function parsePreferredDay(message) {
 }
 
 function parsePreferredTime(message) {
-  const match = message.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
-  if (!match) {
+  const timeWithMinutes = message.match(/\b(\d{1,2}):(\d{2})\s*(am|pm)?\b/i);
+  const hourWithMeridiem = message.match(/\b(\d{1,2})\s*(am|pm)\b/i);
+
+  if (!timeWithMinutes && !hourWithMeridiem) {
     return null;
   }
 
-  const hours = Number(match[1]);
-  const minutes = match[2] ? Number(match[2]) : 0;
-  const meridiem = match[3] ? match[3].toLowerCase() : null;
+  const matchedTime = timeWithMinutes || hourWithMeridiem;
+  const hours = Number(matchedTime[1]);
+  const minutes = timeWithMinutes ? Number(timeWithMinutes[2]) : 0;
+  const meridiem = (timeWithMinutes ? timeWithMinutes[3] : hourWithMeridiem[2]) || null;
 
   if (Number.isNaN(hours) || Number.isNaN(minutes)) {
     return null;
   }
 
   let normalizedHours = hours;
-  if (meridiem === 'pm' && hours < 12) {
+  const normalizedMeridiem = meridiem ? meridiem.toLowerCase() : null;
+
+  if (normalizedMeridiem === 'pm' && hours < 12) {
     normalizedHours += 12;
   }
-  if (meridiem === 'am' && hours === 12) {
+  if (normalizedMeridiem === 'am' && hours === 12) {
     normalizedHours = 0;
   }
 
@@ -648,6 +717,7 @@ function createSunnyRuntime({
       needsHumanFollowup: state.needsHumanFollowup || false,
       escalationReason: state.escalationReason || null,
       intents: Array.isArray(state.intents) ? state.intents : [],
+      lastQuote: state.lastQuote || null,
     };
 
     updatedState.slots = updateContactSlots(message, updatedState.slots);
@@ -665,7 +735,13 @@ function createSunnyRuntime({
     }
 
     const detectedServiceId = detectServiceId(message);
-    if (detectedServiceId) {
+    const isServiceSwitchDuringQuote =
+      Boolean(state.serviceId) &&
+      detectedServiceId &&
+      state.serviceId !== detectedServiceId &&
+      (state.intent === 'pricing_quote' || state.intent === 'booking_request');
+
+    if (detectedServiceId && !isServiceSwitchDuringQuote) {
       updatedState.serviceId = detectedServiceId;
     }
 
@@ -710,12 +786,36 @@ function createSunnyRuntime({
       return { reply, state: updatedState };
     }
 
-    if (detectedIntent === 'pricing_quote' || detectedIntent === 'booking_request') {
+    if (isQuoteBreakdownRequest(message) && updatedState.lastQuote) {
+      const { serviceName, panelCount, tierLabel, tierRange, internalLogic, totalFormatted } = updatedState.lastQuote;
+      const reply = `Here’s exactly how I calculated it: Service ${serviceName}, ${panelCount} panels falls in ${tierLabel} (${tierRange}), workbook logic is ${internalLogic}, which gives a total of ${totalFormatted}.`;
+      logOutcome(logger, {
+        intent: 'quote_breakdown',
+        outcome: updatedState.outcome,
+        pricingPath: 'quote_breakdown',
+      });
+      writeOutcomeRecord(outcomeLogPath, buildOutcomeRecord(updatedState), logger);
+      return { reply, state: updatedState };
+    }
+
+    const isQuoteOrBookingIntent =
+      detectedIntent === 'pricing_quote' || detectedIntent === 'booking_request';
+    const isPriorQuoteOrBookingIntent =
+      state.intent === 'pricing_quote' || state.intent === 'booking_request';
+    const shouldContinueQuoteFlow = Boolean(
+      service &&
+        isPriorQuoteOrBookingIntent &&
+        getMissingRequiredSlots(service, updatedState.slots).length > 0
+    );
+    const flowIntent = shouldContinueQuoteFlow ? state.intent : detectedIntent;
+
+    if (isQuoteOrBookingIntent || shouldContinueQuoteFlow) {
+      updatedState.intent = flowIntent;
       if (!service) {
         if (publicServiceMatch) {
           const reply = buildPublicReferenceResponse(
             publicServiceMatch,
-            detectedIntent === 'pricing_quote' || detectedIntent === 'booking_request'
+            flowIntent === 'pricing_quote' || flowIntent === 'booking_request'
           );
           logOutcome(logger, {
             intent: detectedIntent,
@@ -775,7 +875,7 @@ function createSunnyRuntime({
         return { reply, state: updatedState };
       }
 
-      if (detectedIntent === 'booking_request') {
+      if (flowIntent === 'booking_request') {
         if (service.id !== 'solar_panel_cleaning') {
           updatedState.needsHumanFollowup = true;
           updatedState.outcome = OUTCOME_TYPES.followup;
@@ -945,6 +1045,19 @@ function createSunnyRuntime({
         }
 
         const total = formatCurrency(price.total, knowledge.pricing.currency);
+        const tier = pricingRule.panel_tiers.find(
+          (entry) => panelCount >= entry.min && (entry.max === null || panelCount <= entry.max)
+        );
+        updatedState.lastQuote = {
+          serviceId: service.id,
+          serviceName: service.name,
+          panelCount,
+          tierLabel: tier?.tier || 'Unknown tier',
+          tierRange: tier?.panel_range || 'Unknown range',
+          internalLogic: tier?.internal_calculation_logic || 'Not available',
+          total: price.total,
+          totalFormatted: total,
+        };
         const description = price.customerFacingPriceDescription
           ? `${price.customerFacingPriceDescription}. `
           : '';
