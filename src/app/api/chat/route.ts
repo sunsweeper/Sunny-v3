@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
@@ -61,6 +63,123 @@ A successful Sunny interaction:
 - Books the job when appropriate (booking is optional, not mandatory)
 `;
 
+const DEFAULT_SPREADSHEET_ID = "1HLQatzrYWDzUdh8WzKHCpxpucDBMYSuHB0pXI1-f3mw";
+const DEFAULT_BOOKING_RANGE = "Sheet1!A:I";
+const GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
+const GOOGLE_SHEETS_APPEND_URL = "https://sheets.googleapis.com/v4/spreadsheets";
+
+type SolarBookingRecord = {
+  client_name: string;
+  address: string;
+  panel_count: number;
+  location: string;
+  phone: string;
+  email: string;
+  requested_date: string;
+  time: string;
+  booking_timestamp: string;
+};
+
+function toBase64Url(input: string) {
+  return Buffer.from(input)
+    .toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function createServiceAccountJwt(serviceAccountEmail: string, privateKey: string) {
+  const now = Math.floor(Date.now() / 1000);
+
+  const header = { alg: "RS256", typ: "JWT" };
+  const payload = {
+    iss: serviceAccountEmail,
+    scope: "https://www.googleapis.com/auth/spreadsheets",
+    aud: GOOGLE_OAUTH_TOKEN_URL,
+    iat: now,
+    exp: now + 3600,
+  };
+
+  const encodedHeader = toBase64Url(JSON.stringify(header));
+  const encodedPayload = toBase64Url(JSON.stringify(payload));
+  const signingInput = `${encodedHeader}.${encodedPayload}`;
+
+  const signer = crypto.createSign("RSA-SHA256");
+  signer.update(signingInput);
+  signer.end();
+  const signature = signer.sign(privateKey, "base64url");
+
+  return `${signingInput}.${signature}`;
+}
+
+async function getGoogleAccessToken(serviceAccountEmail: string, privateKey: string) {
+  const assertion = createServiceAccountJwt(serviceAccountEmail, privateKey);
+
+  const tokenResponse = await fetch(GOOGLE_OAUTH_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion,
+    }),
+  });
+
+  if (!tokenResponse.ok) {
+    throw new Error(`OAuth token request failed with status ${tokenResponse.status}`);
+  }
+
+  const tokenBody = (await tokenResponse.json()) as { access_token?: string };
+
+  if (!tokenBody.access_token) {
+    throw new Error("Google OAuth token response did not include an access token.");
+  }
+
+  return tokenBody.access_token;
+}
+
+async function appendSolarBookingToSheet(record: SolarBookingRecord) {
+  const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+  if (!serviceAccountEmail || !privateKey) {
+    throw new Error("Google Sheets credentials are not configured.");
+  }
+
+  const accessToken = await getGoogleAccessToken(serviceAccountEmail, privateKey);
+  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID || DEFAULT_SPREADSHEET_ID;
+  const range = encodeURIComponent(process.env.GOOGLE_SHEETS_BOOKING_RANGE || DEFAULT_BOOKING_RANGE);
+
+  const appendResponse = await fetch(
+    `${GOOGLE_SHEETS_APPEND_URL}/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        values: [
+          [
+            record.client_name,
+            record.address,
+            record.panel_count,
+            record.location,
+            record.phone,
+            record.email,
+            record.requested_date,
+            record.time,
+            record.booking_timestamp,
+          ],
+        ],
+      }),
+    }
+  );
+
+  if (!appendResponse.ok) {
+    throw new Error(`Sheets append failed with status ${appendResponse.status}`);
+  }
+}
+
 export const runtime = "nodejs";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -94,7 +213,28 @@ export async function POST(request: Request) {
     });
 
     const runtimeResult = runtimeInstance.handleMessage(message, previousState);
-    const { reply, state } = runtimeResult;
+    const { state } = runtimeResult;
+    let reply = runtimeResult.reply;
+
+    if (
+      state.outcome === "booked_job" &&
+      state.serviceId === "solar_panel_cleaning" &&
+      state.bookingRecord &&
+      !state.bookingSynced
+    ) {
+      try {
+        await appendSolarBookingToSheet(state.bookingRecord as SolarBookingRecord);
+        state.bookingSynced = true;
+        reply = `${reply} ✅ Your booking has been saved.`;
+      } catch (error) {
+        console.error("Failed to sync booking to Google Sheets:", error);
+        state.bookingSynced = false;
+        state.needsHumanFollowup = true;
+        state.outcome = "needs_human_followup";
+        reply =
+          "I confirmed your booking request, but I couldn't save it to our booking sheet. A human will finalize this right away.";
+      }
+    }
 
     const shouldFallback =
       reply === SAFE_FAIL_MESSAGE ||
