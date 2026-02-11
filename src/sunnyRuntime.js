@@ -50,16 +50,23 @@ function loadKnowledge(knowledgeDir) {
   const servicesPath = path.join(knowledgeDir, 'services.json');
   const pricingPath = path.join(knowledgeDir, 'pricing.json');
   const publicPricingReferencePath = path.join(knowledgeDir, 'public_pricing_reference.json');
+  const solarPricingWorkbookPath = path.join(knowledgeDir, 'solar_pricing_workbook.json');
 
   const company = loadJsonFile(companyPath);
   const services = loadJsonFile(servicesPath);
   const pricing = loadJsonFile(pricingPath);
   const publicPricingReference = loadJsonFile(publicPricingReferencePath);
+  const solarPricingWorkbook = loadJsonFile(solarPricingWorkbookPath);
 
-  if (!company.ok || !services.ok || !pricing.ok || !publicPricingReference.ok) {
+  if (!company.ok || !services.ok || !pricing.ok || !publicPricingReference.ok || !solarPricingWorkbook.ok) {
     return {
       ok: false,
-      error: company.error || services.error || pricing.error || publicPricingReference.error,
+      error:
+        company.error ||
+        services.error ||
+        pricing.error ||
+        publicPricingReference.error ||
+        solarPricingWorkbook.error,
     };
   }
 
@@ -70,6 +77,7 @@ function loadKnowledge(knowledgeDir) {
       services: services.data,
       pricing: pricing.data,
       publicPricingReference: publicPricingReference.data,
+      solarPricingWorkbook: solarPricingWorkbook.data,
     },
   };
 }
@@ -372,27 +380,44 @@ function isWithinHours(day, time, schedule) {
 }
 
 function getPricingForService(knowledge, serviceId) {
+  if (serviceId === 'solar_panel_cleaning' && knowledge.solarPricingWorkbook?.panel_tiers?.length) {
+    return {
+      ...knowledge.pricing.pricing_rules[serviceId],
+      panel_tiers: knowledge.solarPricingWorkbook.panel_tiers,
+      escalation_rules: {
+        ...(knowledge.pricing.pricing_rules[serviceId]?.escalation_rules || {}),
+        max_panels_for_auto_quote: knowledge.solarPricingWorkbook.max_panels_for_auto_quote,
+      },
+      source: knowledge.solarPricingWorkbook.source_file,
+    };
+  }
+
   const pricingRules = knowledge.pricing.pricing_rules;
   return pricingRules[serviceId] || null;
 }
 
 function calculateSolarPanelPrice(pricingRule, panelCount) {
   const tier = pricingRule.panel_tiers.find(
-    (entry) => panelCount >= entry.min && panelCount <= entry.max
+    (entry) => panelCount >= entry.min && (entry.max === null || panelCount <= entry.max)
   );
 
-  if (!tier) {
+  if (!tier || tier.manual_quote) {
     return null;
   }
 
   if (tier.job_total_usd) {
-    return { total: tier.job_total_usd, pricingPath: 'solar_panel_cleaning_flat' };
+    return {
+      total: tier.job_total_usd,
+      pricingPath: 'solar_panel_cleaning_flat',
+      customerFacingPriceDescription: tier.customer_facing_price_description,
+    };
   }
 
   if (tier.internal_rate_per_panel) {
     return {
       total: Number((tier.internal_rate_per_panel * panelCount).toFixed(2)),
       pricingPath: 'solar_panel_cleaning_tiered',
+      customerFacingPriceDescription: tier.customer_facing_price_description,
     };
   }
 
@@ -873,7 +898,7 @@ function createSunnyRuntime({
           updatedState.outcome = OUTCOME_TYPES.followup;
           updatedState.escalationReason = 'panel_count_exceeds_limit';
           const reply =
-            'Large systems require a human review for access, safety, and logistics. I can connect you with a human—would you prefer a text or a call?';
+            'Custom quote required for systems above our auto-quote range. A human will review access, safety, and logistics—would you prefer a text or a call?';
           logOutcome(logger, {
             intent: detectedIntent,
             outcome: updatedState.outcome,
@@ -909,7 +934,10 @@ function createSunnyRuntime({
         }
 
         const total = formatCurrency(price.total, knowledge.pricing.currency);
-        const reply = `Your total for solar panel cleaning is ${total}. Would you like to book a time?`;
+        const description = price.customerFacingPriceDescription
+          ? `${price.customerFacingPriceDescription}. `
+          : '';
+        const reply = `${description}Your total for solar panel cleaning is ${total}. Would you like to book a time?`;
         logOutcome(logger, { intent: detectedIntent, outcome: updatedState.outcome, pricingPath: price.pricingPath });
         writeOutcomeRecord(outcomeLogPath, buildOutcomeRecord(updatedState), logger);
         return { reply, state: updatedState };

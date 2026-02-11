@@ -1,0 +1,178 @@
+{
+  "source_file": "public/SunSweeper_Solar_Pricing_Internal_v2_No_AddOns.xlsx",
+  "source_sheet": "Sheet1",
+  "last_synced_note": "Derived from workbook; use Customer Facing Price Description for customer messaging and never expose Internal Calculation Logic.",
+  "panel_tiers": [
+    {
+      "tier": "Tier 1",
+      "panel_range": "1-13 panels",
+      "customer_facing_price_description": "$149 Minimum Service Charge",
+      "internal_calculation_logic": "Flat $149",
+      "notes": "Minimum charge regardless of panel count within range",
+      "min": 1,
+      "max": 13,
+      "job_total_usd": 149.0
+    },
+    {
+      "tier": "Tier 2",
+      "panel_range": "14-20 panels",
+      "customer_facing_price_description": "Tier Pricing Applied",
+      "internal_calculation_logic": "Panels x 11.50",
+      "notes": "Do not expose per-panel math to customer",
+      "min": 14,
+      "max": 20,
+      "internal_rate_per_panel": 11.5
+    },
+    {
+      "tier": "Tier 3",
+      "panel_range": "21-30 panels",
+      "customer_facing_price_description": "Tier Pricing Applied",
+      "internal_calculation_logic": "Panels x 10.50",
+      "notes": "Do not expose per-panel math to customer",
+      "min": 21,
+      "max": 30,
+      "internal_rate_per_panel": 10.5
+    },
+    {
+      "tier": "Tier 4",
+      "panel_range": "31-40 panels",
+      "customer_facing_price_description": "Tier Pricing Applied",
+      "internal_calculation_logic": "Panels x 9.75",
+      "notes": "Do not expose per-panel math to customer",
+      "min": 31,
+      "max": 40,
+      "internal_rate_per_panel": 9.75
+    },
+    {
+      "tier": "Tier 5",
+      "panel_range": "41-50 panels",
+      "customer_facing_price_description": "Tier Pricing Applied",
+      "internal_calculation_logic": "Panels x 9.25",
+      "notes": "Do not expose per-panel math to customer",
+      "min": 41,
+      "max": 50,
+      "internal_rate_per_panel": 9.25
+    },
+    {
+      "tier": "Tier 6",
+      "panel_range": "51-75 panels",
+      "customer_facing_price_description": "Tier Pricing Applied",
+      "internal_calculation_logic": "Panels x 8.75",
+      "notes": "Do not expose per-panel math to customer",
+      "min": 51,
+      "max": 75,
+      "internal_rate_per_panel": 8.75
+    },
+    {
+      "tier": "Tier 7",
+      "panel_range": "76-100 panels",
+      "customer_facing_price_description": "Tier Pricing Applied",
+      "internal_calculation_logic": "Panels x 8.25",
+      "notes": "Do not expose per-panel math to customer",
+      "min": 76,
+      "max": 100,
+      "internal_rate_per_panel": 8.25
+    },
+    {
+      "tier": "Tier 8",
+      "panel_range": "101+ panels",
+      "customer_facing_price_description": "Custom Quote Required",
+      "internal_calculation_logic": "Manual Quote",
+      "notes": "Escalate for review",
+      "min": 101,
+      "max": null,
+      "manual_quote": true
+    }
+  ],
+  "max_panels_for_auto_quote": 100,
+  "rows": [
+    {
+      "Service Category": "Residential Solar Cleaning",
+      "Tier": "Tier 1",
+      "Panel Range": "1-13 panels",
+      "Customer Facing Price Description": "$149 Minimum Service Charge",
+      "Internal Calculation Logic": "Flat $149",
+      "Notes": "Minimum charge regardless of panel count within range"
+    },
+    {
+      "Service Category": "Residential Solar Cleaning",
+      "Tier": "Tier 2",
+      "Panel Range": "14-20 panels",
+      "Customer Facing Price Description": "Tier Pricing Applied",
+      "Internal Calculation Logic": "Panels x 11.50",
+      "Notes": "Do not expose per-panel math to customer"
+    },
+    {
+      "Service Category": "Residential Solar Cleaning",
+      "Tier": "Tier 3",
+      "Panel Range": "21-30 panels",
+      "Customer Facing Price Description": "Tier Pricing Applied",
+      "Internal Calculation Logic": "Panels x 10.50",
+      "Notes": "Do not expose per-panel math to customer"
+    },
+    {
+      "Service Category": "Residential Solar Cleaning",
+      "Tier": "Tier 4",
+      "Panel Range": "31-40 panels",
+      "Customer Facing Price Description": "Tier Pricing Applied",
+      "Internal Calculation Logic": "Panels x 9.75",
+      "Notes": "Do not expose per-panel math to customer"
+    },
+    {
+      "Service Category": "Residential Solar Cleaning",
+      "Tier": "Tier 5",
+      "Panel Range": "41-50 panels",
+      "Customer Facing Price Description": "Tier Pricing Applied",
+      "Internal Calculation Logic": "Panels x 9.25",
+      "Notes": "Do not expose per-panel math to customer"
+    },
+    {
+      "Service Category": "Residential Solar Cleaning",
+      "Tier": "Tier 6",
+      "Panel Range": "51-75 panels",
+      "Customer Facing Price Description": "Tier Pricing Applied",
+      "Internal Calculation Logic": "Panels x 8.75",
+      "Notes": "Do not expose per-panel math to customer"
+    },
+    {
+      "Service Category": "Residential Solar Cleaning",
+      "Tier": "Tier 7",
+      "Panel Range": "76-100 panels",
+      "Customer Facing Price Description": "Tier Pricing Applied",
+      "Internal Calculation Logic": "Panels x 8.25",
+      "Notes": "Do not expose per-panel math to customer"
+    },
+    {
+      "Service Category": "Residential Solar Cleaning",
+      "Tier": "Tier 8",
+      "Panel Range": "101+ panels",
+      "Customer Facing Price Description": "Custom Quote Required",
+      "Internal Calculation Logic": "Manual Quote",
+      "Notes": "Escalate for review"
+    },
+    {
+      "Service Category": "Recurring Discount",
+      "Tier": "Bi-Annual",
+      "Panel Range": "2x per year",
+      "Customer Facing Price Description": "10% Discount Applied",
+      "Internal Calculation Logic": "Multiply subtotal x 0.90",
+      "Notes": "Position as Solar Wellness Program"
+    },
+    {
+      "Service Category": "Recurring Discount",
+      "Tier": "Quarterly",
+      "Panel Range": "4x per year",
+      "Customer Facing Price Description": "15% Discount Applied",
+      "Internal Calculation Logic": "Multiply subtotal x 0.85",
+      "Notes": "Position as Solar Wellness Program"
+    },
+    {
+      "Service Category": "Commercial Cleaning",
+      "Tier": "Standard Volume",
+      "Panel Range": "50+ panels",
+      "Customer Facing Price Description": "Volume Pricing Applied",
+      "Internal Calculation Logic": "$1.60\u2013$2.25 per panel equivalent",
+      "Notes": "Final pricing based on access, scale, and water logistics"
+    }
+  ]
+}
