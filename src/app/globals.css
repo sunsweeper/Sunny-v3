@@ -118,6 +118,13 @@ body {
   text-underline-offset: 6px;
 }
 
+
+.service-divider {
+  color: #000;
+  font-size: clamp(1.15rem, 1.35vw, 1.5rem);
+  font-weight: 700;
+}
+
 .chat-shell {
   width: min(1320px, 95%);
   margin: 8px auto 0;
@@ -315,6 +322,10 @@ body {
   }
 
   .service-link {
+    font-size: clamp(1.05rem, 4vw, 1.45rem);
+  }
+
+  .service-divider {
     font-size: clamp(1.05rem, 4vw, 1.45rem);
   }
 
