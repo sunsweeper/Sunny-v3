@@ -5,13 +5,19 @@
       "description": "Roof cleaning pricing based on roof surface type and square footage.",
       "methods": {
         "pressure_wash": {
-          "applicable_roof_types": ["clay_tile", "concrete_tile", "metal"],
+          "applicable_roof_types": [
+            "clay_tile",
+            "concrete_tile",
+            "metal"
+          ],
           "rate_per_sqft": 0.65,
           "notes": "Used for durable roof surfaces where pressure washing is appropriate."
         },
         "soft_wash": {
-          "applicable_roof_types": ["asphalt_shingle"],
-          "rate_per_sqft": 0.40,
+          "applicable_roof_types": [
+            "asphalt_shingle"
+          ],
+          "rate_per_sqft": 0.4,
           "notes": "Used for asphalt shingle roofs to minimize surface damage."
         }
       },
@@ -23,7 +29,7 @@
     },
     "house_wash": {
       "description": "Soft wash house cleaning for siding and exterior surfaces.",
-      "rate_per_sqft": 0.40,
+      "rate_per_sqft": 0.4,
       "minimum_charge_usd": null,
       "special_notes": [
         "If the customer mentions black streaks, Sunny should explain that low-cost spot treatments may be available depending on scope.",
@@ -43,18 +49,60 @@
         "warranty_safe_statement": "Panels are cleaned according to manufacturer-intended methods to avoid warranty issues."
       },
       "panel_tiers": [
-        { "min": 1, "max": 13, "job_total_usd": 149 },
-        { "min": 14, "max": 20, "internal_rate_per_panel": 11.5 },
-        { "min": 21, "max": 25, "internal_rate_per_panel": 11.0 },
-        { "min": 26, "max": 30, "internal_rate_per_panel": 10.5 },
-        { "min": 31, "max": 40, "internal_rate_per_panel": 9.0 },
-        { "min": 41, "max": 60, "internal_rate_per_panel": 8.0 }
+        {
+          "min": 1,
+          "max": 13,
+          "job_total_usd": 149,
+          "customer_facing_price_description": "$149 Minimum Service Charge"
+        },
+        {
+          "min": 14,
+          "max": 20,
+          "internal_rate_per_panel": 11.5,
+          "customer_facing_price_description": "Tier Pricing Applied"
+        },
+        {
+          "min": 21,
+          "max": 30,
+          "internal_rate_per_panel": 10.5,
+          "customer_facing_price_description": "Tier Pricing Applied"
+        },
+        {
+          "min": 31,
+          "max": 40,
+          "internal_rate_per_panel": 9.75,
+          "customer_facing_price_description": "Tier Pricing Applied"
+        },
+        {
+          "min": 41,
+          "max": 50,
+          "internal_rate_per_panel": 9.25,
+          "customer_facing_price_description": "Tier Pricing Applied"
+        },
+        {
+          "min": 51,
+          "max": 75,
+          "internal_rate_per_panel": 8.75,
+          "customer_facing_price_description": "Tier Pricing Applied"
+        },
+        {
+          "min": 76,
+          "max": 100,
+          "internal_rate_per_panel": 8.25,
+          "customer_facing_price_description": "Tier Pricing Applied"
+        },
+        {
+          "min": 101,
+          "max": null,
+          "manual_quote": true,
+          "customer_facing_price_description": "Custom Quote Required"
+        }
       ],
       "minimum_charge_usd": 149,
       "escalation_rules": {
-        "max_panels_for_auto_quote": 60,
+        "max_panels_for_auto_quote": 100,
         "escalate_over_max": true,
-        "escalation_reason": "Large systems require a human review for access, safety, and logistics."
+        "escalation_reason": "Custom quote required above the workbook auto-quote range. Large systems require human review for access, safety, and logistics."
       },
       "customer_visible_pricing": {
         "show_rate_per_panel": false,
