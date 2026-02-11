@@ -18,15 +18,15 @@ const DEFAULT_OUTCOME = OUTCOME_TYPES.general;
 
 const REQUIRED_CONTACT_FIELDS = ['contact_method', 'callback_window'];
 
-const REQUIRED_BOOKING_FIELDS = [
-  { field: 'first_name', label: 'What is your first name?' },
-  { field: 'last_name', label: 'What is your last name?' },
-  { field: 'service_address', label: 'What is the service address?' },
-  { field: 'phone', label: 'What is the best cell phone number to reach you?' },
-  {
-    field: 'consent_text',
-    label: 'Do we have your permission to text or email you about this booking?',
-  },
+const SOLAR_REQUIRED_BOOKING_FIELDS = [
+  { field: 'client_name', label: 'What is your full name?' },
+  { field: 'address', label: 'What is the service address?' },
+  { field: 'panel_count', label: 'How many solar panels need cleaning?' },
+  { field: 'location', label: 'Where are the panels located (roof, ground mount, etc.)?' },
+  { field: 'phone', label: 'What is the best phone number to reach you?' },
+  { field: 'email', label: 'What is the best email address for your booking confirmation?' },
+  { field: 'requested_date', label: 'What date would you like to book?' },
+  { field: 'time', label: 'What time would you like to book?' },
 ];
 
 const SERVICE_KEYWORDS = [
@@ -126,12 +126,12 @@ function extractPhoneNumber(message) {
 }
 
 function extractName(message) {
-  const match = message.match(/(?:my name is|this is)\s+([a-z]+)\s+([a-z]+)/i);
-  if (!match) {
-    return null;
+  const explicitMatch = message.match(/(?:my name is|this is|i am|i'm)\s+([a-z]+(?:\s+[a-z]+){0,3})/i);
+  if (explicitMatch) {
+    return explicitMatch[1].trim();
   }
 
-  return { first_name: match[1], last_name: match[2] };
+  return null;
 }
 
 function extractServiceAddress(message) {
@@ -141,29 +141,11 @@ function extractServiceAddress(message) {
   return match ? match[0].trim() : null;
 }
 
-function extractConsent(message) {
-  const normalized = message.toLowerCase();
-  const mentionsText = normalized.includes('text');
-  const mentionsEmail = normalized.includes('email') || normalized.includes('e-mail');
-  const affirmative =
-    /(yes|yeah|yep|okay|ok|sure|you can|you may|feel free|please do|text me|email me|e-mail me)/.test(
-      normalized
-    );
-
-  if (!affirmative || (!mentionsText && !mentionsEmail)) {
-    return null;
-  }
-
-  const channels = [];
-  if (mentionsText) {
-    channels.push('text');
-  }
-  if (mentionsEmail) {
-    channels.push('email');
-  }
-
-  return { consent_text: message.trim(), consent_channels: channels };
+function extractEmail(message) {
+  const match = message.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+  return match ? match[0].trim() : null;
 }
+
 
 function extractSlots(message, service) {
   if (!service || !service.required_for_quote) {
@@ -181,6 +163,17 @@ function extractSlots(message, service) {
 
     if (requirement.field === 'solar_mounting') {
       slots.solar_mounting = extractEnumOption(normalized, requirement.options);
+      if (!slots.solar_mounting) {
+        if (normalized.includes('ground')) {
+          slots.solar_mounting = 'ground_mount';
+        } else if (normalized.includes('second')) {
+          slots.solar_mounting = 'second_story_roof';
+        } else if (normalized.includes('first')) {
+          slots.solar_mounting = 'first_story_roof';
+        } else if (normalized.includes('roof')) {
+          slots.solar_mounting = 'first_story_roof';
+        }
+      }
     }
 
     if (requirement.field === 'water_access') {
@@ -311,6 +304,23 @@ function buildPublicReferenceResponse(entry, askToBook = false) {
 
 function getBusinessHours(company) {
   return company.company.hours_of_operation.schedule;
+}
+
+
+function extractRequestedDate(message) {
+  const slashDate = message.match(/(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/);
+  if (slashDate) {
+    return slashDate[1];
+  }
+
+  const longDate = message.match(
+    /(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}(?:,\s*\d{4})?/i
+  );
+  if (longDate) {
+    return longDate[0];
+  }
+
+  return parsePreferredDay(message);
 }
 
 function parsePreferredDay(message) {
@@ -460,24 +470,32 @@ function updateBookingSlots(message, slots) {
   const extractedName = extractName(message);
   const extractedPhone = extractPhoneNumber(message);
   const extractedAddress = extractServiceAddress(message);
-  const extractedConsent = extractConsent(message);
+  const extractedEmail = extractEmail(message);
+  const extractedDate = extractRequestedDate(message);
+  const extractedTime = parsePreferredTime(message);
 
-  if (extractedName) {
-    updated.first_name = updated.first_name || extractedName.first_name;
-    updated.last_name = updated.last_name || extractedName.last_name;
+  if (extractedName && !updated.client_name) {
+    updated.client_name = extractedName;
   }
 
   if (extractedPhone && !updated.phone) {
     updated.phone = extractedPhone;
   }
 
-  if (extractedAddress && !updated.service_address) {
-    updated.service_address = extractedAddress;
+  if (extractedAddress && !updated.address) {
+    updated.address = extractedAddress;
   }
 
-  if (extractedConsent) {
-    updated.consent_text = updated.consent_text || extractedConsent.consent_text;
-    updated.consent_channels = updated.consent_channels || extractedConsent.consent_channels;
+  if (extractedEmail && !updated.email) {
+    updated.email = extractedEmail;
+  }
+
+  if (extractedDate && !updated.requested_date) {
+    updated.requested_date = extractedDate;
+  }
+
+  if (extractedTime && !updated.time) {
+    updated.time = extractedTime;
   }
 
   return updated;
@@ -498,31 +516,23 @@ function detectEscalationReason(message) {
 }
 
 function getMissingBookingFields(service, slots) {
-  const missing = REQUIRED_BOOKING_FIELDS.filter((entry) => !slots[entry.field]);
+  const missing = SOLAR_REQUIRED_BOOKING_FIELDS.filter((entry) => !slots[entry.field]);
 
   const requiredServiceSlots = getMissingRequiredSlots(service, slots);
-  const preferredDayMissing = !slots.preferred_day ? ['preferred_day'] : [];
-  const preferredTimeMissing = !slots.preferred_time ? ['preferred_time'] : [];
-
-  return [
-    ...missing.map((entry) => entry.field),
-    ...requiredServiceSlots.map((entry) => entry.field),
-    ...preferredDayMissing,
-    ...preferredTimeMissing,
-  ];
+  return [...missing.map((entry) => entry.field), ...requiredServiceSlots.map((entry) => entry.field)];
 }
 
 function buildMissingFieldPrompt(service, missingField) {
-  const bookingPrompt = REQUIRED_BOOKING_FIELDS.find((entry) => entry.field === missingField);
+  const bookingPrompt = SOLAR_REQUIRED_BOOKING_FIELDS.find((entry) => entry.field === missingField);
   if (bookingPrompt) {
     return bookingPrompt.label;
   }
 
-  if (missingField === 'preferred_day') {
-    return 'What day of the week would you like to schedule?';
+  if (missingField === 'requested_date') {
+    return 'What date would you like to book?';
   }
 
-  if (missingField === 'preferred_time') {
+  if (missingField === 'time') {
     return 'What time works best for you?';
   }
 
@@ -547,11 +557,11 @@ function buildConversationSummary(state) {
   if (state.slots.surface_sqft) {
     parts.push(`Surface sqft: ${state.slots.surface_sqft}`);
   }
-  if (state.slots.service_address) {
-    parts.push(`Address: ${state.slots.service_address}`);
+  if (state.slots.address) {
+    parts.push(`Address: ${state.slots.address}`);
   }
-  if (state.slots.preferred_day && state.slots.preferred_time) {
-    parts.push(`Preferred: ${state.slots.preferred_day} ${state.slots.preferred_time}`);
+  if (state.slots.requested_date && state.slots.time) {
+    parts.push(`Preferred: ${state.slots.requested_date} ${state.slots.time}`);
   }
   return parts.join(' | ');
 }
@@ -570,7 +580,6 @@ function buildOutcomeRecord(state, extra = {}) {
     service_types: state.serviceId ? [state.serviceId] : [],
     collected_fields: state.slots,
     conversation_summary: buildConversationSummary(state),
-    consent_text: state.slots.consent_text || null,
     ...extra,
   };
 }
@@ -742,14 +751,37 @@ function createSunnyRuntime({
       }
 
       if (detectedIntent === 'booking_request') {
-        const preferredDay = updatedState.slots.preferred_day || parsePreferredDay(message);
-        const preferredTime = updatedState.slots.preferred_time || parsePreferredTime(message);
-
-        if (preferredDay) {
-          updatedState.slots.preferred_day = preferredDay;
+        if (service.id !== 'solar_panel_cleaning') {
+          updatedState.needsHumanFollowup = true;
+          updatedState.outcome = OUTCOME_TYPES.followup;
+          updatedState.escalationReason = 'non_solar_booking_requires_human';
+          const reply = 'I can collect details for that service, but final booking is handled by a human specialist. Would you prefer a text or a call?';
+          logOutcome(logger, {
+            intent: detectedIntent,
+            outcome: updatedState.outcome,
+            pricingPath: null,
+            escalationReason: updatedState.escalationReason,
+          });
+          writeOutcomeRecord(
+            outcomeLogPath,
+            buildOutcomeRecord(updatedState, { escalation_reason: updatedState.escalationReason }),
+            logger
+          );
+          return { reply, state: updatedState };
         }
-        if (preferredTime) {
-          updatedState.slots.preferred_time = preferredTime;
+
+        const requestedDate = updatedState.slots.requested_date || extractRequestedDate(message);
+        const requestedTime = updatedState.slots.time || parsePreferredTime(message);
+
+        if (requestedDate) {
+          updatedState.slots.requested_date = requestedDate;
+        }
+        if (requestedTime) {
+          updatedState.slots.time = requestedTime;
+        }
+
+        if (!updatedState.slots.location && updatedState.slots.solar_mounting) {
+          updatedState.slots.location = updatedState.slots.solar_mounting;
         }
 
         const missingBookingFields = getMissingBookingFields(service, updatedState.slots);
@@ -770,26 +802,39 @@ function createSunnyRuntime({
         }
 
         const schedule = getBusinessHours(knowledge.company);
-        if (!isWithinHours(updatedState.slots.preferred_day, updatedState.slots.preferred_time, schedule)) {
+        if (!isWithinHours(updatedState.slots.requested_date, updatedState.slots.time, schedule)) {
           const reply = 'That time is outside our business hours. What time within our regular hours works for you?';
           logOutcome(logger, {
             intent: detectedIntent,
             outcome: updatedState.outcome,
             pricingPath: null,
-            missingFields: ['preferred_time'],
+            missingFields: ['time'],
           });
           writeOutcomeRecord(
             outcomeLogPath,
             buildOutcomeRecord(updatedState, {
-              missing_fields: ['preferred_time'],
+              missing_fields: ['time'],
             }),
             logger
           );
           return { reply, state: updatedState };
         }
 
+        updatedState.slots.booking_timestamp = new Date().toISOString();
         updatedState.outcome = OUTCOME_TYPES.booked;
-        const reply = `Great—I've noted your booking request for ${updatedState.slots.preferred_day} at ${updatedState.slots.preferred_time}. A human will confirm the details shortly.`;
+        updatedState.bookingRecord = {
+          client_name: updatedState.slots.client_name,
+          address: updatedState.slots.address,
+          panel_count: updatedState.slots.panel_count,
+          location: updatedState.slots.location,
+          phone: updatedState.slots.phone,
+          email: updatedState.slots.email,
+          requested_date: updatedState.slots.requested_date,
+          time: updatedState.slots.time,
+          booking_timestamp: updatedState.slots.booking_timestamp,
+        };
+
+        const reply = `Great—your solar panel cleaning is booked for ${updatedState.slots.requested_date} at ${updatedState.slots.time}. I’ll send this booking through now.`;
         logOutcome(logger, {
           intent: detectedIntent,
           outcome: updatedState.outcome,
