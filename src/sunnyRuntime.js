@@ -50,15 +50,15 @@ function loadKnowledge(knowledgeDir) {
   const servicesPath = path.join(knowledgeDir, 'services.json');
   const pricingPath = path.join(knowledgeDir, 'pricing.json');
   const publicPricingReferencePath = path.join(knowledgeDir, 'public_pricing_reference.json');
-  const solarPricingWorkbookPath = path.join(knowledgeDir, 'solar_pricing_workbook.json');
+  const solarPricingV1Path = path.join(__dirname, '..', 'data', 'pricing', 'solar-pricing-v1.json');
 
   const company = loadJsonFile(companyPath);
   const services = loadJsonFile(servicesPath);
   const pricing = loadJsonFile(pricingPath);
   const publicPricingReference = loadJsonFile(publicPricingReferencePath);
-  const solarPricingWorkbook = loadJsonFile(solarPricingWorkbookPath);
+  const solarPricingV1 = loadJsonFile(solarPricingV1Path);
 
-  if (!company.ok || !services.ok || !pricing.ok || !publicPricingReference.ok || !solarPricingWorkbook.ok) {
+  if (!company.ok || !services.ok || !pricing.ok || !publicPricingReference.ok || !solarPricingV1.ok) {
     return {
       ok: false,
       error:
@@ -66,7 +66,7 @@ function loadKnowledge(knowledgeDir) {
         services.error ||
         pricing.error ||
         publicPricingReference.error ||
-        solarPricingWorkbook.error,
+        solarPricingV1.error,
     };
   }
 
@@ -77,7 +77,7 @@ function loadKnowledge(knowledgeDir) {
       services: services.data,
       pricing: pricing.data,
       publicPricingReference: publicPricingReference.data,
-      solarPricingWorkbook: solarPricingWorkbook.data,
+      solarPricingV1: solarPricingV1.data,
     },
   };
 }
@@ -380,15 +380,19 @@ function isWithinHours(day, time, schedule) {
 }
 
 function getPricingForService(knowledge, serviceId) {
-  if (serviceId === 'solar_panel_cleaning' && knowledge.solarPricingWorkbook?.panel_tiers?.length) {
+  if (serviceId === 'solar_panel_cleaning' && knowledge.solarPricingV1) {
+    const panelCounts = Object.keys(knowledge.solarPricingV1)
+      .map((key) => Number(key))
+      .filter((value) => Number.isInteger(value) && value > 0);
+
     return {
       ...knowledge.pricing.pricing_rules[serviceId],
-      panel_tiers: knowledge.solarPricingWorkbook.panel_tiers,
+      price_by_panel_count: knowledge.solarPricingV1,
       escalation_rules: {
         ...(knowledge.pricing.pricing_rules[serviceId]?.escalation_rules || {}),
-        max_panels_for_auto_quote: knowledge.solarPricingWorkbook.max_panels_for_auto_quote,
+        max_panels_for_auto_quote: panelCounts.length ? Math.max(...panelCounts) : 0,
       },
-      source: knowledge.solarPricingWorkbook.source_file,
+      source: 'data/pricing/solar-pricing-v1.json',
     };
   }
 
@@ -397,31 +401,20 @@ function getPricingForService(knowledge, serviceId) {
 }
 
 function calculateSolarPanelPrice(pricingRule, panelCount) {
-  const tier = pricingRule.panel_tiers.find(
-    (entry) => panelCount >= entry.min && (entry.max === null || panelCount <= entry.max)
-  );
-
-  if (!tier || tier.manual_quote) {
+  if (!pricingRule?.price_by_panel_count) {
     return null;
   }
 
-  if (tier.job_total_usd) {
-    return {
-      total: tier.job_total_usd,
-      pricingPath: 'solar_panel_cleaning_flat',
-      customerFacingPriceDescription: tier.customer_facing_price_description,
-    };
+  const total = pricingRule.price_by_panel_count[String(panelCount)];
+
+  if (typeof total !== 'number') {
+    return null;
   }
 
-  if (tier.internal_rate_per_panel) {
-    return {
-      total: Number((tier.internal_rate_per_panel * panelCount).toFixed(2)),
-      pricingPath: 'solar_panel_cleaning_tiered',
-      customerFacingPriceDescription: tier.customer_facing_price_description,
-    };
-  }
-
-  return null;
+  return {
+    total,
+    pricingPath: 'solar_panel_cleaning_lookup_v1',
+  };
 }
 
 function calculateRoofCleaningPrice(pricingRule, roofType, roofSqft) {
@@ -945,10 +938,7 @@ function createSunnyRuntime({
         }
 
         const total = formatCurrency(price.total, knowledge.pricing.currency);
-        const description = price.customerFacingPriceDescription
-          ? `${price.customerFacingPriceDescription}. `
-          : '';
-        const reply = `${description}Your total for solar panel cleaning is ${total}. Would you like to book a time?`;
+        const reply = `For ${panelCount} solar panels, your total is ${total}. Would you like to book a time?`;
         logOutcome(logger, { intent: detectedIntent, outcome: updatedState.outcome, pricingPath: price.pricingPath });
         writeOutcomeRecord(outcomeLogPath, buildOutcomeRecord(updatedState), logger);
         return { reply, state: updatedState };
