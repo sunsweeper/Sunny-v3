@@ -17,6 +17,11 @@ const OUTCOME_TYPES = {
 const DEFAULT_OUTCOME = OUTCOME_TYPES.general;
 const DEFAULT_CURRENCY = 'USD';
 const PRICING_DEBUG_ENABLED = /^(1|true|yes|on)$/i.test(process.env.SUNNY_PRICING_DEBUG || '');
+console.log("[SUNNY_RUNTIME_LOADED]", {
+  PRICING_DEBUG_ENABLED,
+  SUNNY_PRICING_DEBUG: process.env.SUNNY_PRICING_DEBUG,
+});
+
 
 // Only solar pricing is auto-quoted.
 // Everything else should be info-only or escalated to human.
