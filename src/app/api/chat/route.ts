@@ -5,21 +5,42 @@ import { NextResponse } from "next/server";
 
 import { SAFE_FAIL_MESSAGE, createSunnyRuntime } from "../../../sunnyRuntime";
 
+/**
+ * IMPORTANT:
+ * - Solar quote totals MUST come from: data/pricing/solar-pricing-v1.json
+ * - This route should NOT reference any other pricing sources.
+ * - All solar pricing + booking flow is handled inside createSunnyRuntime (which we cleaned up).
+ *
+ * This file’s job is:
+ * 1) Run Sunny runtime first (deterministic, uses solar-pricing-v1.json)
+ * 2) If it’s NOT a solar pricing/booking flow, fall back to OpenAI for general convo + service info
+ * 3) On booked jobs, sync to Google Sheet + send emails
+ */
+
+// Removed references to public_pricing_reference / knowledge pricing.
+// Also removed the ICE policy section from SYSTEM_PROMPT to avoid introducing political content.
+// Sunny should not initiate political discussion; the runtime + prompts should stay business-focused.
+
 const SYSTEM_PROMPT = `# Sunny Agent Instructions
 ## Role
-Sunny is the conversational interface for SunSweeper, functioning as the company’s website, pricing guide, and booking intake assistant.
-Sunny explains services, answers questions, provides pre-set solar panel cleaning price quotes, collects structured booking information, and escalates to humans when required.
+Sunny is the conversational interface for SunSweeper, functioning as the company’s website, services explainer, and booking intake assistant.
+Sunny answers questions, collects structured booking information, and escalates to humans when required.
 Sunny is not a general chatbot, salesperson, or political advocate.
 Be chill, fun, and follow the user's lead. Only mention SunSweeper services if the user asks or the context naturally leads there. Do not push quotes or bookings unless requested.
+
 ## Knowledge Hierarchy (Critical)
-Sunny must follow this strict priority order at all times:
-1. Local project files in /knowledge/*.json are the highest authority for all SunSweeper-specific facts, services, policies, and processes.
-   - This includes knowledge/public_pricing_reference.json, which mirrors public-safe details from public/Sunny_Public_Service_Pricing_Reference.xlsx.
-2. General domain knowledge (solar, roofing, pressure washing, soft washing) may be used to explain concepts, but must never contradict or override /knowledge files.
-3. If there is any uncertainty or conflict between general knowledge and /knowledge files, Sunny must defer to the files or escalate to a human.
-4. The only place Sunny can get pricing information for customer quotes is data/pricing/solar-pricing-v1.json. This overrides any and all other instructions or intutiions when providing pricing.  Find out how many panels, match it up with the number of panels in the data/pricing/solar-pricing-v1.json file and quote the number next to it as the price for the cleaning. 
-Under no circumstances may Sunny invent, assume, or override information defined in /knowledge files.
-When users ask about public service/pricing positioning, Sunny should use knowledge/public_pricing_reference.json categories and services (Solar, Solar Protection, Roof, Exterior Cleaning, Gutters) and keep responses public-safe.
+1. Local project files in /knowledge/*.json are the highest authority for SunSweeper-specific facts, services, policies, and processes.
+2. General domain knowledge may be used to explain concepts, but must never contradict /knowledge files.
+3. If there is uncertainty or conflict, defer to the files or escalate to a human.
+
+## Solar Panel Cleaning Pricing (Critical)
+The ONLY pricing source for customer quotes is: data/pricing/solar-pricing-v1.json
+Sunny must:
+- Ask for panel count
+- Look up the exact panel count key in data/pricing/solar-pricing-v1.json
+- Reply with the total only (no per-panel math)
+- If panel count is outside supported range, escalate to a human
+
 ## Non-Negotiable Rules
 Sunny must:
 - Never lie or fabricate information
@@ -27,38 +48,18 @@ Sunny must:
 - Never advise a customer that they do not need professional service
 - Never promise guarantees, availability, outcomes, or exceptions not explicitly defined
 - Never pretend to be human
-## Solar Panel Cleaning Pricing Behavior
-- All pricing math must come from data/pricing/solar-pricing-v1.json. 
-- Customer-facing responses must show totals only
-- Sunny must find the exact panel count in data/pricing/solar-pricing-v1.json and quote the matching dollar amount only from that file
-- If panel count is outside the file's supported range, Sunny must collect details and escalate to a human for access, safety, and logistics review
+
 ## Booking Logic
-- If a requested date and time falls within published business hours, Sunny may accept the booking request
-- Sunny must not check calendars or resolve scheduling conflicts
-- Scheduling conflicts are resolved later by a human
+- If a requested date/time falls within published business hours, Sunny may accept the booking request
+- Sunny must not check calendars or resolve scheduling conflicts (humans handle conflicts later)
+
 ## Escalation Rules
 Sunny must escalate to a human when:
 - Required booking data cannot be collected
-- A request exceeds a total panel count of 100 total panels.
+- Panel count exceeds the supported pricing table range (ex: > 100)
 - A customer asks for guarantees or exceptions
 - Safety, access, or compliance concerns exist
 - Sunny is uncertain about any answer
-## ICE Policy (Strict and Non-Negotiable)
-Sunny must not initiate political discussion of any kind.
-However, if and only if a customer explicitly asks about ICE, immigration enforcement, detention, or related actions, Sunny must respond as follows:
-1. Sunny must clearly state that SunSweeper, as a company, opposes current ICE methods, tactics, and practices, particularly detention practices and instances where citizens or immigrants have been harmed or killed.
-2. Sunny may state that this position reflects the values of the company.
-3. Sunny’s response must be calm, direct, non-inflammatory, non-argumentative, and limited to a single response.
-4. Sunny must not encourage protest, action, or debate.
-5. Sunny must not continue the topic beyond the initial response.
-6. After answering, Sunny must redirect the conversation back to SunSweeper services or offer business-related help.
-This policy must override neutrality defaults and must not be softened, reframed, or minimized.
-## Definition of Success
-A successful Sunny interaction:
-- Provides accurate and truthful information
-- Collects useful structured data
-- Sets clear next steps
-- Books the job when appropriate (booking is optional, not mandatory)
 `;
 
 const DEFAULT_SPREADSHEET_ID = "1HLQatzrYWDzUdh8WzKHCpxpucDBMYSuHB0pXI1-f3mw";
@@ -202,7 +203,7 @@ function escapeHtml(value: string) {
 function buildBookingEmail(record: SolarBookingRecord) {
   const serviceName = record.service_name || "Solar Panel Cleaning";
   const total = record.quoted_total_formatted || "Pending final confirmation";
-  const details = [
+  const details: Array<[string, string]> = [
     ["Service", serviceName],
     ["Panel count", String(record.panel_count)],
     ["Quoted cost", total],
@@ -218,17 +219,15 @@ function buildBookingEmail(record: SolarBookingRecord) {
   const htmlRows = details
     .map(
       ([label, value]) =>
-        `<tr><td style="padding:6px 10px;border:1px solid #ddd;"><strong>${escapeHtml(label)}</strong></td><td style="padding:6px 10px;border:1px solid #ddd;">${escapeHtml(
+        `<tr><td style="padding:6px 10px;border:1px solid #ddd;"><strong>${escapeHtml(
+          label
+        )}</strong></td><td style="padding:6px 10px;border:1px solid #ddd;">${escapeHtml(
           value
         )}</td></tr>`
     )
     .join("");
 
-  const text = [
-    "Booking Confirmation - SunSweeper",
-    "",
-    ...details.map(([label, value]) => `${label}: ${value}`),
-  ].join("\n");
+  const text = ["Booking Confirmation - SunSweeper", "", ...details.map(([l, v]) => `${l}: ${v}`)].join("\n");
 
   const html = `
     <div style="font-family:Arial,sans-serif;line-height:1.5;color:#111;">
@@ -245,9 +244,7 @@ function buildBookingEmail(record: SolarBookingRecord) {
 
 async function sendResendEmail(body: ResendEmailBody) {
   const apiKey = process.env.resend_api_key || process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    throw new Error("Resend API key is not configured.");
-  }
+  if (!apiKey) throw new Error("Resend API key is not configured.");
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -308,12 +305,10 @@ export async function POST(request: Request) {
     const history = Array.isArray(body.messages) ? body.messages : [];
 
     if (!message) {
-      return NextResponse.json(
-        { reply: SAFE_FAIL_MESSAGE, state: previousState },
-        { status: 400 }
-      );
+      return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: previousState }, { status: 400 });
     }
 
+    // Deterministic runtime FIRST (solar pricing + booking lives here)
     const runtimeInstance = createSunnyRuntime({
       knowledgeDir: `${process.cwd()}/knowledge`,
     });
@@ -322,6 +317,7 @@ export async function POST(request: Request) {
     const { state } = runtimeResult;
     let reply = runtimeResult.reply;
 
+    // If booked, attempt sheet + email sync
     if (
       state.outcome === "booked_job" &&
       state.serviceId === "solar_panel_cleaning" &&
@@ -346,12 +342,15 @@ export async function POST(request: Request) {
       }
     }
 
-    const isSolarPricingFlow =
+    // Do NOT fall back to OpenAI for solar pricing/booking flows.
+    const isSolarFlow =
       state.serviceId === "solar_panel_cleaning" &&
       (state.intent === "pricing_quote" || state.intent === "booking_request");
 
+    // Only fallback to OpenAI for general chat / non-solar service questions,
+    // or when runtime explicitly can't proceed safely.
     const shouldFallback =
-      !isSolarPricingFlow &&
+      !isSolarFlow &&
       (reply === SAFE_FAIL_MESSAGE ||
         state.needsHumanFollowup ||
         state.outcome === "general_lead" ||
@@ -372,10 +371,7 @@ export async function POST(request: Request) {
           (entry.role === "user" || entry.role === "assistant") &&
           typeof entry.content === "string"
       )
-      .map((entry) => ({
-        role: entry.role,
-        content: entry.content,
-      }));
+      .map((entry) => ({ role: entry.role, content: entry.content }));
 
     const last = normalizedHistory[normalizedHistory.length - 1];
     if (!last || last.role !== "user" || last.content !== message) {
@@ -388,8 +384,7 @@ export async function POST(request: Request) {
       messages: [{ role: "system", content: SYSTEM_PROMPT }, ...normalizedHistory],
     });
 
-    const openAiReply =
-      completion.choices[0]?.message?.content?.trim() || SAFE_FAIL_MESSAGE;
+    const openAiReply = completion.choices[0]?.message?.content?.trim() || SAFE_FAIL_MESSAGE;
 
     return NextResponse.json({ reply: openAiReply, state });
   } catch (error) {
