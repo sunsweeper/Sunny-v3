@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const SAFE_FAIL_MESSAGE =
-  "I’m having trouble accessing our pricing details—let me connect you with a human.";
+  "I’m having trouble accessing our pricing details. Let me connect you with a human.";
 
 const OUTCOME_TYPES = {
   booked: 'booked_job',
@@ -450,7 +450,7 @@ export function createSunnyRuntime({
         updatedState.needsHumanFollowup = true;
         updatedState.outcome = OUTCOME_TYPES.followup;
         const reply =
-          'That system size needs a quick human review for access and logistics. Would you prefer a text or a call?';
+          'Nice solar array! Due to layout concerns and possible complexity surrounding larger systems I need a human to quickly review for access and logistics. Would you prefer a text or a call?';
         logOutcome(logger, {
           intent: detectedIntent,
           outcome: updatedState.outcome,
