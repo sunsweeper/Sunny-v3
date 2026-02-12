@@ -4,175 +4,615 @@
   "last_synced_note": "Derived from workbook; use Customer Facing Price Description for customer messaging and never expose Internal Calculation Logic.",
   "panel_tiers": [
     {
-      "tier": "Tier 1",
-      "panel_range": "1-13 panels",
-      "customer_facing_price_description": "$149 Minimum Service Charge",
-      "internal_calculation_logic": "Flat $149",
-      "notes": "Minimum charge regardless of panel count within range",
       "min": 1,
+      "max": 1,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 2,
+      "max": 2,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 3,
+      "max": 3,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 4,
+      "max": 4,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 5,
+      "max": 5,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 6,
+      "max": 6,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 7,
+      "max": 7,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 8,
+      "max": 8,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 9,
+      "max": 9,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 10,
+      "max": 10,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 11,
+      "max": 11,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 12,
+      "max": 12,
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
+    },
+    {
+      "min": 13,
       "max": 13,
-      "job_total_usd": 149.0
+      "job_total_usd": 149,
+      "customer_facing_price_description": "$149 Minimum Service Charge"
     },
     {
-      "tier": "Tier 2",
-      "panel_range": "14-20 panels",
-      "customer_facing_price_description": "Tier Pricing Applied",
-      "internal_calculation_logic": "Panels x 11.50",
-      "notes": "Do not expose per-panel math to customer",
       "min": 14,
+      "max": 14,
+      "job_total_usd": 161,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 15,
+      "max": 15,
+      "job_total_usd": 172.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 16,
+      "max": 16,
+      "job_total_usd": 184,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 17,
+      "max": 17,
+      "job_total_usd": 195.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 18,
+      "max": 18,
+      "job_total_usd": 207,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 19,
+      "max": 19,
+      "job_total_usd": 218.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 20,
       "max": 20,
-      "internal_rate_per_panel": 11.5
+      "job_total_usd": 230,
+      "customer_facing_price_description": "Workbook Price Applied"
     },
     {
-      "tier": "Tier 3",
-      "panel_range": "21-30 panels",
-      "customer_facing_price_description": "Tier Pricing Applied",
-      "internal_calculation_logic": "Panels x 10.50",
-      "notes": "Do not expose per-panel math to customer",
       "min": 21,
+      "max": 21,
+      "job_total_usd": 220.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 22,
+      "max": 22,
+      "job_total_usd": 231,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 23,
+      "max": 23,
+      "job_total_usd": 241.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 24,
+      "max": 24,
+      "job_total_usd": 252,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 25,
+      "max": 25,
+      "job_total_usd": 262.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 26,
+      "max": 26,
+      "job_total_usd": 273,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 27,
+      "max": 27,
+      "job_total_usd": 283.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 28,
+      "max": 28,
+      "job_total_usd": 294,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 29,
+      "max": 29,
+      "job_total_usd": 304.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 30,
       "max": 30,
-      "internal_rate_per_panel": 10.5
+      "job_total_usd": 315,
+      "customer_facing_price_description": "Workbook Price Applied"
     },
     {
-      "tier": "Tier 4",
-      "panel_range": "31-40 panels",
-      "customer_facing_price_description": "Tier Pricing Applied",
-      "internal_calculation_logic": "Panels x 9.75",
-      "notes": "Do not expose per-panel math to customer",
       "min": 31,
+      "max": 31,
+      "job_total_usd": 302.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 32,
+      "max": 32,
+      "job_total_usd": 312,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 33,
+      "max": 33,
+      "job_total_usd": 321.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 34,
+      "max": 34,
+      "job_total_usd": 331.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 35,
+      "max": 35,
+      "job_total_usd": 341.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 36,
+      "max": 36,
+      "job_total_usd": 351,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 37,
+      "max": 37,
+      "job_total_usd": 360.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 38,
+      "max": 38,
+      "job_total_usd": 370.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 39,
+      "max": 39,
+      "job_total_usd": 380.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 40,
       "max": 40,
-      "internal_rate_per_panel": 9.75
+      "job_total_usd": 390,
+      "customer_facing_price_description": "Workbook Price Applied"
     },
     {
-      "tier": "Tier 5",
-      "panel_range": "41-50 panels",
-      "customer_facing_price_description": "Tier Pricing Applied",
-      "internal_calculation_logic": "Panels x 9.25",
-      "notes": "Do not expose per-panel math to customer",
       "min": 41,
+      "max": 41,
+      "job_total_usd": 379.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 42,
+      "max": 42,
+      "job_total_usd": 388.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 43,
+      "max": 43,
+      "job_total_usd": 397.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 44,
+      "max": 44,
+      "job_total_usd": 407,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 45,
+      "max": 45,
+      "job_total_usd": 416.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 46,
+      "max": 46,
+      "job_total_usd": 425.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 47,
+      "max": 47,
+      "job_total_usd": 434.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 48,
+      "max": 48,
+      "job_total_usd": 444,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 49,
+      "max": 49,
+      "job_total_usd": 453.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 50,
       "max": 50,
-      "internal_rate_per_panel": 9.25
+      "job_total_usd": 462.5,
+      "customer_facing_price_description": "Workbook Price Applied"
     },
     {
-      "tier": "Tier 6",
-      "panel_range": "51-75 panels",
-      "customer_facing_price_description": "Tier Pricing Applied",
-      "internal_calculation_logic": "Panels x 8.75",
-      "notes": "Do not expose per-panel math to customer",
       "min": 51,
+      "max": 51,
+      "job_total_usd": 446.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 52,
+      "max": 52,
+      "job_total_usd": 455,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 53,
+      "max": 53,
+      "job_total_usd": 463.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 54,
+      "max": 54,
+      "job_total_usd": 472.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 55,
+      "max": 55,
+      "job_total_usd": 481.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 56,
+      "max": 56,
+      "job_total_usd": 490,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 57,
+      "max": 57,
+      "job_total_usd": 498.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 58,
+      "max": 58,
+      "job_total_usd": 507.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 59,
+      "max": 59,
+      "job_total_usd": 516.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 60,
+      "max": 60,
+      "job_total_usd": 525,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 61,
+      "max": 61,
+      "job_total_usd": 533.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 62,
+      "max": 62,
+      "job_total_usd": 542.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 63,
+      "max": 63,
+      "job_total_usd": 551.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 64,
+      "max": 64,
+      "job_total_usd": 560,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 65,
+      "max": 65,
+      "job_total_usd": 568.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 66,
+      "max": 66,
+      "job_total_usd": 577.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 67,
+      "max": 67,
+      "job_total_usd": 586.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 68,
+      "max": 68,
+      "job_total_usd": 595,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 69,
+      "max": 69,
+      "job_total_usd": 603.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 70,
+      "max": 70,
+      "job_total_usd": 612.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 71,
+      "max": 71,
+      "job_total_usd": 621.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 72,
+      "max": 72,
+      "job_total_usd": 630,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 73,
+      "max": 73,
+      "job_total_usd": 638.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 74,
+      "max": 74,
+      "job_total_usd": 647.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 75,
       "max": 75,
-      "internal_rate_per_panel": 8.75
+      "job_total_usd": 656.25,
+      "customer_facing_price_description": "Workbook Price Applied"
     },
     {
-      "tier": "Tier 7",
-      "panel_range": "76-99 panels",
-      "customer_facing_price_description": "Tier Pricing Applied",
-      "internal_calculation_logic": "Panels x 8.25",
-      "notes": "Do not expose per-panel math to customer",
       "min": 76,
-      "max": 99,
-      "internal_rate_per_panel": 8.25
+      "max": 76,
+      "job_total_usd": 627,
+      "customer_facing_price_description": "Workbook Price Applied"
     },
     {
-      "tier": "Tier 8",
-      "panel_range": "100+ panels",
-      "customer_facing_price_description": "Custom Quote Required",
-      "internal_calculation_logic": "Manual Quote",
-      "notes": "Escalate for review",
+      "min": 77,
+      "max": 77,
+      "job_total_usd": 635.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 78,
+      "max": 78,
+      "job_total_usd": 643.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 79,
+      "max": 79,
+      "job_total_usd": 651.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 80,
+      "max": 80,
+      "job_total_usd": 660,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 81,
+      "max": 81,
+      "job_total_usd": 668.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 82,
+      "max": 82,
+      "job_total_usd": 676.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 83,
+      "max": 83,
+      "job_total_usd": 684.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 84,
+      "max": 84,
+      "job_total_usd": 693,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 85,
+      "max": 85,
+      "job_total_usd": 701.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 86,
+      "max": 86,
+      "job_total_usd": 709.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 87,
+      "max": 87,
+      "job_total_usd": 717.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 88,
+      "max": 88,
+      "job_total_usd": 726,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 89,
+      "max": 89,
+      "job_total_usd": 734.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 90,
+      "max": 90,
+      "job_total_usd": 742.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 91,
+      "max": 91,
+      "job_total_usd": 750.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 92,
+      "max": 92,
+      "job_total_usd": 759,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 93,
+      "max": 93,
+      "job_total_usd": 767.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 94,
+      "max": 94,
+      "job_total_usd": 775.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 95,
+      "max": 95,
+      "job_total_usd": 783.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 96,
+      "max": 96,
+      "job_total_usd": 792,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 97,
+      "max": 97,
+      "job_total_usd": 800.25,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 98,
+      "max": 98,
+      "job_total_usd": 808.5,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
+      "min": 99,
+      "max": 99,
+      "job_total_usd": 816.75,
+      "customer_facing_price_description": "Workbook Price Applied"
+    },
+    {
       "min": 100,
-      "max": null,
-      "manual_quote": true
+      "max": 100,
+      "job_total_usd": 825,
+      "customer_facing_price_description": "Workbook Price Applied"
     }
   ],
-  "max_panels_for_auto_quote": 99,
-  "rows": [
-    {
-      "Service Category": "Residential Solar Cleaning",
-      "Tier": "Tier 1",
-      "Panel Range": "1-13 panels",
-      "Customer Facing Price Description": "$149 Minimum Service Charge",
-      "Internal Calculation Logic": "Flat $149",
-      "Notes": "Minimum charge regardless of panel count within range"
-    },
-    {
-      "Service Category": "Residential Solar Cleaning",
-      "Tier": "Tier 2",
-      "Panel Range": "14-20 panels",
-      "Customer Facing Price Description": "Tier Pricing Applied",
-      "Internal Calculation Logic": "Panels x 11.50",
-      "Notes": "Do not expose per-panel math to customer"
-    },
-    {
-      "Service Category": "Residential Solar Cleaning",
-      "Tier": "Tier 3",
-      "Panel Range": "21-30 panels",
-      "Customer Facing Price Description": "Tier Pricing Applied",
-      "Internal Calculation Logic": "Panels x 10.50",
-      "Notes": "Do not expose per-panel math to customer"
-    },
-    {
-      "Service Category": "Residential Solar Cleaning",
-      "Tier": "Tier 4",
-      "Panel Range": "31-40 panels",
-      "Customer Facing Price Description": "Tier Pricing Applied",
-      "Internal Calculation Logic": "Panels x 9.75",
-      "Notes": "Do not expose per-panel math to customer"
-    },
-    {
-      "Service Category": "Residential Solar Cleaning",
-      "Tier": "Tier 5",
-      "Panel Range": "41-50 panels",
-      "Customer Facing Price Description": "Tier Pricing Applied",
-      "Internal Calculation Logic": "Panels x 9.25",
-      "Notes": "Do not expose per-panel math to customer"
-    },
-    {
-      "Service Category": "Residential Solar Cleaning",
-      "Tier": "Tier 6",
-      "Panel Range": "51-75 panels",
-      "Customer Facing Price Description": "Tier Pricing Applied",
-      "Internal Calculation Logic": "Panels x 8.75",
-      "Notes": "Do not expose per-panel math to customer"
-    },
-    {
-      "Service Category": "Residential Solar Cleaning",
-      "Tier": "Tier 7",
-      "Panel Range": "76-99 panels",
-      "Customer Facing Price Description": "Tier Pricing Applied",
-      "Internal Calculation Logic": "Panels x 8.25",
-      "Notes": "Do not expose per-panel math to customer"
-    },
-    {
-      "Service Category": "Residential Solar Cleaning",
-      "Tier": "Tier 8",
-      "Panel Range": "100+ panels",
-      "Customer Facing Price Description": "Custom Quote Required",
-      "Internal Calculation Logic": "Manual Quote",
-      "Notes": "Escalate for review"
-    },
-    {
-      "Service Category": "Recurring Discount",
-      "Tier": "Bi-Annual",
-      "Panel Range": "2x per year",
-      "Customer Facing Price Description": "10% Discount Applied",
-      "Internal Calculation Logic": "Multiply subtotal x 0.90",
-      "Notes": "Position as Solar Wellness Program"
-    },
-    {
-      "Service Category": "Recurring Discount",
-      "Tier": "Quarterly",
-      "Panel Range": "4x per year",
-      "Customer Facing Price Description": "15% Discount Applied",
-      "Internal Calculation Logic": "Multiply subtotal x 0.85",
-      "Notes": "Position as Solar Wellness Program"
-    },
-    {
-      "Service Category": "Commercial Cleaning",
-      "Tier": "Standard Volume",
-      "Panel Range": "50+ panels",
-      "Customer Facing Price Description": "Volume Pricing Applied",
-      "Internal Calculation Logic": "$1.60\u2013$2.25 per panel equivalent",
-      "Notes": "Final pricing based on access, scale, and water logistics"
-    }
-  ]
+  "minimum_charge_usd": 149,
+  "escalation_rules": {
+    "max_panels_for_auto_quote": 100,
+    "escalate_over_max": true,
+    "escalation_reason": "Custom quote required above the workbook auto-quote range. Large systems require human review for access, safety, and logistics."
+  },
+  "customer_visible_pricing": {
+    "show_rate_per_panel": false,
+    "show_calculation": false,
+    "show_total_only": true
+  }
 }
