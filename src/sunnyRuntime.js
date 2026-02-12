@@ -241,43 +241,10 @@ function calculateSolarPanelPrice(solarPricingV1, panelCount) {
     return null;
   }
 
-  let matchedRow = null;
-
-  // Preferred row-based structure: [{ min, max, job_total_usd, manual_quote }]
-  const tiers = Array.isArray(solarPricingV1?.tiers)
-    ? solarPricingV1.tiers
-    : Array.isArray(solarPricingV1)
-      ? solarPricingV1
-      : null;
-
-  if (tiers) {
-    matchedRow = tiers.find(
-      (row) => Number(row?.min) === panelCount && Number(row?.max) === panelCount
-    );
-
-    pricingDebugLog('Lookup result (tier rows)', {
-      panelCount,
-      matched: Boolean(matchedRow),
-      manual_quote: Boolean(matchedRow?.manual_quote),
-      job_total_usd: matchedRow?.job_total_usd ?? null,
-    });
-
-    if (!matchedRow || matchedRow.manual_quote === true) return null;
-    if (typeof matchedRow.job_total_usd !== 'number') return null;
-
-    return {
-      total: matchedRow.job_total_usd,
-      pricingPath: 'data/pricing/solar-pricing-v1.json',
-    };
-  }
-
-  // Backward-compatible exact-key lookup (still exact table, no math fallback).
   const total = solarPricingV1[String(panelCount)];
-  pricingDebugLog('Lookup result (exact key)', {
+  pricingDebugLog('Lookup value for requested panel count', {
     panelCount,
-    matched: typeof total === 'number',
-    manual_quote: false,
-    job_total_usd: typeof total === 'number' ? total : null,
+    lookupValue: total,
   });
 
   if (typeof total !== 'number') return null;
