@@ -16,6 +16,7 @@ const OUTCOME_TYPES = {
 
 const DEFAULT_OUTCOME = OUTCOME_TYPES.general;
 const DEFAULT_CURRENCY = 'USD';
+const PRICING_DEBUG_ENABLED = /^(1|true|yes|on)$/i.test(process.env.SUNNY_PRICING_DEBUG || '');
 
 // Only solar pricing is auto-quoted.
 // Everything else should be info-only or escalated to human.
@@ -43,6 +44,11 @@ function loadJsonFile(filePath) {
   }
 }
 
+function pricingDebugLog(...args) {
+  if (!PRICING_DEBUG_ENABLED) return;
+  console.info('[sunny:pricing]', ...args);
+}
+
 /**
  * SINGLE SOURCE OF TRUTH for solar pricing:
  *   data/pricing/solar-pricing-v1.json
@@ -63,10 +69,27 @@ function loadKnowledge(knowledgeDir) {
   const services = loadJsonFile(servicesPath);
   const solarPricingV1 = loadJsonFile(solarPricingV1Path);
 
-  if (!company.ok || !services.ok || !solarPricingV1.ok) {
+  if (solarPricingV1.ok) {
+    const tiers = Array.isArray(solarPricingV1.data?.tiers)
+      ? solarPricingV1.data.tiers.length
+      : Object.keys(solarPricingV1.data || {}).length;
+    pricingDebugLog('Loaded solar pricing file', {
+      path: 'data/pricing/solar-pricing-v1.json',
+      loaded: true,
+      tiers,
+    });
+  } else {
+    pricingDebugLog('Failed to load solar pricing file', {
+      path: 'data/pricing/solar-pricing-v1.json',
+      loaded: false,
+      error: solarPricingV1.error?.message || String(solarPricingV1.error),
+    });
+  }
+
+  if (!company.ok || !services.ok) {
     return {
       ok: false,
-      error: company.error || services.error || solarPricingV1.error,
+      error: company.error || services.error,
     };
   }
 
@@ -75,7 +98,7 @@ function loadKnowledge(knowledgeDir) {
     data: {
       company: company.data,
       services: services.data,
-      solarPricingV1: solarPricingV1.data,
+      solarPricingV1: solarPricingV1.ok ? solarPricingV1.data : null,
       solarPricingSource: 'data/pricing/solar-pricing-v1.json',
       currency: DEFAULT_CURRENCY,
     },
@@ -204,11 +227,54 @@ function formatCurrency(value, currency = DEFAULT_CURRENCY) {
 
 /**
  * ✅ Single pricing lookup for solar.
- * solarPricingV1 is expected to look like: { "1": 149, "2": 149, ..., "100": 825 }
+ * Must return exact match only from data/pricing/solar-pricing-v1.json.
+ * No per-panel math fallback is allowed.
  */
 function calculateSolarPanelPrice(solarPricingV1, panelCount) {
-  if (!solarPricingV1 || typeof solarPricingV1 !== 'object') return null;
+  if (!solarPricingV1 || typeof solarPricingV1 !== 'object') {
+    pricingDebugLog('Lookup skipped: pricing table unavailable', { panelCount });
+    return null;
+  }
+
+  let matchedRow = null;
+
+  // Preferred row-based structure: [{ min, max, job_total_usd, manual_quote }]
+  const tiers = Array.isArray(solarPricingV1?.tiers)
+    ? solarPricingV1.tiers
+    : Array.isArray(solarPricingV1)
+      ? solarPricingV1
+      : null;
+
+  if (tiers) {
+    matchedRow = tiers.find(
+      (row) => Number(row?.min) === panelCount && Number(row?.max) === panelCount
+    );
+
+    pricingDebugLog('Lookup result (tier rows)', {
+      panelCount,
+      matched: Boolean(matchedRow),
+      manual_quote: Boolean(matchedRow?.manual_quote),
+      job_total_usd: matchedRow?.job_total_usd ?? null,
+    });
+
+    if (!matchedRow || matchedRow.manual_quote === true) return null;
+    if (typeof matchedRow.job_total_usd !== 'number') return null;
+
+    return {
+      total: matchedRow.job_total_usd,
+      pricingPath: 'data/pricing/solar-pricing-v1.json',
+    };
+  }
+
+  // Backward-compatible exact-key lookup (still exact table, no math fallback).
   const total = solarPricingV1[String(panelCount)];
+  pricingDebugLog('Lookup result (exact key)', {
+    panelCount,
+    matched: typeof total === 'number',
+    manual_quote: false,
+    job_total_usd: typeof total === 'number' ? total : null,
+  });
+
   if (typeof total !== 'number') return null;
 
   return {
