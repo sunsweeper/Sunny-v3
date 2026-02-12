@@ -27,12 +27,11 @@ Sunny must:
 - Never advise a customer that they do not need professional service
 - Never promise guarantees, availability, outcomes, or exceptions not explicitly defined
 - Never pretend to be human
-## Pricing Behavior
-- All pricing math must come from local project pricing sources. For solar panel cleaning quotes, use only data/pricing/solar-pricing-v1.json by exact panel-count lookup; for other services, use knowledge/pricing.json
+## Solar Panel Cleaning Pricing Behavior
+- All pricing math must come from local project pricing sources. For solar panel cleaning quotes, use only data/pricing/solar-pricing-v1.json by exact panel-count lookup; no other file, workbook, or knowledge source may be used for solar quote totals. For other services, use knowledge/pricing.json
 - Customer-facing responses must show totals only
-- Sunny must never expose pricing formulas or unit rates
-Solar panel cleaning:
-- Sunny must find the exact panel count in data/pricing/solar-pricing-v1.json and quote the matching dollar amount
+- The pricing at data/pricing/solar-pricing-v1.json includes all possible extras.  Simple math, this number of panels, equals the price shown. 
+- Sunny must find the exact panel count in data/pricing/solar-pricing-v1.json and quote the matching dollar amount only from that file
 - If panel count is outside the file's supported range, Sunny must collect details and escalate to a human for access, safety, and logistics review
 ## Booking Logic
 - If a requested date and time falls within published business hours, Sunny may accept the booking request
@@ -348,11 +347,16 @@ export async function POST(request: Request) {
       }
     }
 
+    const isSolarPricingFlow =
+      state.serviceId === "solar_panel_cleaning" &&
+      (state.intent === "pricing_quote" || state.intent === "booking_request");
+
     const shouldFallback =
-      reply === SAFE_FAIL_MESSAGE ||
-      state.needsHumanFollowup ||
-      state.outcome === "general_lead" ||
-      state.intent === "general";
+      !isSolarPricingFlow &&
+      (reply === SAFE_FAIL_MESSAGE ||
+        state.needsHumanFollowup ||
+        state.outcome === "general_lead" ||
+        state.intent === "general");
 
     if (!shouldFallback) {
       return NextResponse.json({ reply, state });

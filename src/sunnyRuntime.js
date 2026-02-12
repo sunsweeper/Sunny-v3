@@ -380,7 +380,11 @@ function isWithinHours(day, time, schedule) {
 }
 
 function getPricingForService(knowledge, serviceId) {
-  if (serviceId === 'solar_panel_cleaning' && knowledge.solarPricingV1) {
+  if (serviceId === 'solar_panel_cleaning') {
+    if (!knowledge.solarPricingV1) {
+      return null;
+    }
+
     const panelCounts = Object.keys(knowledge.solarPricingV1)
       .map((key) => Number(key))
       .filter((value) => Number.isInteger(value) && value > 0);
