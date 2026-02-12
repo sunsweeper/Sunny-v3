@@ -1,6 +1,4 @@
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
 
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
@@ -280,42 +278,7 @@ async function sendBookingConfirmationEmails(record: SolarBookingRecord) {
   });
 }
 
-/**
- * DEBUG: prove the server can see and parse the pricing file at runtime,
- * and prove what 28 panels maps to.
- *
- * This does NOT change pricing behavior; it only logs facts.
- */
-function debugLoadSolarPricing() {
-  const relPath = "data/pricing/solar-pricing-v1.json";
-  const absPath = path.join(process.cwd(), relPath);
-
-  console.log("========== PRICING DEBUG ==========");
-  console.log("cwd:", process.cwd());
-  console.log("attempting to load:", absPath);
-  console.log("file exists:", fs.existsSync(absPath));
-
-  if (!fs.existsSync(absPath)) {
-    throw new Error(`[PRICING] Missing pricing file at: ${absPath}`);
-  }
-
-  const raw = fs.readFileSync(absPath, "utf8");
-  const json = JSON.parse(raw);
-
-  const tiers = Array.isArray(json?.panel_tiers) ? json.panel_tiers : [];
-  const sanity28 = tiers.find((t: any) => t?.min === 28 && t?.max === 28);
-
-  console.log("sanity check (28 panels):", sanity28);
-  console.log("pricing keys:", Object.keys(json || {}));
-  console.log("panel_tiers length:", tiers.length);
-  console.log("===================================");
-
-  return json;
-}
-
 export const runtime = "nodejs";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 type Message = {
   role: "user" | "assistant";
@@ -337,9 +300,6 @@ export async function POST(request: Request) {
     if (!message) {
       return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: previousState }, { status: 400 });
     }
-
-    // DEBUG: log pricing file visibility + sanity checks (server-side)
-    debugLoadSolarPricing();
 
     // Deterministic runtime FIRST (solar pricing + booking lives here)
     const runtimeInstance = createSunnyRuntime({
@@ -410,6 +370,8 @@ export async function POST(request: Request) {
     if (!last || last.role !== "user" || last.content !== message) {
       normalizedHistory.push({ role: "user", content: message });
     }
+
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
