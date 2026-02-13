@@ -192,6 +192,69 @@ function extractRequestedTimeRaw(message) {
   return match ? match[1].trim() : null;
 }
 
+function isValidDate(value) {
+  return value instanceof Date && !Number.isNaN(value.getTime());
+}
+
+function toTitleCase(value) {
+  if (!value) return null;
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
+function formatTimeFrom24Hour(value) {
+  if (!value || !/^\d{2}:\d{2}$/.test(value)) return null;
+  const [hoursRaw, minutesRaw] = value.split(':');
+  const hours = Number(hoursRaw);
+  const minutes = Number(minutesRaw);
+  if (Number.isNaN(hours) || Number.isNaN(minutes) || hours > 23 || minutes > 59) return null;
+
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+  return `${hour12}:${String(minutes).padStart(2, '0')} ${suffix}`;
+}
+
+function normalizeWeekday(value) {
+  const normalized = (value || '').trim().toLowerCase();
+  const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const match = weekdays.find((day) => normalized === day || normalized.includes(day));
+  return match ? toTitleCase(match) : null;
+}
+
+function buildOriginalDateTimeText({ requestedDateInput, requestedTimeInput, requestedDate, requestedTime }) {
+  if (requestedDateInput && requestedTimeInput) return `${requestedDateInput} at ${requestedTimeInput}`;
+  if (requestedDateInput) return requestedDateInput;
+  if (requestedDate && requestedTimeInput) return `${requestedDate} at ${requestedTimeInput}`;
+  if (requestedDate && requestedTime) return `${requestedDate} at ${requestedTime}`;
+  return requestedDateInput || requestedDate || requestedTimeInput || requestedTime || '';
+}
+
+function formatRequestedBookingDateTime({
+  rawText,
+  parsedDate,
+  requestedDate,
+  requestedTime,
+}) {
+  if (isValidDate(parsedDate)) {
+    const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(parsedDate);
+    const time = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(parsedDate);
+    return `${weekday} at ${time}`;
+  }
+
+  const weekday = normalizeWeekday(requestedDate);
+  const normalizedTime = formatTimeFrom24Hour(requestedTime);
+  if (weekday && normalizedTime) {
+    return `${weekday} at ${normalizedTime}`;
+  }
+
+  const requestedDateParsed = requestedDate ? new Date(requestedDate) : null;
+  if (isValidDate(requestedDateParsed) && normalizedTime) {
+    const parsedWeekday = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(requestedDateParsed);
+    return `${parsedWeekday} at ${normalizedTime}`;
+  }
+
+  return (rawText || '').trim() || requestedDate || requestedTime || '';
+}
+
 function isRefusal(message) {
   return /(don\'t know|not sure|no idea|can\'t provide|prefer not)/i.test(message || '');
 }
@@ -550,9 +613,17 @@ export function createSunnyRuntime({
         pricing_source: knowledge.solarPricingSource,
       };
 
-      const bookingDate = updatedState.slots.requested_date_input || updatedState.slots.requested_date;
-      const bookingTime = updatedState.slots.time_input || updatedState.slots.time;
-      const requestedDateTime = `${bookingDate} at ${bookingTime}`;
+      const requestedDateTimeOriginalText = buildOriginalDateTimeText({
+        requestedDateInput: updatedState.slots.requested_date_input,
+        requestedTimeInput: updatedState.slots.time_input,
+        requestedDate: updatedState.slots.requested_date,
+        requestedTime: updatedState.slots.time,
+      });
+      const requestedDateTime = formatRequestedBookingDateTime({
+        rawText: requestedDateTimeOriginalText,
+        requestedDate: updatedState.slots.requested_date,
+        requestedTime: updatedState.slots.time,
+      });
 
       const reply =
         updatedState.bookingStatus === 'confirmed'
