@@ -1,4 +1,3 @@
-// knowledge/company.json
 {
   "company": {
     "legal_name": "SunSweeper Inc",
@@ -58,5 +57,6 @@
     }
   }
 }
+
 
 
