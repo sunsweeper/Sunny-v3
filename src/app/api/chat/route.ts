@@ -9,6 +9,11 @@ import { SAFE_FAIL_MESSAGE, createSunnyRuntime } from "../../../sunnyRuntime";
  * - Solar quote totals MUST come from: data/pricing/solar-pricing-v1.json
  * - This route should NOT reference any other pricing sources.
  * - All solar pricing + booking flow is handled inside createSunnyRuntime.
+ *
+ * This file’s job is:
+ * 1) Run Sunny runtime first (deterministic, uses solar-pricing-v1.json)
+ * 2) If it’s NOT a solar pricing/booking flow, fall back to OpenAI for general convo + service info
+ * 3) On booked jobs, sync to Google Sheet + send emails
  */
 
 const SYSTEM_PROMPT = `# Sunny Agent Instructions
@@ -282,6 +287,7 @@ type Message = {
 export async function POST(request: Request) {
   const timestamp = new Date().toISOString();
 
+  // SMOKING GUN MARKER — fires on EVERY request to this endpoint
   console.log('🚨 [SUNNY-API-MARKER] /api/chat POST hit at', timestamp);
 
   try {
@@ -293,6 +299,7 @@ export async function POST(request: Request) {
 
     const message = body.message?.trim();
 
+    // Log a short excerpt of the incoming message for debugging
     console.log('🚨 [SUNNY-API-MARKER] Incoming message excerpt:', 
       message ? message.substring(0, 100) : '(no message)',
       'at', timestamp
@@ -302,10 +309,11 @@ export async function POST(request: Request) {
     const history = Array.isArray(body.messages) ? body.messages : [];
 
     if (!message) {
+      console.log('🚨 [SUNNY-API-MARKER] No message provided — returning 400');
       return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: previousState }, { status: 400 });
     }
 
-    // Deterministic runtime FIRST
+    // Deterministic runtime FIRST (solar pricing + booking lives here)
     const runtimeInstance = createSunnyRuntime({
       knowledgeDir: `${process.cwd()}/knowledge`,
     });
@@ -322,7 +330,7 @@ export async function POST(request: Request) {
       serviceId: state.serviceId,
       outcome: state.outcome,
       needsHumanFollowup: state.needsHumanFollowup,
-      hasPanelCount: !!state.slots?.panel_count,
+      hasPanelCount: !!(state as any).slots?.panel_count,
       replyPreview: reply.substring(0, 120) + (reply.length > 120 ? '...' : '')
     });
 
@@ -332,7 +340,7 @@ export async function POST(request: Request) {
     if (
       state.intent === 'pricing_quote' ||
       state.intent === 'booking_request' ||
-      reply.includes('panels') && (reply.includes('$') || reply.includes('total is'))
+      (reply.includes('panels') && (reply.includes('$') || reply.includes('total is')))
     ) {
       console.log('🚨 FORCING DETERMINISTIC REPLY — solar pricing/booking flow detected');
       // Still run the booking sync if it was a successful booking
@@ -360,10 +368,10 @@ export async function POST(request: Request) {
     // Fallback to OpenAI only for truly general conversations
     console.log('🚨 FALLING BACK TO OPENAI — runtime did not claim this as pricing/booking');
     if (!process.env.OPENAI_API_KEY) {
+      console.log('🚨 [SUNNY-API-MARKER] No OpenAI key — forced safe fail');
       return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state });
     }
 
-    // ... (rest of your OpenAI fallback code stays exactly the same)
     const normalizedHistory = history
       .filter(
         (entry): entry is Message =>
