@@ -327,31 +327,13 @@ export async function POST(request: Request) {
     });
 
     // FORCE DETERMINISTIC REPLY
-    if (
-      state.intent === 'pricing_quote' ||
-      state.intent === 'booking_request' ||
-      reply.toLowerCase().includes('panels') && reply.includes('$')
-    ) {
-      console.log('🚨 FORCING DETERMINISTIC REPLY — pricing/booking flow');
+    if (state.intent === 'booking_request') {
+      console.log('🚨 FORCING DETERMINISTIC REPLY — booking flow');
+      return NextResponse.json({ reply, state });
+    }
 
-      if (
-        state.outcome === "booked_job" &&
-        state.serviceId === "solar_panel_cleaning" &&
-        state.bookingRecord &&
-        !state.bookingSynced
-      ) {
-        try {
-          const bookingRecord = state.bookingRecord as SolarBookingRecord;
-          await appendSolarBookingToSheet(bookingRecord);
-          await sendBookingConfirmationEmails(bookingRecord);
-          state.bookingSynced = true;
-          state.bookingEmailSent = true;
-          reply = `${reply} ✅ Your booking has been saved and your confirmation email is on the way.`;
-        } catch (error) {
-          console.error("Booking sync failed:", error);
-          reply = `${reply} (Note: confirmation email sync failed — a human will follow up)`;
-        }
-      }
+    if (state.intent === 'pricing_quote' || (reply.toLowerCase().includes('panels') && reply.includes('$'))) {
+      console.log('🚨 FORCING DETERMINISTIC REPLY — pricing flow');
       return NextResponse.json({ reply, state });
     }
 
