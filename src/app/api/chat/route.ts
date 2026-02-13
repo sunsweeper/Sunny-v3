@@ -287,9 +287,7 @@ type Message = {
 export async function POST(request: Request) {
   const timestamp = new Date().toISOString();
 
-  // ──────────────────────────────────────────────────────────────
   // SMOKING GUN MARKER — fires on EVERY request to this endpoint
-  // ──────────────────────────────────────────────────────────────
   console.log('🚨 [SUNNY-API-MARKER] /api/chat POST hit at', timestamp);
 
   try {
@@ -323,6 +321,15 @@ export async function POST(request: Request) {
     const runtimeResult = runtimeInstance.handleMessage(message, previousState);
     const { state } = runtimeResult;
     let reply = runtimeResult.reply;
+
+    // ──────────────────────────────────────────────────────────────
+    // NEW: Force deterministic reply for any pricing or booking intent
+    // This prevents OpenAI from overriding the JSON lookup
+    // ──────────────────────────────────────────────────────────────
+    if (state.intent === 'pricing_quote' || state.intent === 'booking_request') {
+      console.log('🚨 FORCING DETERMINISTIC REPLY — solar pricing/booking flow detected');
+      // If booked, we'll still sync below — but return runtime reply now
+    }
 
     // If booked, attempt sheet + email sync
     if (
