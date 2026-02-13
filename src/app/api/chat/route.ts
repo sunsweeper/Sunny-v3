@@ -287,7 +287,6 @@ type Message = {
 export async function POST(request: Request) {
   const timestamp = new Date().toISOString();
 
-  // SMOKING GUN MARKER — fires on EVERY request to this endpoint
   console.log('🚨 [SUNNY-API-MARKER] /api/chat POST hit at', timestamp);
 
   try {
@@ -299,7 +298,6 @@ export async function POST(request: Request) {
 
     const message = body.message?.trim();
 
-    // Log a short excerpt of the incoming message for debugging
     console.log('🚨 [SUNNY-API-MARKER] Incoming message excerpt:', 
       message ? message.substring(0, 100) : '(no message)',
       'at', timestamp
@@ -313,7 +311,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: previousState }, { status: 400 });
     }
 
-    // Deterministic runtime FIRST (solar pricing + booking lives here)
     const runtimeInstance = createSunnyRuntime({
       knowledgeDir: `${process.cwd()}/knowledge`,
     });
@@ -325,6 +322,7 @@ export async function POST(request: Request) {
     // ──────────────────────────────────────────────────────────────
     // DIAGNOSTIC: Dump the exact state the runtime returned
     // ──────────────────────────────────────────────────────────────
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     console.log('🚨 RUNTIME STATE AFTER HANDLEMESSAGE:', {
       intent: state.intent,
       serviceId: state.serviceId,
@@ -343,7 +341,6 @@ export async function POST(request: Request) {
       (reply.includes('panels') && (reply.includes('$') || reply.includes('total is')))
     ) {
       console.log('🚨 FORCING DETERMINISTIC REPLY — solar pricing/booking flow detected');
-      // Still run the booking sync if it was a successful booking
       if (
         state.outcome === "booked_job" &&
         state.serviceId === "solar_panel_cleaning" &&
@@ -365,7 +362,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ reply, state });
     }
 
-    // Fallback to OpenAI only for truly general conversations
     console.log('🚨 FALLING BACK TO OPENAI — runtime did not claim this as pricing/booking');
     if (!process.env.OPENAI_API_KEY) {
       console.log('🚨 [SUNNY-API-MARKER] No OpenAI key — forced safe fail');
