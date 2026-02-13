@@ -1,0 +1,60 @@
+// knowledge/company.json
+{
+  "company": {
+    "legal_name": "SunSweeper Inc",
+    "brand_name": "SunSweeper",
+    "website": "sunsweeper.com",
+    "phone": "+1-805-938-1515",
+    "email": "info@sunsweeper.com",
+    "service_area": {
+      "counties": [
+        "Santa Barbara County, CA",
+        "San Luis Obispo County, CA"
+      ],
+      "notes": "Service area is primarily Santa Barbara and San Luis Obispo Counties."
+    },
+    "hours_of_operation": {
+      "timezone": "America/Los_Angeles",
+      "schedule": [
+        { "day": "monday", "open": "08:00", "close": "17:30" },
+        { "day": "tuesday", "open": "08:00", "close": "17:30" },
+        { "day": "wednesday", "open": "08:00", "close": "17:30" },
+        { "day": "thursday", "open": "08:00", "close": "17:30" },
+        { "day": "friday", "open": "08:00", "close": "17:30" },
+        { "day": "saturday", "open": "08:00", "close": "17:30" },
+        { "day": "sunday", "open": null, "close": null }
+      ],
+      "notes": "No emergency hours policy."
+    },
+    "licenses_and_insurance": {
+      "business_licenses": {
+        "summary": "SunSweeper carries business licenses where required by the local jurisdiction.",
+        "notes": "Example: Santa Barbara County requires a business license; San Luis Obispo County does not require a county-level business license. Some municipalities within these counties may require a local license."
+      },
+      "general_liability_insurance": {
+        "has_policy": true,
+        "coverage_amount_usd": 2000000,
+        "notes": "$2,000,000 general liability insurance policy."
+      }
+    },
+    "positioning": {
+      "taglines": [
+        "The Solar Panel and Roof Experts",
+        "Clean panels, more energy, it’s that simple"
+      ],
+      "core_services": [
+        "Solar panel cleaning",
+        "Roof cleaning",
+        "Pressure washing",
+        "Soft washing"
+      ],
+      "special_offers": [
+        "Pre- and post-home purchase solar wellness inspections (SunPass-style inspection offering)"
+      ]
+    },
+    "about": {
+      "short": "SunSweeper is a professional exterior services company specializing in solar panel and roof cleaning across California’s Central Coast.",
+      "long": "We are a professional exterior services company. We specialize in roof and solar panel cleaning, and we also offer solar wellness inspections designed for pre- and post-home purchase situations. We use purpose-built equipment and processes selected to be effective while minimizing risk to roofs and solar components. Many homeowners are told that solar panels “take care of themselves,” but real-world dust, grime, and environmental buildup can reduce performance over time. SunSweeper was built to solve that problem and to bring professional, safety-first exterior cleaning to homes across the Central Coast. After seeing how slippery and hazardous organic roof growth can become when wet—and learning that it can contribute to roof wear over time—we developed processes to clean a variety of roof types while prioritizing safety and surface protection."
+    }
+  }
+}
