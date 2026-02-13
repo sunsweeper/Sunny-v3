@@ -16,12 +16,12 @@ const OUTCOME_TYPES = {
 
 const DEFAULT_OUTCOME = OUTCOME_TYPES.general;
 const DEFAULT_CURRENCY = 'USD';
+
 const PRICING_DEBUG_ENABLED = /^(1|true|yes|on)$/i.test(process.env.SUNNY_PRICING_DEBUG || '');
-console.log("[SUNNY_RUNTIME_LOADED]", {
+console.log('[SUNNY_RUNTIME_LOADED]', {
   PRICING_DEBUG_ENABLED,
   SUNNY_PRICING_DEBUG: process.env.SUNNY_PRICING_DEBUG,
 });
-
 
 // Only solar pricing is auto-quoted.
 // Everything else should be info-only or escalated to human.
@@ -56,36 +56,37 @@ function pricingDebugLog(...args) {
 
 /**
  * SINGLE SOURCE OF TRUTH for solar pricing:
- *   data/pricing/solar-pricing-v1.json
- *
- * We keep company + services for general info + business hours, but remove:
- * - knowledge/pricing.json
- * - knowledge/public_pricing_reference.json
- * and any logic that references them.
+ *   src/data/pricing/solar-pricing-v1.json
  */
 function loadKnowledge(knowledgeDir) {
   const companyPath = path.join(knowledgeDir, 'company.json');
   const servicesPath = path.join(knowledgeDir, 'services.json');
 
-  // ✅ The only pricing source allowed
-  const solarPricingV1Path = path.join(__dirname, '..', 'data', 'pricing', 'solar-pricing-v1.json');
+  // ✅ Deterministic path in Vercel/Node
+  const solarPricingRelPath = path.join('src', 'data', 'pricing', 'solar-pricing-v1.json');
+  const solarPricingAbsPath = path.join(process.cwd(), solarPricingRelPath);
 
   const company = loadJsonFile(companyPath);
   const services = loadJsonFile(servicesPath);
-  const solarPricingV1 = loadJsonFile(solarPricingV1Path);
+  const solarPricingV1 = loadJsonFile(solarPricingAbsPath);
 
   if (solarPricingV1.ok) {
-    const tiers = Array.isArray(solarPricingV1.data?.tiers)
-      ? solarPricingV1.data.tiers.length
-      : Object.keys(solarPricingV1.data || {}).length;
+    const entryCount =
+      solarPricingV1.data && typeof solarPricingV1.data === 'object'
+        ? Object.keys(solarPricingV1.data).length
+        : 0;
+
     pricingDebugLog('Loaded solar pricing file', {
-      path: 'data/pricing/solar-pricing-v1.json',
+      path: solarPricingRelPath,
+      absPath: solarPricingAbsPath,
       loaded: true,
-      tiers,
+      entries: entryCount,
+      sampleKeys: Object.keys(solarPricingV1.data || {}).slice(0, 10),
     });
   } else {
     pricingDebugLog('Failed to load solar pricing file', {
-      path: 'data/pricing/solar-pricing-v1.json',
+      path: solarPricingRelPath,
+      absPath: solarPricingAbsPath,
       loaded: false,
       error: solarPricingV1.error?.message || String(solarPricingV1.error),
     });
@@ -104,7 +105,7 @@ function loadKnowledge(knowledgeDir) {
       company: company.data,
       services: services.data,
       solarPricingV1: solarPricingV1.ok ? solarPricingV1.data : null,
-      solarPricingSource: 'data/pricing/solar-pricing-v1.json',
+      solarPricingSource: solarPricingRelPath,
       currency: DEFAULT_CURRENCY,
     },
   };
@@ -168,8 +169,6 @@ function parsePreferredDay(message) {
 function extractRequestedDate(message) {
   const msg = message || '';
 
-  // NOTE: the original code had odd backspace chars "" in the regex.
-  // This version uses normal word boundaries.
   const slashDate = msg.match(/\b(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\b/);
   if (slashDate) return slashDate[1];
 
@@ -231,9 +230,9 @@ function formatCurrency(value, currency = DEFAULT_CURRENCY) {
 }
 
 /**
- * ✅ Single pricing lookup for solar.
- * Must return exact match only from data/pricing/solar-pricing-v1.json.
- * No per-panel math fallback is allowed.
+ * ✅ Exact key lookup only.
+ * JSON is a map: { "27": 283.5, ... }
+ * If key is missing -> null -> escalation (no math, no fallback).
  */
 function calculateSolarPanelPrice(solarPricingV1, panelCount) {
   if (!solarPricingV1 || typeof solarPricingV1 !== 'object') {
@@ -251,12 +250,11 @@ function calculateSolarPanelPrice(solarPricingV1, panelCount) {
 
   return {
     total,
-    pricingPath: 'data/pricing/solar-pricing-v1.json',
+    pricingPath: 'src/data/pricing/solar-pricing-v1.json',
   };
 }
 
 function extractSolarQuoteSlots(message) {
-  // minimal + robust: only pull panel_count + (optional) mounting/location via keywords
   const normalized = (message || '').toLowerCase();
   const slots = {};
 
@@ -406,7 +404,6 @@ export function createSunnyRuntime({
     const detectedServiceId = detectServiceId(message);
     if (detectedServiceId) updatedState.serviceId = detectedServiceId;
 
-    // Only solar is supported for pricing/booking automation
     const service =
       updatedState.serviceId === 'solar_panel_cleaning'
         ? findServiceById(knowledge, 'solar_panel_cleaning')
@@ -422,10 +419,8 @@ export function createSunnyRuntime({
       return { reply, state: updatedState };
     }
 
-    // Service info: if they ask about other services, just be helpful, but do not quote prices.
     if (detectedIntent === 'service_info') {
       if (service) {
-        // If you want, you can keep your service description logic here.
         const reply =
           service?.short_description ||
           'We provide professional solar panel cleaning for residential and commercial systems.';
@@ -443,7 +438,6 @@ export function createSunnyRuntime({
 
     if (detectedIntent === 'pricing_quote' || detectedIntent === 'booking_request') {
       if (!service) {
-        // Do not quote non-solar prices; escalate.
         updatedState.needsHumanFollowup = true;
         updatedState.outcome = OUTCOME_TYPES.followup;
         const reply =
@@ -456,7 +450,6 @@ export function createSunnyRuntime({
       const extractedSlots = extractSolarQuoteSlots(message);
       updatedState.slots = mergeSlots(updatedState.slots, extractedSlots);
 
-      // For quoting, we only require panel_count.
       if (!updatedState.slots.panel_count) {
         if (isRefusal(message)) {
           updatedState.needsHumanFollowup = true;
@@ -484,7 +477,6 @@ export function createSunnyRuntime({
       const quote = calculateSolarPanelPrice(knowledge.solarPricingV1, panelCount);
 
       if (!quote) {
-        // If panel count exceeds what’s in solar-pricing-v1.json, escalate.
         updatedState.needsHumanFollowup = true;
         updatedState.outcome = OUTCOME_TYPES.followup;
         const reply =
@@ -511,7 +503,6 @@ export function createSunnyRuntime({
         return { reply, state: updatedState };
       }
 
-      // booking_request
       const requestedDate = updatedState.slots.requested_date || extractRequestedDate(message);
       const requestedTime = updatedState.slots.time || parsePreferredTime(message);
       if (requestedDate) updatedState.slots.requested_date = requestedDate;
@@ -521,7 +512,11 @@ export function createSunnyRuntime({
       if (missingBookingFields.length > 0) {
         const reply = buildMissingFieldPrompt(missingBookingFields[0]);
         logOutcome(logger, { intent: detectedIntent, outcome: updatedState.outcome, pricingPath: null });
-        writeOutcomeRecord(outcomeLogPath, buildOutcomeRecord(updatedState, { missing_fields: missingBookingFields }), logger);
+        writeOutcomeRecord(
+          outcomeLogPath,
+          buildOutcomeRecord(updatedState, { missing_fields: missingBookingFields }),
+          logger
+        );
         return { reply, state: updatedState };
       }
 
