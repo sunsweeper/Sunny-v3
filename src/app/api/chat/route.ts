@@ -1,10 +1,4 @@
-export async function POST(req: Request) {
-  console.log('🚨 [SUNNY-API-MARKER] /api/chat hit at', new Date().toISOString());
-  // ... rest of your code
-}
-
 import crypto from "crypto";
-
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
@@ -291,6 +285,13 @@ type Message = {
 };
 
 export async function POST(request: Request) {
+  const timestamp = new Date().toISOString();
+
+  // ──────────────────────────────────────────────────────────────
+  // SMOKING GUN MARKER — fires on EVERY request to this endpoint
+  // ──────────────────────────────────────────────────────────────
+  console.log('🚨 [SUNNY-API-MARKER] /api/chat POST hit at', timestamp);
+
   try {
     const body = (await request.json()) as {
       message?: string;
@@ -299,10 +300,18 @@ export async function POST(request: Request) {
     };
 
     const message = body.message?.trim();
+
+    // Log a short excerpt of the incoming message for debugging
+    console.log('🚨 [SUNNY-API-MARKER] Incoming message excerpt:', 
+      message ? message.substring(0, 100) : '(no message)',
+      'at', timestamp
+    );
+
     const previousState = body.state ?? {};
     const history = Array.isArray(body.messages) ? body.messages : [];
 
     if (!message) {
+      console.log('🚨 [SUNNY-API-MARKER] No message provided — returning 400');
       return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: previousState }, { status: 400 });
     }
 
@@ -355,10 +364,12 @@ export async function POST(request: Request) {
         state.intent === "general");
 
     if (!shouldFallback) {
+      console.log('🚨 [SUNNY-API-MARKER] Returning deterministic reply (no OpenAI fallback)');
       return NextResponse.json({ reply, state });
     }
 
     if (!process.env.OPENAI_API_KEY) {
+      console.log('🚨 [SUNNY-API-MARKER] No OpenAI key — forced safe fail');
       return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state });
     }
 
@@ -386,9 +397,12 @@ export async function POST(request: Request) {
 
     const openAiReply = completion.choices[0]?.message?.content?.trim() || SAFE_FAIL_MESSAGE;
 
+    console.log('🚨 [SUNNY-API-MARKER] Fell back to OpenAI — returning LLM reply');
+
     return NextResponse.json({ reply: openAiReply, state });
   } catch (error) {
     console.error("Chat API error:", error);
+    console.log('🚨 [SUNNY-API-MARKER] Exception caught — returning safe fail');
     return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: {} });
   }
 }
