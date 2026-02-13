@@ -1,3 +1,8 @@
+export async function POST(req: Request) {
+  console.log('🚨 [SUNNY-API-MARKER] /api/chat hit at', new Date().toISOString());
+  // ... rest of your code
+}
+
 import crypto from "crypto";
 
 import OpenAI from "openai";
