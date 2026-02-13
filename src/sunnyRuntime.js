@@ -58,7 +58,7 @@ function pricingDebugLog(...args) {
  * SINGLE SOURCE OF TRUTH for solar pricing:
  *   src/data/pricing/solar-pricing-v1.json
  */
-function loadKnowledge(knowledgeDir) {
+function loadKnowledge(_knowledgeDir) {
   // Use absolute paths like pricing — ignore knowledgeDir param
   const companyPath = path.join(process.cwd(), 'knowledge', 'company.json');
   const servicesPath = path.join(process.cwd(), 'knowledge', 'services.json');
