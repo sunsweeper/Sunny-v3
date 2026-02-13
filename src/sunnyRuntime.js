@@ -187,6 +187,11 @@ function parsePreferredTime(message) {
   return `${String(normalizedHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
+function extractRequestedTimeRaw(message) {
+  const match = (message || '').match(/\b(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\b/i);
+  return match ? match[1].trim() : null;
+}
+
 function isRefusal(message) {
   return /(don\'t know|not sure|no idea|can\'t provide|prefer not)/i.test(message || '');
 }
@@ -381,6 +386,7 @@ export function createSunnyRuntime({
       serviceId: state.serviceId || null,
       slots: { ...(state.slots || {}) },
       outcome: state.outcome || DEFAULT_OUTCOME,
+      bookingStatus: state.bookingStatus || 'requested',
       needsHumanFollowup: state.needsHumanFollowup || false,
       intents: Array.isArray(state.intents) ? state.intents : [],
     };
@@ -496,8 +502,12 @@ export function createSunnyRuntime({
 
       const requestedDate = updatedState.slots.requested_date || extractRequestedDate(message);
       const requestedTime = updatedState.slots.time || parsePreferredTime(message);
+      const requestedDateRaw = extractRequestedDate(message);
+      const requestedTimeRaw = extractRequestedTimeRaw(message);
       if (requestedDate) updatedState.slots.requested_date = requestedDate;
       if (requestedTime) updatedState.slots.time = requestedTime;
+      if (requestedDateRaw) updatedState.slots.requested_date_input = requestedDateRaw;
+      if (requestedTimeRaw) updatedState.slots.time_input = requestedTimeRaw;
 
       const missingBookingFields = getMissingBookingFields(updatedState.slots);
       if (missingBookingFields.length > 0) {
@@ -521,6 +531,7 @@ export function createSunnyRuntime({
 
       updatedState.slots.booking_timestamp = new Date().toISOString();
       updatedState.outcome = OUTCOME_TYPES.booked;
+      updatedState.bookingStatus = updatedState.bookingStatus || 'requested';
 
       updatedState.bookingRecord = {
         service_id: 'solar_panel_cleaning',
@@ -539,7 +550,14 @@ export function createSunnyRuntime({
         pricing_source: knowledge.solarPricingSource,
       };
 
-      const reply = `Great—your solar panel cleaning is booked for ${updatedState.slots.requested_date} at ${updatedState.slots.time}. You’ll receive a booking confirmation email shortly.`;
+      const bookingDate = updatedState.slots.requested_date_input || updatedState.slots.requested_date;
+      const bookingTime = updatedState.slots.time_input || updatedState.slots.time;
+      const requestedDateTime = `${bookingDate} at ${bookingTime}`;
+
+      const reply =
+        updatedState.bookingStatus === 'confirmed'
+          ? `Your appointment is confirmed for ${requestedDateTime}.`
+          : `Ok, I can confirm that you are on our list for ${requestedDateTime}, and Aaron, one of our live human client success managers will reach out to you to doubly confirm I got everything right.`;
       logOutcome(logger, { intent: detectedIntent, outcome: updatedState.outcome, pricingPath: quote.pricingPath });
       writeOutcomeRecord(outcomeLogPath, buildOutcomeRecord(updatedState), logger);
       return { reply, state: updatedState };
