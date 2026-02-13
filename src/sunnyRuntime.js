@@ -1,3 +1,9 @@
+async handleMessage(message, ...otherStuff) {
+  console.log('🚨 [SUNNY-RUNTIME-MARKER] handleMessage received:', message.substring(0, 120));
+  
+  // your existing code...
+}
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
