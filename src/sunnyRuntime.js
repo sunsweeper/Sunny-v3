@@ -376,6 +376,8 @@ export function createSunnyRuntime({
   };
 
   function handleMessage(message, state = {}) {
+    console.log('🚨 SUNNY RUNTIME HIT | message:', message.substring(0, 80), 'at', new Date().toISOString());
+
     if (!knowledgeState.ok) {
       return {
         reply: SAFE_FAIL_MESSAGE,
