@@ -58,8 +58,8 @@ function pricingDebugLog(...args) {
  * SINGLE SOURCE OF TRUTH for solar pricing:
  *   src/data/pricing/solar-pricing-v1.json
  */
-function loadKnowledge(_knowledgeDir) {
-  // Use absolute paths like pricing — ignore knowledgeDir param
+function loadKnowledge() {
+  // Use absolute paths — knowledgeDir param no longer needed
   const companyPath = path.join(process.cwd(), 'knowledge', 'company.json');
   const servicesPath = path.join(process.cwd(), 'knowledge', 'services.json');
   const solarPricingRelPath = path.join('src', 'data', 'pricing', 'solar-pricing-v1.json');
@@ -82,7 +82,6 @@ function loadKnowledge(_knowledgeDir) {
     return { ok: false, error: 'One or more knowledge files failed to load' };
   }
 
-  // Rest of function unchanged...
   const entryCount = Object.keys(solarPricingV1.data || {}).length;
   pricingDebugLog('Loaded solar pricing file', {
     loaded: true,
@@ -355,11 +354,10 @@ function writeOutcomeRecord(outcomeLogPath, record, logger) {
 }
 
 export function createSunnyRuntime({
-  knowledgeDir = path.join(__dirname, '..', 'knowledge'),
   outcomeLogPath = path.join(__dirname, '..', 'outcomes.jsonl'),
   logger = console,
 } = {}) {
-  const loaded = loadKnowledge(knowledgeDir);
+  const loaded = loadKnowledge();
 
   const knowledgeState = {
     ok: loaded.ok,
