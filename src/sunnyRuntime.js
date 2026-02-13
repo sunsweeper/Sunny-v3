@@ -59,10 +59,9 @@ function pricingDebugLog(...args) {
  *   src/data/pricing/solar-pricing-v1.json
  */
 function loadKnowledge(knowledgeDir) {
-  const companyPath = path.join(knowledgeDir, 'company.json');
-  const servicesPath = path.join(knowledgeDir, 'services.json');
-
-  // ✅ Deterministic path in Vercel/Node
+  // Use absolute paths like pricing — ignore knowledgeDir param
+  const companyPath = path.join(process.cwd(), 'knowledge', 'company.json');
+  const servicesPath = path.join(process.cwd(), 'knowledge', 'services.json');
   const solarPricingRelPath = path.join('src', 'data', 'pricing', 'solar-pricing-v1.json');
   const solarPricingAbsPath = path.join(process.cwd(), solarPricingRelPath);
 
@@ -70,41 +69,33 @@ function loadKnowledge(knowledgeDir) {
   const services = loadJsonFile(servicesPath);
   const solarPricingV1 = loadJsonFile(solarPricingAbsPath);
 
-  if (solarPricingV1.ok) {
-    const entryCount =
-      solarPricingV1.data && typeof solarPricingV1.data === 'object'
-        ? Object.keys(solarPricingV1.data).length
-        : 0;
+  pricingDebugLog('Company load result', { path: companyPath, ok: company.ok, error: company.error?.message });
+  pricingDebugLog('Services load result', { path: servicesPath, ok: services.ok, error: services.error?.message });
+  pricingDebugLog('Solar pricing load result', { path: solarPricingAbsPath, ok: solarPricingV1.ok });
 
-    pricingDebugLog('Loaded solar pricing file', {
-      path: solarPricingRelPath,
-      absPath: solarPricingAbsPath,
-      loaded: true,
-      entries: entryCount,
-      sampleKeys: Object.keys(solarPricingV1.data || {}).slice(0, 10),
+  if (!company.ok || !services.ok || !solarPricingV1.ok) {
+    pricingDebugLog('Knowledge load failed — some files missing', {
+      companyOk: company.ok,
+      servicesOk: services.ok,
+      pricingOk: solarPricingV1.ok
     });
-  } else {
-    pricingDebugLog('Failed to load solar pricing file', {
-      path: solarPricingRelPath,
-      absPath: solarPricingAbsPath,
-      loaded: false,
-      error: solarPricingV1.error?.message || String(solarPricingV1.error),
-    });
+    return { ok: false, error: 'One or more knowledge files failed to load' };
   }
 
-  if (!company.ok || !services.ok) {
-    return {
-      ok: false,
-      error: company.error || services.error,
-    };
-  }
+  // Rest of function unchanged...
+  const entryCount = Object.keys(solarPricingV1.data || {}).length;
+  pricingDebugLog('Loaded solar pricing file', {
+    loaded: true,
+    entries: entryCount,
+    sampleKeys: Object.keys(solarPricingV1.data || {}).slice(0, 10),
+  });
 
   return {
     ok: true,
     data: {
       company: company.data,
       services: services.data,
-      solarPricingV1: solarPricingV1.ok ? solarPricingV1.data : null,
+      solarPricingV1: solarPricingV1.data,
       solarPricingSource: solarPricingRelPath,
       currency: DEFAULT_CURRENCY,
     },
