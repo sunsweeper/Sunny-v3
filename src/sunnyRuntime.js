@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SAFE_FAIL_MESSAGE =
+export const SAFE_FAIL_MESSAGE =
   "I’m having trouble accessing our pricing details. Let me connect you with a human.";
 
 const OUTCOME_TYPES = {
