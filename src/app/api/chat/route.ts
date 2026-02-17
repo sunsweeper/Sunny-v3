@@ -194,7 +194,7 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
         reply = summary;
         state = { ...state, awaitingConfirmation: true };
       } else if (["yes", "confirm", "book it", "go ahead", "sure", "okay"].some(word => message.toLowerCase().includes(word))) {
-        // Extra guard for TypeScript (redundant but makes compiler happy)
+        // Confirmed → send email
         if (!state.fullName || !state.email || !state.address || !state.dateTime || !state.panelCount || !state.price) {
           reply = "Hmm, something's missing from the booking details. Let's go back — what's your email again?";
           state = { ...state, awaitingConfirmation: false };
@@ -205,7 +205,7 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                to: [state.email, "aaron@sunsweeper.com"], // customer + owner
+                to: [state.email!, "aaron@sunsweeper.com"], // customer + owner
                 subject: `SunSweeper Booking Confirmation - ${state.dateTime}`,
                 html: `
                   <h2>Booking Confirmed – SunSweeper Solar Cleaning</h2>
