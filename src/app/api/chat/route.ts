@@ -82,7 +82,7 @@ type BookingState = {
 
 export async function POST(request: Request) {
   const timestamp = new Date().toISOString();
-  console.log('🚨 [SUNNY-API-MARKER] /api/chat POST hit at', timestamp);
+  console.log(' [SUNNY-API-MARKER] /api/chat POST hit at', timestamp);
 
   try {
     const body = (await request.json()) as {
@@ -93,13 +93,13 @@ export async function POST(request: Request) {
 
     const message = body.message?.trim();
     const currentState = body.state ?? {};
-    console.log('🚨 [SUNNY-API-MARKER] Incoming message excerpt:', 
+    console.log(' [SUNNY-API-MARKER] Incoming message excerpt:', 
       message ? message.substring(0, 100) : '(no message)',
       'at', timestamp
     );
 
     if (!message) {
-      console.log('🚨 [SUNNY-API-MARKER] No message provided — returning 400');
+      console.log(' [SUNNY-API-MARKER] No message provided — returning 400');
       return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: currentState }, { status: 400 });
     }
 
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
     const panelMatch = message.match(/(\d{1,3})\s*(?:solar\s*)?panels?/i);
     if (panelMatch) {
       const panelCount = parseInt(panelMatch[1], 10);
-      console.log('🚨 Detected panel count in message:', panelCount);
+      console.log(' Detected panel count in message:', panelCount);
 
       if (panelCount >= 1 && panelCount <= 100) {
         try {
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
           if (pricingTable[key] !== undefined) {
             const price = pricingTable[key];
             const reply = `The total cost for cleaning ${panelCount} solar panels is $${price.toFixed(2)}. Would you like to schedule this cleaning?`;
-            console.log('🚨 FORCED TABLE PRICE SUCCESS - panels:', panelCount, 'price:', price);
+            console.log(' FORCED TABLE PRICE SUCCESS - panels:', panelCount, 'price:', price);
 
             return NextResponse.json({
               reply,
@@ -133,10 +133,10 @@ export async function POST(request: Request) {
               }
             });
           } else {
-            console.log('🚨 Panel count not found in table:', panelCount);
+            console.log(' Panel count not found in table:', panelCount);
           }
         } catch (err) {
-          console.error('🚨 Failed to load pricing table:', err);
+          console.error(' Failed to load pricing table:', err);
         }
       } else if (panelCount > 100) {
         return NextResponse.json({
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
     const runtimeResult = runtimeInstance.handleMessage(message, currentState);
     let { state, reply } = runtimeResult as { state: BookingState; reply: string };
 
-    console.log('🚨 RUNTIME STATE:', {
+    console.log(' RUNTIME STATE:', {
       intent: state.intent,
       serviceId: state.serviceId,
       outcome: state.outcome,
@@ -242,22 +242,22 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
     // STEP 4: Force deterministic reply for known paths
     // ──────────────────────────────────────────────────────────────
     if (state.intent === 'booking_request' || state.confirmed) {
-      console.log('🚨 FORCING DETERMINISTIC REPLY — booking/confirmed flow');
+      console.log(' FORCING DETERMINISTIC REPLY — booking/confirmed flow');
       return NextResponse.json({ reply, state });
     }
 
     if (state.intent === 'pricing_quote' || (reply.includes('panels') && reply.includes('$'))) {
-      console.log('🚨 FORCING DETERMINISTIC REPLY — pricing flow');
+      console.log(' FORCING DETERMINISTIC REPLY — pricing flow');
       return NextResponse.json({ reply, state });
     }
 
     // ──────────────────────────────────────────────────────────────
     // STEP 5: Final fallback to OpenAI only if nothing matched
     // ──────────────────────────────────────────────────────────────
-    console.log('🚨 FALLING BACK TO OPENAI');
+    console.log(' FALLING BACK TO OPENAI');
 
     if (!process.env.OPENAI_API_KEY) {
-      console.log('🚨 No OPENAI_API_KEY — returning safe fail');
+      console.log(' No OPENAI_API_KEY — returning safe fail');
       return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: currentState });
     }
 
@@ -280,7 +280,7 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
 
     const openAiReply = completion.choices[0]?.message?.content?.trim() || SAFE_FAIL_MESSAGE;
 
-    console.log('🚨 Returned OpenAI reply');
+    console.log(' Returned OpenAI reply');
     return NextResponse.json({ reply: openAiReply, state: currentState });
 
   } catch (error) {
