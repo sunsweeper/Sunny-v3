@@ -194,41 +194,46 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
         reply = summary;
         state = { ...state, awaitingConfirmation: true };
       } else if (["yes", "confirm", "book it", "go ahead", "sure", "okay"].some(word => message.toLowerCase().includes(word))) {
-        // Confirmed → send email
-        try {
-          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-          const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              to: [state.email!, "aaron@sunsweeper.com"], // customer + owner
-              subject: `SunSweeper Booking Confirmation - ${state.dateTime}`,
-              html: `
-                <h2>Booking Confirmed – SunSweeper Solar Cleaning</h2>
-                <p>Hi ${state.fullName},</p>
-                <p>Your cleaning for <strong>${state.panelCount!} solar panels</strong> at <strong>${state.address}</strong> is scheduled for <strong>${state.dateTime}</strong>.</p>
-                <p><strong>Total:</strong> $${state.price!.toFixed(2)}</p>
-                ${state.phone ? `<p><strong>Phone:</strong> ${state.phone}</p>` : ''}
-                <p>We'll see you then! If anything changes, just reply or call.</p>
-                <hr>
-                <p style="font-size: 12px; color: #666;">This is a confirmation copy for Aaron.</p>
-              `,
-              text: `Booking Confirmed\n\nName: ${state.fullName}\nEmail: ${state.email}\nPhone: ${state.phone || 'N/A'}\nAddress: ${state.address}\nDate/Time: ${state.dateTime}\nService: ${state.panelCount!} panels - $${state.price!.toFixed(2)}`
-            }),
-          });
+        // Extra guard for TypeScript (redundant but makes compiler happy)
+        if (!state.fullName || !state.email || !state.address || !state.dateTime || !state.panelCount || !state.price) {
+          reply = "Hmm, something's missing from the booking details. Let's go back — what's your email again?";
+          state = { ...state, awaitingConfirmation: false };
+        } else {
+          try {
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+            const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                to: [state.email, "aaron@sunsweeper.com"], // customer + owner
+                subject: `SunSweeper Booking Confirmation - ${state.dateTime}`,
+                html: `
+                  <h2>Booking Confirmed – SunSweeper Solar Cleaning</h2>
+                  <p>Hi ${state.fullName},</p>
+                  <p>Your cleaning for <strong>${state.panelCount!} solar panels</strong> at <strong>${state.address}</strong> is scheduled for <strong>${state.dateTime}</strong>.</p>
+                  <p><strong>Total:</strong> $${state.price!.toFixed(2)}</p>
+                  ${state.phone ? `<p><strong>Phone:</strong> ${state.phone}</p>` : ''}
+                  <p>We'll see you then! If anything changes, just reply or call.</p>
+                  <hr>
+                  <p style="font-size: 12px; color: #666;">This is a confirmation copy for Aaron.</p>
+                `,
+                text: `Booking Confirmed\n\nName: ${state.fullName}\nEmail: ${state.email}\nPhone: ${state.phone || 'N/A'}\nAddress: ${state.address}\nDate/Time: ${state.dateTime}\nService: ${state.panelCount!} panels - $${state.price!.toFixed(2)}`
+              }),
+            });
 
-          const emailResult = await emailResponse.json();
+            const emailResult = await emailResponse.json();
 
-          if (emailResult.ok) {
-            reply = `All set! Your booking is confirmed. A confirmation email has been sent to ${state.email} and to me (Aaron). We'll follow up if needed. Thanks for choosing SunSweeper! 🌞`;
-            state = { ...state, confirmed: true, awaitingConfirmation: false };
-          } else {
-            reply = "Something went wrong while sending the confirmation email — I'll have Aaron reach out to finalize everything manually. Sorry about that!";
-            console.error('[booking] Email send failed:', emailResult.error);
+            if (emailResult.ok) {
+              reply = `All set! Your booking is confirmed. A confirmation email has been sent to ${state.email} and to me (Aaron). We'll follow up if needed. Thanks for choosing SunSweeper! 🌞`;
+              state = { ...state, confirmed: true, awaitingConfirmation: false };
+            } else {
+              reply = "Something went wrong while sending the confirmation email — I'll have Aaron reach out to finalize everything manually. Sorry about that!";
+              console.error('[booking] Email send failed:', emailResult.error);
+            }
+          } catch (err) {
+            reply = "Hmm, we hit a snag processing the booking. Aaron will get in touch to sort it out shortly.";
+            console.error('[booking] Email trigger error:', err);
           }
-        } catch (err) {
-          reply = "Hmm, we hit a snag processing the booking. Aaron will get in touch to sort it out shortly.";
-          console.error('[booking] Email trigger error:', err);
         }
       }
     }
