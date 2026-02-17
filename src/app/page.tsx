@@ -57,7 +57,7 @@ const getRandomServicePrompt = (service: ServiceKey): string => {
 
 export default function Page() {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
-  const [currentState, setCurrentState] = useState<Record<string, unknown>>({});
+  const [chatState, setChatState] = useState<Record<string, unknown>>({});
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeService, setActiveService] = useState<ServiceKey | null>(null);
@@ -91,12 +91,13 @@ export default function Page() {
     setIsLoading(true);
 
     try {
+      console.log("Sending state:", chatState);
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
-          state: currentState,
+          state: chatState,
           messages: nextMessages,
         }),
       });
@@ -111,7 +112,9 @@ export default function Page() {
         "I’m sorry—something went wrong while responding.";
 
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-      setCurrentState(data.state ?? currentState);
+      if (data.state) {
+        setChatState(data.state);
+      }
     } catch (error) {
       console.error("Chat fetch error:", error);
       setMessages((prev) => [
@@ -137,7 +140,7 @@ export default function Page() {
     const selectedPrompt = getRandomServicePrompt(service);
     setActiveService(service);
     setMessages([{ role: "assistant", content: selectedPrompt }]);
-    setCurrentState((prev) => ({ ...prev, selectedService: service }));
+    setChatState((prev) => ({ ...prev, selectedService: service }));
     chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
