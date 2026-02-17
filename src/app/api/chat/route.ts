@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 
 import { SAFE_FAIL_MESSAGE, createSunnyRuntime } from "../../../sunnyRuntime";
 
@@ -21,10 +23,17 @@ Be chill, fun, and follow the user's lead. Only mention SunSweeper services if t
 ## Solar Panel Cleaning Pricing (Critical)
 The ONLY pricing source for customer quotes is: data/pricing/solar-pricing-v1.json
 Sunny must:
-- Ask for panel count
+- Ask for panel count if not provided
 - Look up the exact panel count key in data/pricing/solar-pricing-v1.json
-- Reply with the total only (no per-panel math)
-- If panel count is outside supported range, escalate to a human
+- Reply with the total only (no per-panel math shown unless asked)
+- If panel count is outside supported range (1–100), escalate to a human
+
+## Booking Collection
+When user wants to book after a quote:
+- Collect: full name, email, phone (optional), full address, preferred date and time
+- Ask one field at a time, naturally
+- Once all collected, summarize and ask for confirmation
+- Do not send emails yourself — the server handles that
 
 ## Non-Negotiable Rules
 Sunny must:
@@ -48,13 +57,27 @@ Sunny must escalate to a human when:
 `;
 
 // ──────────────────────────────────────────────────────────────
-// POST HANDLER (LAST)
+// POST HANDLER
 // ──────────────────────────────────────────────────────────────
 export const runtime = "nodejs";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
+};
+
+type BookingState = {
+  panelCount?: number;
+  price?: number;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  dateTime?: string;
+  awaitingConfirmation?: boolean;
+  confirmed?: boolean;
+  intent?: string;
+  [key: string]: any;
 };
 
 export async function POST(request: Request) {
@@ -64,33 +87,75 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
       message?: string;
-      state?: Record<string, unknown>;
+      state?: BookingState;
       messages?: Message[];
     };
 
     const message = body.message?.trim();
+    const currentState = body.state ?? {};
     console.log('🚨 [SUNNY-API-MARKER] Incoming message excerpt:', 
       message ? message.substring(0, 100) : '(no message)',
       'at', timestamp
     );
 
-    const previousState = body.state ?? {};
-    const history = Array.isArray(body.messages) ? body.messages : [];
-
     if (!message) {
       console.log('🚨 [SUNNY-API-MARKER] No message provided — returning 400');
-      return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: previousState }, { status: 400 });
+      return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: currentState }, { status: 400 });
     }
 
+    // ──────────────────────────────────────────────────────────────
+    // STEP 1: Force server-side pricing lookup if panel count detected
+    // ──────────────────────────────────────────────────────────────
+    const panelMatch = message.match(/(\d{1,3})\s*(?:solar\s*)?panels?/i);
+    if (panelMatch) {
+      const panelCount = parseInt(panelMatch[1], 10);
+      console.log('🚨 Detected panel count in message:', panelCount);
+
+      if (panelCount >= 1 && panelCount <= 100) {
+        try {
+          const pricingPath = path.join(process.cwd(), 'src/data/pricing/solar-pricing-v1.json');
+          const pricingRaw = fs.readFileSync(pricingPath, 'utf8');
+          const pricingTable = JSON.parse(pricingRaw);
+
+          const key = panelCount.toString();
+          if (pricingTable[key] !== undefined) {
+            const price = pricingTable[key];
+            const reply = `The total cost for cleaning ${panelCount} solar panels is $${price.toFixed(2)}. Would you like to schedule this cleaning?`;
+            console.log('🚨 FORCED TABLE PRICE SUCCESS - panels:', panelCount, 'price:', price);
+
+            return NextResponse.json({
+              reply,
+              state: { 
+                ...currentState, 
+                panelCount, 
+                price, 
+                intent: 'pricing_quote' 
+              }
+            });
+          } else {
+            console.log('🚨 Panel count not found in table:', panelCount);
+          }
+        } catch (err) {
+          console.error('🚨 Failed to load pricing table:', err);
+        }
+      } else if (panelCount > 100) {
+        return NextResponse.json({
+          reply: `For ${panelCount} panels, I need to verify pricing and availability with Aaron — can you confirm the exact number or would you like him to reach out?`,
+          state: currentState
+        });
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // STEP 2: Run sunnyRuntime for other logic
+    // ──────────────────────────────────────────────────────────────
     const runtimeInstance = createSunnyRuntime({
       knowledgeDir: `${process.cwd()}/knowledge`,
     });
 
-    const runtimeResult = runtimeInstance.handleMessage(message, previousState);
-    const { state } = runtimeResult;
-    const reply = runtimeResult.reply;
+    const runtimeResult = runtimeInstance.handleMessage(message, currentState);
+    let { state, reply } = runtimeResult as { state: BookingState; reply: string };
 
-    // DIAGNOSTIC
     console.log('🚨 RUNTIME STATE:', {
       intent: state.intent,
       serviceId: state.serviceId,
@@ -99,23 +164,99 @@ export async function POST(request: Request) {
       replyPreview: reply.substring(0, 140)
     });
 
-    // FORCE DETERMINISTIC REPLY
-    if (state.intent === 'booking_request') {
-      console.log('🚨 FORCING DETERMINISTIC REPLY — booking flow');
+    // ──────────────────────────────────────────────────────────────
+    // STEP 3: Booking collection & email trigger logic
+    // ──────────────────────────────────────────────────────────────
+    if (state.panelCount && state.price && !state.confirmed) {
+      const missing = [];
+      if (!state.fullName) missing.push("full name");
+      if (!state.email) missing.push("email address");
+      if (!state.address) missing.push("full service address (street, city, zip)");
+      if (!state.dateTime) missing.push("preferred date and time");
+
+      if (missing.length > 0) {
+        const nextField = missing[0];
+        reply = `Awesome! To book the ${state.panelCount}-panel cleaning for $${state.price.toFixed(2)}, I just need your ${nextField}. What's that?`;
+      } else if (!state.awaitingConfirmation) {
+        // All fields collected → show summary & ask to confirm
+        const summary = `
+Here's what I have for the booking:
+- Name: ${state.fullName}
+- Email: ${state.email}
+- Phone: ${state.phone || 'Not provided'}
+- Address: ${state.address}
+- Date & Time: ${state.dateTime}
+- Service: Cleaning ${state.panelCount} solar panels for $${state.price.toFixed(2)}
+
+Does everything look correct? Reply YES to confirm and book, or tell me what needs to change.
+        `.trim();
+
+        reply = summary;
+        state = { ...state, awaitingConfirmation: true };
+      } else if (["yes", "confirm", "book it", "go ahead", "sure", "okay"].some(word => message.toLowerCase().includes(word))) {
+        // Confirmed → send email
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+          const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              to: [state.email!, "aaron@sunsweeper.com"], // customer + owner
+              subject: `SunSweeper Booking Confirmation - ${state.dateTime}`,
+              html: `
+                <h2>Booking Confirmed – SunSweeper Solar Cleaning</h2>
+                <p>Hi ${state.fullName},</p>
+                <p>Your cleaning for <strong>${state.panelCount!} solar panels</strong> at <strong>${state.address}</strong> is scheduled for <strong>${state.dateTime}</strong>.</p>
+                <p><strong>Total:</strong> $${state.price!.toFixed(2)}</p>
+                ${state.phone ? `<p><strong>Phone:</strong> ${state.phone}</p>` : ''}
+                <p>We'll see you then! If anything changes, just reply or call.</p>
+                <hr>
+                <p style="font-size: 12px; color: #666;">This is a confirmation copy for Aaron.</p>
+              `,
+              text: `Booking Confirmed\n\nName: ${state.fullName}\nEmail: ${state.email}\nPhone: ${state.phone || 'N/A'}\nAddress: ${state.address}\nDate/Time: ${state.dateTime}\nService: ${state.panelCount!} panels - $${state.price!.toFixed(2)}`
+            }),
+          });
+
+          const emailResult = await emailResponse.json();
+
+          if (emailResult.ok) {
+            reply = `All set! Your booking is confirmed. A confirmation email has been sent to ${state.email} and to me (Aaron). We'll follow up if needed. Thanks for choosing SunSweeper! 🌞`;
+            state = { ...state, confirmed: true, awaitingConfirmation: false };
+          } else {
+            reply = "Something went wrong while sending the confirmation email — I'll have Aaron reach out to finalize everything manually. Sorry about that!";
+            console.error('[booking] Email send failed:', emailResult.error);
+          }
+        } catch (err) {
+          reply = "Hmm, we hit a snag processing the booking. Aaron will get in touch to sort it out shortly.";
+          console.error('[booking] Email trigger error:', err);
+        }
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // STEP 4: Force deterministic reply for known paths
+    // ──────────────────────────────────────────────────────────────
+    if (state.intent === 'booking_request' || state.confirmed) {
+      console.log('🚨 FORCING DETERMINISTIC REPLY — booking/confirmed flow');
       return NextResponse.json({ reply, state });
     }
 
-    if (state.intent === 'pricing_quote' || (reply.toLowerCase().includes('panels') && reply.includes('$'))) {
+    if (state.intent === 'pricing_quote' || (reply.includes('panels') && reply.includes('$'))) {
       console.log('🚨 FORCING DETERMINISTIC REPLY — pricing flow');
       return NextResponse.json({ reply, state });
     }
 
+    // ──────────────────────────────────────────────────────────────
+    // STEP 5: Final fallback to OpenAI only if nothing matched
+    // ──────────────────────────────────────────────────────────────
     console.log('🚨 FALLING BACK TO OPENAI');
+
     if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state });
+      console.log('🚨 No OPENAI_API_KEY — returning safe fail');
+      return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: currentState });
     }
 
-    const normalizedHistory = history
+    const normalizedHistory = (body.messages || [])
       .filter((entry): entry is Message => !!entry && (entry.role === "user" || entry.role === "assistant"))
       .map((entry) => ({ role: entry.role, content: entry.content }));
 
@@ -135,7 +276,7 @@ export async function POST(request: Request) {
     const openAiReply = completion.choices[0]?.message?.content?.trim() || SAFE_FAIL_MESSAGE;
 
     console.log('🚨 Returned OpenAI reply');
-    return NextResponse.json({ reply: openAiReply, state });
+    return NextResponse.json({ reply: openAiReply, state: currentState });
 
   } catch (error) {
     console.error("Chat API error:", error);
