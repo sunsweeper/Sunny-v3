@@ -1,15 +1,9 @@
 // src/app/api/chat/route.ts
-import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
 import { SAFE_FAIL_MESSAGE, createSunnyRuntime } from "../../../sunnyRuntime";
-
-// ──────────────────────────────────────────────────────────────
-// CONSTANTS
-// ──────────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `...`; // keep unchanged
 
 export const runtime = "nodejs";
 
@@ -29,12 +23,12 @@ type BookingState = {
   confirmed?: boolean;
   awaitingConfirmation?: boolean;
   intent?: string;
-  [key: string]: unknown; // ✅ was any
+  [key: string]: unknown;
 };
 
 export async function POST(request: Request) {
   const timestamp = new Date().toISOString();
-  console.log("🚨 [SUNNY-API-MARKER] /api/chat POST hit at", timestamp);
+  console.log(" [SUNNY-API-MARKER] /api/chat POST hit at", timestamp);
 
   try {
     const body = (await request.json()) as {
@@ -47,14 +41,17 @@ export async function POST(request: Request) {
     const message = rawMessage.trim().toLowerCase();
     const currentState = body.state ?? {};
     console.log(
-      "🚨 Incoming message:",
+      " Incoming message:",
       message.substring(0, 100),
       "state keys:",
       Object.keys(currentState)
     );
 
     if (!body.message) {
-      return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: currentState }, { status: 400 });
+      return NextResponse.json(
+        { reply: SAFE_FAIL_MESSAGE, state: currentState },
+        { status: 400 }
+      );
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -65,8 +62,14 @@ export async function POST(request: Request) {
       const panelCount = parseInt(panelMatch[1], 10);
       if (panelCount >= 1 && panelCount <= 100) {
         try {
-          const pricingPath = path.join(process.cwd(), "src/data/pricing/solar-pricing-v1.json");
-          const pricingTable = JSON.parse(fs.readFileSync(pricingPath, "utf8")) as Record<string, unknown>;
+          const pricingPath = path.join(
+            process.cwd(),
+            "src/data/pricing/solar-pricing-v1.json"
+          );
+          const pricingTable = JSON.parse(
+            fs.readFileSync(pricingPath, "utf8")
+          ) as Record<string, unknown>;
+
           const key = panelCount.toString();
 
           if (pricingTable[key] !== undefined) {
@@ -74,15 +77,20 @@ export async function POST(request: Request) {
             const reply = `The total cost for cleaning ${panelCount} solar panels is $${price.toFixed(
               2
             )}. Would you like to schedule this cleaning?`;
-            console.log("🚨 FORCED TABLE PRICE -", panelCount, "→", price);
+            console.log(" FORCED TABLE PRICE -", panelCount, "→", price);
 
             return NextResponse.json({
               reply,
-              state: { ...currentState, panelCount, price, intent: "pricing_quote" },
+              state: {
+                ...currentState,
+                panelCount,
+                price,
+                intent: "pricing_quote",
+              },
             });
           }
         } catch (err) {
-          console.error("🚨 Pricing load error:", err);
+          console.error(" Pricing load error:", err);
         }
       }
     }
@@ -90,7 +98,10 @@ export async function POST(request: Request) {
     // ──────────────────────────────────────────────────────────────
     // STEP 2: Handle booking collection & confirmation
     // ──────────────────────────────────────────────────────────────
-    const runtimeInstance = createSunnyRuntime({ knowledgeDir: `${process.cwd()}/knowledge` });
+    const runtimeInstance = createSunnyRuntime({
+      knowledgeDir: `${process.cwd()}/knowledge`,
+    });
+
     const runtimeResult = runtimeInstance.handleMessage(rawMessage, currentState);
     let reply = runtimeResult.reply;
     let state = runtimeResult.state as BookingState;
@@ -128,7 +139,8 @@ Does this look correct? Reply YES to confirm and book, or tell me what to change
 
       const confirmWords = ["yes", "confirm", "book it", "go ahead", "sure"];
       const isConfirming =
-        state.awaitingConfirmation === true && confirmWords.some((w) => message.includes(w));
+        state.awaitingConfirmation === true &&
+        confirmWords.some((w) => message.includes(w));
 
       if (isConfirming) {
         if (
@@ -147,7 +159,8 @@ Does this look correct? Reply YES to confirm and book, or tell me what to change
         const finalPriceStr = state.price.toFixed(2);
 
         try {
-          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.trim() || "http://localhost:3000";
+          const baseUrl =
+            process.env.NEXT_PUBLIC_BASE_URL?.trim() || "http://localhost:3000";
 
           const emailRes = await fetch(`${baseUrl}/api/send-email`, {
             method: "POST",
@@ -169,7 +182,10 @@ Does this look correct? Reply YES to confirm and book, or tell me what to change
             }),
           });
 
-          const emailResult = (await emailRes.json()) as { ok?: boolean; error?: unknown };
+          const emailResult = (await emailRes.json()) as {
+            ok?: boolean;
+            error?: unknown;
+          };
 
           if (emailResult.ok) {
             reply = `All set! Your booking is confirmed. Confirmation email sent to ${state.email} and to me (Aaron). We'll follow up if needed. Thanks! 🌞`;
@@ -180,7 +196,8 @@ Does this look correct? Reply YES to confirm and book, or tell me what to change
             console.error("Email send failed:", emailResult.error);
           }
         } catch (err) {
-          reply = "Hmm, booking hit a snag on our end. Aaron will get in touch to sort it out.";
+          reply =
+            "Hmm, booking hit a snag on our end. Aaron will get in touch to sort it out.";
           console.error("Email trigger error:", err);
         }
       }
@@ -190,20 +207,14 @@ Does this look correct? Reply YES to confirm and book, or tell me what to change
     // STEP 3: Existing forcing guards (keep them)
     // ──────────────────────────────────────────────────────────────
     if (state.intent === "booking_request" || state.confirmed) {
-      console.log("🚨 FORCING DETERMINISTIC REPLY — booking/confirmed");
+      console.log(" FORCING DETERMINISTIC REPLY — booking/confirmed");
       return NextResponse.json({ reply, state });
     }
 
     if (state.intent === "pricing_quote" || (reply.includes("panels") && reply.includes("$"))) {
-      console.log("🚨 FORCING DETERMINISTIC REPLY — pricing");
+      console.log(" FORCING DETERMINISTIC REPLY — pricing");
       return NextResponse.json({ reply, state });
     }
-
-    // ──────────────────────────────────────────────────────────────
-    // STEP 4: Fallback to OpenAI only if needed
-    // ──────────────────────────────────────────────────────────────
-    console.log("🚨 FALLING BACK TO OPENAI");
-    // ... keep your existing OpenAI fallback code unchanged
 
     return NextResponse.json({ reply, state });
   } catch (error: unknown) {
