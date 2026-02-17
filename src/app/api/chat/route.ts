@@ -23,6 +23,9 @@ type BookingState = {
   confirmed?: boolean;
   awaitingConfirmation?: boolean;
   intent?: string;
+  serviceId?: string;
+  slots?: Record<string, unknown>;
+  intents?: string[];
   [key: string]: unknown;
 };
 
@@ -55,6 +58,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const isQuoteAffirmation =
+      /^(yes|yep|yeah|sure|ok|okay|book it|go ahead|please do)\b/i.test(rawMessage.trim()) &&
+      currentState.intent === "pricing_quote";
+
     // ──────────────────────────────────────────────────────────────
     // STEP 1: Force pricing lookup if panels mentioned
     // ──────────────────────────────────────────────────────────────
@@ -84,7 +91,17 @@ export async function POST(request: Request) {
 
             return NextResponse.json({
               reply,
-              state: { ...currentState, panelCount, price, intent: "pricing_quote" },
+              state: {
+                ...currentState,
+                panelCount,
+                price,
+                intent: "pricing_quote",
+                serviceId: "solar_panel_cleaning",
+                slots: {
+                  ...(currentState.slots ?? {}),
+                  panel_count: panelCount,
+                },
+              },
             });
           }
         } catch (err) {
@@ -100,7 +117,19 @@ export async function POST(request: Request) {
       knowledgeDir: `${process.cwd()}/knowledge`,
     });
 
-    const runtimeResult = runtimeInstance.handleMessage(rawMessage, currentState);
+    const runtimeState: BookingState = {
+      ...currentState,
+      serviceId: currentState.serviceId ?? "solar_panel_cleaning",
+      slots: {
+        ...(currentState.slots ?? {}),
+        ...(typeof currentState.panelCount === "number"
+          ? { panel_count: currentState.panelCount }
+          : {}),
+      },
+    };
+
+    const runtimeMessage = isQuoteAffirmation ? "book a time" : rawMessage;
+    const runtimeResult = runtimeInstance.handleMessage(runtimeMessage, runtimeState);
 
     // We *do* reassign these later in some branches, so keep them as let.
     let reply = runtimeResult.reply;
