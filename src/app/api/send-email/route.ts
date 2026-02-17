@@ -12,21 +12,22 @@ type BookingState = {
   address?: string;
   dateTime?: string;
   confirmed?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 type SendEmailBody = {
-  // Direct-send mode (your /api/chat is already using this)
   to?: string[] | string;
   subject?: string;
   html?: string;
   text?: string;
-
-  // Optional: state-driven mode (safe for future use)
   state?: BookingState;
-
-  // Optional override for sender
   from?: string;
+};
+
+type ResendErrorResponse = {
+  message?: string;
+  name?: string;
+  statusCode?: number;
 };
 
 function normalizeTo(to: SendEmailBody["to"]): string[] {
@@ -35,18 +36,15 @@ function normalizeTo(to: SendEmailBody["to"]): string[] {
 }
 
 function buildHtmlFromState(state: BookingState) {
-  const panelCount =
-    typeof state.panelCount === "number" ? state.panelCount : undefined;
-
-  // ✅ This is the key fix pattern: do NOT rely on a separate boolean to narrow
+  const panelCount = typeof state.panelCount === "number" ? state.panelCount : undefined;
   const price = typeof state.price === "number" ? state.price : undefined;
   const priceStr = typeof price === "number" ? price.toFixed(2) : "TBD";
 
-  const fullName = state.fullName ?? "there";
-  const email = state.email ?? "N/A";
-  const phone = state.phone ?? "N/A";
-  const address = state.address ?? "N/A";
-  const dateTime = state.dateTime ?? "N/A";
+  const fullName = typeof state.fullName === "string" ? state.fullName : "there";
+  const email = typeof state.email === "string" ? state.email : "N/A";
+  const phone = typeof state.phone === "string" ? state.phone : "N/A";
+  const address = typeof state.address === "string" ? state.address : "N/A";
+  const dateTime = typeof state.dateTime === "string" ? state.dateTime : "N/A";
 
   const safePanelText = typeof panelCount === "number" ? `${panelCount}` : "N/A";
 
@@ -66,16 +64,21 @@ function buildHtmlFromState(state: BookingState) {
   return { html, text };
 }
 
+function safeJsonParse<T>(value: string): T | null {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as SendEmailBody;
 
     const to = normalizeTo(body.to);
     if (to.length === 0) {
-      return NextResponse.json(
-        { ok: false, error: "Missing 'to' (recipient list)" },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "Missing 'to' (recipient list)" }, { status: 400 });
     }
 
     const subject =
@@ -83,12 +86,8 @@ export async function POST(req: Request) {
         ? body.subject.trim()
         : "SunSweeper Confirmation";
 
-    // If caller provided html/text directly, use them.
-    // Otherwise, if a state object is provided, build a safe template from it.
-    let html =
-      typeof body.html === "string" && body.html.trim() ? body.html : "";
-    let text =
-      typeof body.text === "string" && body.text.trim() ? body.text : "";
+    let html = typeof body.html === "string" && body.html.trim() ? body.html : "";
+    let text = typeof body.text === "string" && body.text.trim() ? body.text : "";
 
     if (!html && body.state) {
       const built = buildHtmlFromState(body.state);
@@ -103,15 +102,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Sender: MUST be a domain you’ve verified with your email provider.
-    // Adjust this to whatever you already verified (Resend requires verification).
     const from =
       (typeof body.from === "string" && body.from.trim()) ||
       process.env.EMAIL_FROM ||
       "SunSweeper <no-reply@sunsweeper.com>";
 
-    // This implementation uses Resend via REST so it compiles without extra deps.
-    // Make sure you have RESEND_API_KEY set in Vercel env vars.
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
@@ -124,7 +119,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const res = await fetch("https://api.resend.com/emails", {
+    const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -139,21 +134,21 @@ export async function POST(req: Request) {
       }),
     });
 
-    const data = await res.json().catch(() => ({}));
+    const raw = await resendRes.text();
+    const data = safeJsonParse<unknown>(raw);
 
-    if (!res.ok) {
+    if (!resendRes.ok) {
+      const errObj = (data && typeof data === "object" ? (data as ResendErrorResponse) : null);
       return NextResponse.json(
-        { ok: false, error: data?.message || data || "Email send failed" },
+        { ok: false, error: errObj?.message || raw || "Email send failed" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ ok: true, data });
-  } catch (err: any) {
+    return NextResponse.json({ ok: true, data: data ?? raw });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("send-email route error:", err);
-    return NextResponse.json(
-      { ok: false, error: err?.message || "Unknown error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }
