@@ -114,7 +114,7 @@ export async function POST(request: Request) {
         } else if (field === "email address") {
           if (message.includes("@")) state.email = message.trim();
         } else if (field === "phone number") {
-          state.phone = message.trim(); // required now
+          state.phone = message.trim();
         } else if (field === "full service address (street, city, zip)") {
           state.address = message.trim();
         } else if (field === "preferred date and time") {
@@ -123,7 +123,6 @@ export async function POST(request: Request) {
         console.log("Saved field:", field, "value:", message.trim());
       }
 
-      // Re-check missing (now includes phone as required)
       const missing: string[] = [];
       if (!state.fullName) missing.push("full name");
       if (!state.email) missing.push("email address");
@@ -135,7 +134,6 @@ export async function POST(request: Request) {
         const nextField = missing[0];
         state.lastAskedField = nextField;
 
-        // More natural, varied, personalized
         const name = state.fullName ? `, ${state.fullName.split(" ")[0]}` : "";
         const greetings = [
           `Sweet${name}!`,
@@ -206,29 +204,32 @@ All good? Just say YES to lock it in, or let me know what to change.
           console.log("[BOOKING] Email result:", emailResult);
 
           if (emailResult.ok) {
-            // NEW: Log to Google Sheet
+            // Append to Google Sheet
             try {
-              const sheetRes = await fetch("https://script.google.com/macros/s/AKfycb.../exec", {  // ← replace with your actual Apps Script URL
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  Client_Name: fullName,
-                  Address: address,
-                  Panel_Count: panelCount,
-                  Location: "Santa Maria", // or extract from address if needed
-                  Phone_number: phone,
-                  email: email,
-                  Requested_Date: dateTime.split(" at ")[0] || dateTime,
-                  Time: dateTime.split(" at ")[1] || "N/A",
-                  Booking_Timestamp: new Date().toISOString(),
-                }),
-              });
+              const sheetRes = await fetch(
+                "https://script.google.com/macros/s/AKfycbwXF31hUCdYh-9dzpf_hJT1-NWAv6Eerrr1Fj1mRxT6TA2ADllLR9e9fakEp80_ArUGLg/exec",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    Client_Name: fullName,
+                    Address: address,
+                    Panel_Count: panelCount,
+                    Location: "Santa Maria", // or parse from address if needed
+                    Phone_number: phone,
+                    email: email,
+                    Requested_Date: dateTime.split(" at ")[0] || dateTime,
+                    Time: dateTime.split(" at ")[1] || "N/A",
+                    Booking_Timestamp: new Date().toISOString(),
+                  }),
+                }
+              );
 
               const sheetResult = await sheetRes.json();
               console.log("[SHEET] Append result:", sheetResult);
             } catch (sheetErr) {
               console.error("Google Sheet append error:", sheetErr);
-              // Don't break email success if sheet fails
+              // Don't fail the booking if sheet append fails
             }
 
             reply = `All set, ${fullName.split(" ")[0]}! Your booking is locked in. Confirmation email sent to ${email} and to me (Aaron). We'll see you ${state.dateTime}. Any questions, just holler! 🌞`;
