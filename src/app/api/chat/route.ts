@@ -77,7 +77,7 @@ export async function POST(request: Request) {
             const price = pricingTable[key];
             const reply = `The total cost for cleaning ${panelCount} solar panels is $${price.toFixed(
               2
-            )}. Would you like to schedule this cleaning?`;
+            )}. Want to lock in a time?`;
             console.log("FORCED TABLE PRICE -", panelCount, "→", price);
 
             currentState = {
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 2: Custom booking flow - Run FIRST using incoming state
+    // STEP 2: Custom booking flow - Run FIRST
     // ──────────────────────────────────────────────────────────────
     const hasPanelCount = typeof currentState.panelCount === "number";
     const price = typeof currentState.price === "number" ? currentState.price : undefined;
@@ -106,13 +106,15 @@ export async function POST(request: Request) {
       let reply = "";
       let state = { ...currentState };
 
-      // Save user response to the last asked field
+      // Save user response to last asked field
       if (state.lastAskedField && message.trim()) {
         const field = state.lastAskedField;
         if (field === "full name") {
           state.fullName = message.trim();
         } else if (field === "email address") {
           if (message.includes("@")) state.email = message.trim();
+        } else if (field === "phone number") {
+          state.phone = message.trim(); // required now
         } else if (field === "full service address (street, city, zip)") {
           state.address = message.trim();
         } else if (field === "preferred date and time") {
@@ -121,9 +123,11 @@ export async function POST(request: Request) {
         console.log("Saved field:", field, "value:", message.trim());
       }
 
+      // Re-check missing (now includes phone as required)
       const missing: string[] = [];
       if (!state.fullName) missing.push("full name");
       if (!state.email) missing.push("email address");
+      if (!state.phone) missing.push("phone number");
       if (!state.address) missing.push("full service address (street, city, zip)");
       if (!state.dateTime) missing.push("preferred date and time");
 
@@ -131,28 +135,38 @@ export async function POST(request: Request) {
         const nextField = missing[0];
         state.lastAskedField = nextField;
 
-        const greetings = ["Cool!", "Got it!", "Perfect!", "Sounds good!", "No problem!"];
+        // More natural, varied, personalized
+        const name = state.fullName ? `, ${state.fullName.split(" ")[0]}` : "";
+        const greetings = [
+          `Sweet${name}!`,
+          `Nice${name}!`,
+          `Awesome${name}!`,
+          `Gotcha${name}!`,
+          `Perfect${name}!`,
+          `Cool${name}!`,
+        ];
         const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-        reply = `${randomGreeting} To book the ${state.panelCount}-panel cleaning for $${price.toFixed(
+
+        reply = `${randomGreeting} To get your ${state.panelCount}-panel cleaning booked for $${price.toFixed(
           2
         )}, I just need your ${nextField}. What's that?`;
       } else if (!state.awaitingConfirmation) {
         const summary = `
-Here's what I have for the booking:
+Here's what I've got down for your booking${state.fullName ? `, ${state.fullName}` : ""}:
 - Name: ${state.fullName || "Not set"}
 - Email: ${state.email || "Not set"}
-- Phone: ${state.phone || "Not provided"}
+- Phone: ${state.phone || "Not set"}
 - Address: ${state.address || "Not set"}
 - Date & Time: ${state.dateTime || "Not set"}
 - Service: Cleaning ${state.panelCount} solar panels for $${price.toFixed(2)}
 
-Does everything look correct? Reply YES to confirm and book, or tell me what needs to change.
+All good? Just say YES to lock it in, or let me know what to change.
         `.trim();
 
         reply = summary;
         state = { ...state, awaitingConfirmation: true, lastAskedField: undefined };
       } else if (
-        ["yes", "confirm", "book it", "go ahead", "sure", "okay"].some((w) =>
+        ["yes", "confirm", "book it", "go ahead", "sure", "okay", "yep", "yeah"].some((w) =>
           messageLower.includes(w)
         )
       ) {
@@ -192,7 +206,32 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
           console.log("[BOOKING] Email result:", emailResult);
 
           if (emailResult.ok) {
-            reply = `All set, ${fullName}! Your booking is confirmed. Confirmation email sent to ${email} and to me (Aaron). We'll follow up if needed. Thanks! 🌞`;
+            // NEW: Log to Google Sheet
+            try {
+              const sheetRes = await fetch("https://script.google.com/macros/s/AKfycb.../exec", {  // ← replace with your actual Apps Script URL
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  Client_Name: fullName,
+                  Address: address,
+                  Panel_Count: panelCount,
+                  Location: "Santa Maria", // or extract from address if needed
+                  Phone_number: phone,
+                  email: email,
+                  Requested_Date: dateTime.split(" at ")[0] || dateTime,
+                  Time: dateTime.split(" at ")[1] || "N/A",
+                  Booking_Timestamp: new Date().toISOString(),
+                }),
+              });
+
+              const sheetResult = await sheetRes.json();
+              console.log("[SHEET] Append result:", sheetResult);
+            } catch (sheetErr) {
+              console.error("Google Sheet append error:", sheetErr);
+              // Don't break email success if sheet fails
+            }
+
+            reply = `All set, ${fullName.split(" ")[0]}! Your booking is locked in. Confirmation email sent to ${email} and to me (Aaron). We'll see you ${state.dateTime}. Any questions, just holler! 🌞`;
             state = { ...state, confirmed: true, awaitingConfirmation: false };
           } else {
             reply =
