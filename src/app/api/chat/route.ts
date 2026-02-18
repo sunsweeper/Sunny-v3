@@ -22,7 +22,7 @@ type BookingState = {
   confirmed?: boolean;
   awaitingConfirmation?: boolean;
   intent?: string;
-  lastAskedField?: string;
+  lastAskedField?: string; // track what was last asked
   [key: string]: unknown;
 };
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 1: Force pricing lookup if panels mentioned
+    // STEP 1: Force pricing lookup if panels mentioned (high priority)
     // ──────────────────────────────────────────────────────────────
     const panelMatch = rawMessage.match(/(\d{1,3})\s*(?:solar\s*)?panels?/i);
     if (panelMatch) {
@@ -85,6 +85,7 @@ export async function POST(request: Request) {
               panelCount,
               price,
               intent: "pricing_quote",
+              lastAskedField: undefined,
             };
 
             return NextResponse.json({ reply, state: currentState });
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 2: Custom booking flow - Run FIRST using incoming state
+    // STEP 2: Custom booking flow - Run FIRST to preserve state
     // ──────────────────────────────────────────────────────────────
     const hasPanelCount = typeof currentState.panelCount === "number";
     const price = typeof currentState.price === "number" ? currentState.price : undefined;
@@ -120,6 +121,7 @@ export async function POST(request: Request) {
         console.log("Saved field:", field, "value:", message.trim());
       }
 
+      // Re-calculate missing after save
       const missing: string[] = [];
       if (!state.fullName) missing.push("full name");
       if (!state.email) missing.push("email address");
@@ -130,8 +132,8 @@ export async function POST(request: Request) {
         const nextField = missing[0];
         state.lastAskedField = nextField;
 
-        // Conversational variation
-        const greetings = ["Cool!", "Got it!", "Perfect!", "Sounds good!"];
+        // More conversational & varied
+        const greetings = ["Cool!", "Got it!", "Perfect!", "Sounds good!", "No problem!"];
         const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
         reply = `${randomGreeting} To book the ${state.panelCount}-panel cleaning for $${price.toFixed(
           2
@@ -150,14 +152,13 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
         `.trim();
 
         reply = summary;
-        state = { ...state, awaitingConfirmation: true };
-        state.lastAskedField = undefined;
+        state = { ...state, awaitingConfirmation: true, lastAskedField: undefined };
       } else if (
         ["yes", "confirm", "book it", "go ahead", "sure", "okay"].some((w) =>
           messageLower.includes(w)
         )
       ) {
-        // Extract values for TS
+        // Extract values for safety
         const fullName = state.fullName!;
         const email = state.email!;
         const phone = state.phone || "N/A";
@@ -169,7 +170,7 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
         try {
           const baseUrl =
             process.env.NEXT_PUBLIC_BASE_URL?.trim() || "http://localhost:3000";
-          console.log("[EMAIL] Sending to /api/send-email from", baseUrl);
+          console.log("[BOOKING] Attempting email send to", email, "from", baseUrl);
 
           const emailRes = await fetch(`${baseUrl}/api/send-email`, {
             method: "POST",
@@ -192,7 +193,7 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
           });
 
           const emailResult = await emailRes.json();
-          console.log("[EMAIL] Result:", emailResult);
+          console.log("[BOOKING] Email result:", emailResult);
 
           if (emailResult.ok) {
             reply = `All set, ${fullName}! Your booking is confirmed. Confirmation email sent to ${email} and to me (Aaron). We'll follow up if needed. Thanks! 🌞`;
