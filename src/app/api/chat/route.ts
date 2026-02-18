@@ -222,7 +222,7 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
     });
 
     const runtimeResult = runtimeInstance.handleMessage(rawMessage, currentState);
-    const reply = runtimeResult.reply; // const instead of let
+    const reply = runtimeResult.reply; // changed to const
     let state = runtimeResult.state as BookingState;
 
     // Merge to preserve custom keys
