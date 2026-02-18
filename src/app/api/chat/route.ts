@@ -22,7 +22,7 @@ type BookingState = {
   confirmed?: boolean;
   awaitingConfirmation?: boolean;
   intent?: string;
-  lastAskedField?: string; // track what was last asked
+  lastAskedField?: string;
   [key: string]: unknown;
 };
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 1: Force pricing lookup if panels mentioned (high priority)
+    // STEP 1: Force pricing lookup if panels mentioned
     // ──────────────────────────────────────────────────────────────
     const panelMatch = rawMessage.match(/(\d{1,3})\s*(?:solar\s*)?panels?/i);
     if (panelMatch) {
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 2: Custom booking flow - Run FIRST to preserve state
+    // STEP 2: Custom booking flow - Run FIRST using incoming state
     // ──────────────────────────────────────────────────────────────
     const hasPanelCount = typeof currentState.panelCount === "number";
     const price = typeof currentState.price === "number" ? currentState.price : undefined;
@@ -121,7 +121,6 @@ export async function POST(request: Request) {
         console.log("Saved field:", field, "value:", message.trim());
       }
 
-      // Re-calculate missing after save
       const missing: string[] = [];
       if (!state.fullName) missing.push("full name");
       if (!state.email) missing.push("email address");
@@ -132,7 +131,6 @@ export async function POST(request: Request) {
         const nextField = missing[0];
         state.lastAskedField = nextField;
 
-        // More conversational & varied
         const greetings = ["Cool!", "Got it!", "Perfect!", "Sounds good!", "No problem!"];
         const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
         reply = `${randomGreeting} To book the ${state.panelCount}-panel cleaning for $${price.toFixed(
@@ -158,7 +156,6 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
           messageLower.includes(w)
         )
       ) {
-        // Extract values for safety
         const fullName = state.fullName!;
         const email = state.email!;
         const phone = state.phone || "N/A";
@@ -168,8 +165,7 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
         const priceStr = price.toFixed(2);
 
         try {
-          const baseUrl =
-            process.env.NEXT_PUBLIC_BASE_URL?.trim() || "http://localhost:3000";
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.trim() || "https://www.sunsweeper.com";
           console.log("[BOOKING] Attempting email send to", email, "from", baseUrl);
 
           const emailRes = await fetch(`${baseUrl}/api/send-email`, {
