@@ -95,26 +95,15 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 2: Run sunnyRuntime
+    // STEP 2: CUSTOM BOOKING FLOW - Run FIRST using incoming state (before runtime can overwrite)
     // ──────────────────────────────────────────────────────────────
-    const runtimeInstance = createSunnyRuntime({
-      knowledgeDir: `${process.cwd()}/knowledge`,
-    });
+    const hasPanelCount = typeof currentState.panelCount === "number";
+    const price = typeof currentState.price === "number" ? currentState.price : undefined;
 
-    const runtimeResult = runtimeInstance.handleMessage(rawMessage, currentState);
-    let reply = runtimeResult.reply;
-    let state = runtimeResult.state as BookingState;
+    if (hasPanelCount && typeof price === "number" && !currentState.confirmed) {
+      let reply = "";
+      let state = { ...currentState }; // copy to avoid mutation
 
-    // ──────────────────────────────────────────────────────────────
-    // STEP 3: Prioritize custom booking logic (after runtime, but override if needed)
-    // ──────────────────────────────────────────────────────────────
-    // Merge runtime state back into currentState to preserve panelCount/price
-    state = { ...currentState, ...state };
-
-    const hasPanelCount = typeof state.panelCount === "number";
-    const price = typeof state.price === "number" ? state.price : undefined;
-
-    if (hasPanelCount && typeof price === "number" && !state.confirmed) {
       const missing: string[] = [];
       if (!state.fullName) missing.push("full name");
       if (!state.email) missing.push("email address");
@@ -202,6 +191,20 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
 
       return NextResponse.json({ reply, state });
     }
+
+    // ──────────────────────────────────────────────────────────────
+    // STEP 3: Only if not in booking mode, use runtime
+    // ──────────────────────────────────────────────────────────────
+    const runtimeInstance = createSunnyRuntime({
+      knowledgeDir: `${process.cwd()}/knowledge`,
+    });
+
+    const runtimeResult = runtimeInstance.handleMessage(rawMessage, currentState);
+    let reply = runtimeResult.reply;
+    let state = runtimeResult.state as BookingState;
+
+    // Merge to preserve any custom keys
+    state = { ...currentState, ...state };
 
     // ──────────────────────────────────────────────────────────────
     // STEP 4: Force deterministic reply for known paths
