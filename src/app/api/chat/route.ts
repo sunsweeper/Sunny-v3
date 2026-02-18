@@ -200,7 +200,7 @@ Does everything look correct? Reply YES to confirm and book, or tell me what nee
     });
 
     const runtimeResult = runtimeInstance.handleMessage(rawMessage, currentState);
-    let reply = runtimeResult.reply;
+  const reply = runtimeResult.reply;
     let state = runtimeResult.state as BookingState;
 
     // Merge to preserve any custom keys
