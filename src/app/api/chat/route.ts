@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
+import { ChatCompletionMessageParam } from "openai/resources/chat/completions";  // ← NEW IMPORT
 
 import { SAFE_FAIL_MESSAGE } from "../../../sunnyRuntime";
 
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 2: Custom booking flow
+    // STEP 2: Custom booking flow (unchanged from your last version)
     // ──────────────────────────────────────────────────────────────
     const hasPanelCount = typeof currentState.panelCount === "number";
     const price = typeof currentState.price === "number" ? currentState.price : undefined;
@@ -113,7 +114,7 @@ export async function POST(request: Request) {
       let reply = "";
       let state = { ...currentState };
 
-      // Save user response to last asked field
+      // Save user response...
       if (state.lastAskedField && message.trim()) {
         const field = state.lastAskedField;
         if (field === "full name") {
@@ -142,7 +143,6 @@ export async function POST(request: Request) {
         state.lastAskedField = nextField;
 
         const name = state.fullName ? ` ${state.fullName.split(" ")[0]}` : "";
-
         const fieldNicknames: Record<string, string> = {
           "full name": "name",
           "email address": "email",
@@ -269,9 +269,9 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
     // ──────────────────────────────────────────────────────────────
     // STEP 3: Fallback to OpenAI with full personality + history
     // ──────────────────────────────────────────────────────────────
-    const openaiMessages = [
+    const openaiMessages: ChatCompletionMessageParam[] = [
       { role: "system", content: SUNNY_SYSTEM_PROMPT },
-      ...(body.messages || []).slice(-8).map(m => ({ role: m.role, content: m.content })),
+      ...(body.messages || []).slice(-8).map(m => ({ role: m.role as "user" | "assistant", content: m.content }) as ChatCompletionMessageParam),
       { role: "user", content: message },
     ];
 
