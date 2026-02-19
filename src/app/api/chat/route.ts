@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
-import { ChatCompletionMessageParam } from "openai/resources/chat/completions";  // ← NEW IMPORT
+import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 import { SAFE_FAIL_MESSAGE } from "../../../sunnyRuntime";
 
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 2: Custom booking flow (unchanged from your last version)
+    // STEP 2: Custom booking flow
     // ──────────────────────────────────────────────────────────────
     const hasPanelCount = typeof currentState.panelCount === "number";
     const price = typeof currentState.price === "number" ? currentState.price : undefined;
@@ -114,7 +114,6 @@ export async function POST(request: Request) {
       let reply = "";
       let state = { ...currentState };
 
-      // Save user response...
       if (state.lastAskedField && message.trim()) {
         const field = state.lastAskedField;
         if (field === "full name") {
@@ -220,7 +219,6 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
           console.log("[BOOKING] Email result:", emailResult);
 
           if (emailResult.ok) {
-            // Append to Google Sheet
             try {
               const sheetRes = await fetch(
                 "https://script.google.com/macros/s/AKfycbwXF31hUCdYh-9dzpf_hJT1-NWAv6Eerrr1Fj1mRxT6TA2ADllLR9e9fakEp80_ArUGLg/exec",
@@ -247,7 +245,7 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
               console.error("Google Sheet append error:", sheetErr);
             }
 
-            reply = `Locked in, ${fullName.split(" ")[0]}! Your booking is set like a perfect wave. Confirmation email headed to ${email} and Aaron. See you ${state.dateTime} — those panels are gonna be sparkling! Questions? Holler anytime 🌞✨`;
+            reply = `Locked in, ${fullName.split(" ")[0]}! Your booking is set like a perfect wave. Confirmation email headed to ${email}. See you ${state.dateTime} — those panels are gonna be sparkling! Questions? Holler anytime 🌞✨`;
             state = { ...state, confirmed: true, awaitingConfirmation: false };
           } else {
             reply =
@@ -286,7 +284,6 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
 
     let reply = completion.choices[0]?.message?.content?.trim() || "Got a little foggy there... hit me again, sunshine? 🌞";
 
-    // Light local flavor injection ~35% of casual replies
     if (Math.random() < 0.35 && !reply.toLowerCase().includes("santa maria") && !reply.toLowerCase().includes("orcutt")) {
       const addOns = [
         " ...classic valley dust vibes, right?",
