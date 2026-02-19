@@ -5,7 +5,7 @@ import OpenAI from "openai";
 
 import { SAFE_FAIL_MESSAGE } from "../../../sunnyRuntime";
 
-import { SUNNY_SYSTEM_PROMPT } from "../../../prompts/sunny-system-prompt";
+import { SUNNY_SYSTEM_PROMPT } from "../../../../sunny-system-prompt";  // ← FIXED PATH: root level
 
 export const runtime = "nodejs";
 
@@ -82,7 +82,9 @@ export async function POST(request: Request) {
 
           if (pricingTable[key] !== undefined) {
             const price = pricingTable[key];
-            const reply = `Boom — the total for cleaning ${panelCount} solar panels is $${price.toFixed(2)}. Those are gonna shine brighter than a Santa Maria sunset once we're done. Ready to book a time? 🌞`;
+            const reply = `Boom — the total for cleaning ${panelCount} solar panels is $${price.toFixed(
+              2
+            )}. Those are gonna shine brighter than a Santa Maria sunset once we're done. Ready to book a time? 🌞`;
             console.log("FORCED TABLE PRICE -", panelCount, "→", price);
 
             currentState = {
@@ -216,7 +218,7 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
           console.log("[BOOKING] Email result:", emailResult);
 
           if (emailResult.ok) {
-            // Append to Google Sheet
+            // Append to Google Sheet (your original code)
             try {
               const sheetRes = await fetch(
                 "https://script.google.com/macros/s/AKfycbwXF31hUCdYh-9dzpf_hJT1-NWAv6Eerrr1Fj1mRxT6TA2ADllLR9e9fakEp80_ArUGLg/exec",
@@ -276,7 +278,7 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
       messages: openaiMessages,
       temperature: 1.0,
       max_tokens: 280,
-      presence_penalty: 0.4,   // helps reduce repetition
+      presence_penalty: 0.4,
       frequency_penalty: 0.2,
     });
 
@@ -294,9 +296,9 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
 
     let state = { ...currentState };
 
-    // Optional: reset state after confirmed booking to start fresh
+    // Optional reset after confirmed
     if (state.confirmed) {
-      state = { confirmed: true }; // keep confirmed flag but clear booking details
+      state = { confirmed: true }; // clear booking details but keep flag
     }
 
     return NextResponse.json({ reply, state });
