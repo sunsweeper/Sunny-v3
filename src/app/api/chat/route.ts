@@ -5,7 +5,7 @@ import OpenAI from "openai";
 
 import { SAFE_FAIL_MESSAGE } from "../../../sunnyRuntime";
 
-import { SUNNY_SYSTEM_PROMPT } from "../../../../sunny-system-prompt";  // ← FIXED PATH: root level
+import { SUNNY_SYSTEM_PROMPT } from "../../../../sunny-system-prompt";
 
 export const runtime = "nodejs";
 
@@ -142,13 +142,15 @@ export async function POST(request: Request) {
         state.lastAskedField = nextField;
 
         const name = state.fullName ? ` ${state.fullName.split(" ")[0]}` : "";
-        const fieldNicknames = {
+
+        const fieldNicknames: Record<string, string> = {
           "full name": "name",
           "email address": "email",
           "phone number": "phone",
           "full service address (street, city, zip)": "address",
           "preferred date and time": "date & time",
         };
+
         const nickname = fieldNicknames[nextField] || nextField;
 
         const templates = [
@@ -218,7 +220,7 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
           console.log("[BOOKING] Email result:", emailResult);
 
           if (emailResult.ok) {
-            // Append to Google Sheet (your original code)
+            // Append to Google Sheet
             try {
               const sheetRes = await fetch(
                 "https://script.google.com/macros/s/AKfycbwXF31hUCdYh-9dzpf_hJT1-NWAv6Eerrr1Fj1mRxT6TA2ADllLR9e9fakEp80_ArUGLg/exec",
@@ -296,9 +298,8 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
 
     let state = { ...currentState };
 
-    // Optional reset after confirmed
     if (state.confirmed) {
-      state = { confirmed: true }; // clear booking details but keep flag
+      state = { confirmed: true };
     }
 
     return NextResponse.json({ reply, state });
