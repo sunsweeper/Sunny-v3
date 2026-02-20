@@ -22,7 +22,11 @@ body {
 .page-shell {
   min-height: 100vh;
   padding: 14px 0 34px;
-  background: var(--navy);
+  background-color: var(--navy);
+  background-image: url("/background.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .hero {
