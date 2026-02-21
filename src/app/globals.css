@@ -23,7 +23,7 @@ body {
   min-height: 100vh;
   padding: 14px 0 34px;
   background-color: var(--navy);
-  background-image: url("/background.png"), url("/background.jpg");
+  background-image: url("/background.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
