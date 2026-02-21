@@ -155,15 +155,15 @@ export default function Page() {
             href="tel:8059381515" 
             aria-label="Call SunSweeper at 805-938-1515"
             style={{ 
-              fontSize: "3.5rem",          // Big size (~56px on desktop)
-              fontWeight: "900",            // Extra bold
-              lineHeight: "1.1",            // Tight spacing
-              letterSpacing: "-0.02em",     // Slight polish
-              display: "block",             // Full width
-              textAlign: "center",          // Centered
-              margin: "1.5rem 0 1rem 0",    // Good breathing room
+              fontSize: "1.75rem",          // ← Half the previous size (~28px on desktop)
+              fontWeight: "900",            // Still very bold
+              lineHeight: "1.1",
+              letterSpacing: "-0.01em",
+              display: "block",
+              textAlign: "center",
+              margin: "1.25rem 0 0.75rem 0", // Slightly tighter spacing
               color: "#ffffff",             // Pure white
-              textShadow: "0 2px 8px rgba(0,0,0,0.5)", // Shadow for contrast
+              textShadow: "0 1px 6px rgba(0,0,0,0.5)", // Subtle shadow for contrast
             }}
           >
             805-938-1515
