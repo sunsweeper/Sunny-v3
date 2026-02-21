@@ -150,7 +150,22 @@ export default function Page() {
         <p className="headline">The solar panel and roof cleaning experts.</p>
         <Image src="/logo.png" alt="SunSweeper logo" width={640} height={350} className="hero-logo" priority />
         <div className="contact-wrap">
-          <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">
+          <a 
+            className="phone" 
+            href="tel:8059381515" 
+            aria-label="Call SunSweeper at 805-938-1515"
+            style={{ 
+              fontSize: "3.5rem",          // Big size (~56px on desktop)
+              fontWeight: "900",            // Extra bold
+              lineHeight: "1.1",            // Tight spacing
+              letterSpacing: "-0.02em",     // Slight polish
+              display: "block",             // Full width
+              textAlign: "center",          // Centered
+              margin: "1.5rem 0 1rem 0",    // Good breathing room
+              color: "#ffffff",             // Pure white
+              textShadow: "0 2px 8px rgba(0,0,0,0.5)", // Shadow for contrast
+            }}
+          >
             805-938-1515
           </a>
           <p className="contact-line">
@@ -237,7 +252,6 @@ export default function Page() {
       </section>
 
       <footer className="beta-footer">
-
       </footer>
 
       <footer
