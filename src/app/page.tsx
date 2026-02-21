@@ -147,7 +147,7 @@ export default function Page() {
   return (
     <main className="page-shell">
       <section className="hero">
-        <p className="headline">The Solar Panel and roof cleaning experts.</p>
+        <p className="headline">The solar panel and roof cleaning experts.</p>
         <Image src="/logo.png" alt="SunSweeper logo" width={640} height={350} className="hero-logo" priority />
         <div className="contact-wrap">
           <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">
