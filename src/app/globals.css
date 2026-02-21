@@ -245,7 +245,7 @@ body {
   }
 
   .chat-input {
-    min-height: 68px;
+    min-height: 48px;
     font-size: 1.85rem;
     border-radius: 12px;
 
