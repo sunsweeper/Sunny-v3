@@ -122,7 +122,6 @@ body {
   text-underline-offset: 6px;
 }
 
-
 .service-divider {
   color: #000;
   font-size: clamp(1.15rem, 1.35vw, 1.5rem);
@@ -159,7 +158,7 @@ body {
   margin-top: 0;
   display: grid;
   gap: 18px;
-  background: #f2f3f5;
+  background: #eef2f7;
   border-radius: 16px 16px 4px 4px;
   padding: clamp(16px, 2.8vw, 26px);
   min-height: clamp(280px, 47vw, 560px);
@@ -195,19 +194,19 @@ body {
 }
 
 .user-bubble {
-  color: #dbe7ff;
-  background: rgba(6, 23, 44, 0.26);
+  color: #ffffff;
+  background: var(--navy);
 }
 
 .assistant-bubble {
-  color: #1e3a59;
+  color: var(--ink);
   background: transparent;
   padding-left: 0;
 }
 
 .typing {
   margin: 0;
-  color: #1e3a59;
+  color: var(--ink);
   font-size: clamp(1rem, 1.25vw, 1.4rem);
   font-style: italic;
   font-weight: 600;
