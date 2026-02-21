@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 2: Custom booking flow
+    // STEP 2: Smart booking flow with OpenAI extraction
     // ──────────────────────────────────────────────────────────────
     const hasPanelCount = typeof currentState.panelCount === "number";
     const price = typeof currentState.price === "number" ? currentState.price : undefined;
@@ -114,22 +114,64 @@ export async function POST(request: Request) {
       let reply = "";
       let state = { ...currentState };
 
+      // Try fast deterministic save first
       if (state.lastAskedField && message.trim()) {
         const field = state.lastAskedField;
-        if (field === "full name") {
-          state.fullName = message.trim();
-        } else if (field === "email address") {
-          if (message.includes("@")) state.email = message.trim();
-        } else if (field === "phone number") {
-          state.phone = message.trim();
-        } else if (field === "full service address (street, city, zip)") {
-          state.address = message.trim();
-        } else if (field === "preferred date and time") {
-          state.dateTime = message.trim();
-        }
-        console.log("Saved field:", field, "value:", message.trim());
+        if (field === "full name") state.fullName = message.trim();
+        else if (field === "email address" && message.includes("@")) state.email = message.trim();
+        else if (field === "phone number") state.phone = message.trim();
+        else if (field === "full service address (street, city, zip)") state.address = message.trim();
+        else if (field === "preferred date and time") state.dateTime = message.trim();
       }
 
+      // OpenAI extraction fallback (runs every time to catch out-of-order or repeated info)
+      const parsePrompt = `
+      You are extracting structured data from a user's message and recent conversation history.
+      Return ONLY valid JSON with these exact keys (null if not found/unclear):
+      {
+        "full_name": string or null,
+        "email": string (must contain @) or null,
+        "phone_number": string or null,
+        "full_address": string (street, city, zip format) or null,
+        "preferred_date_time": string or null
+      }
+
+      Recent conversation history (most recent first):
+      ${JSON.stringify(body.messages?.slice(-6).reverse() || [], null, 2)}
+
+      Current user message: "${message}"
+
+      Do not add explanations, do not wrap in code block, output pure JSON only.
+      `;
+
+      try {
+        const parseCompletion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "system", content: parsePrompt }],
+          temperature: 0.0, // very deterministic
+          max_tokens: 150,
+        });
+
+        let extractedText = parseCompletion.choices[0]?.message?.content?.trim() || "{}";
+        // Clean up if wrapped in markdown/code
+        extractedText = extractedText.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
+
+        const extracted = JSON.parse(extractedText);
+
+        // Update state if better values found
+        if (extracted.full_name && !state.fullName) state.fullName = extracted.full_name;
+        if (extracted.email && extracted.email.includes("@") && !state.email) state.email = extracted.email;
+        if (extracted.phone_number && !state.phone) state.phone = extracted.phone_number;
+        if (extracted.full_address && !state.address) state.address = extracted.full_address;
+        if (extracted.preferred_date_time && !state.dateTime) state.dateTime = extracted.preferred_date_time;
+
+        console.log("OpenAI extracted:", extracted);
+      } catch (parseErr) {
+        console.error("Field extraction failed:", parseErr);
+        // Continue with existing state
+      }
+
+      // Re-check missing after extraction
       const missing: string[] = [];
       if (!state.fullName) missing.push("full name");
       if (!state.email) missing.push("email address");
@@ -142,25 +184,15 @@ export async function POST(request: Request) {
         state.lastAskedField = nextField;
 
         const name = state.fullName ? ` ${state.fullName.split(" ")[0]}` : "";
-        const fieldNicknames: Record<string, string> = {
-          "full name": "name",
-          "email address": "email",
-          "phone number": "phone",
-          "full service address (street, city, zip)": "address",
-          "preferred date and time": "date & time",
-        };
-
-        const nickname = fieldNicknames[nextField] || nextField;
-
         const templates = [
-          `Alright${name}, let's keep the momentum! What's your ${nickname}? 🌞`,
-          `You're on fire${name}! Hit me with your ${nickname} next 😏`,
-          `Sweet progress${name} — now I need your ${nickname}. Spill it! ✨`,
-          `Almost shining${name}! What's the ${nickname} so we can lock this in?`,
-          `No rush, sunshine${name} — what's your ${nickname}? 🍔`,
-          `Stoked on this${name}! Just need your ${nickname} to make it official 💦`,
-          `Radical${name} — what's your ${nickname}? Panels are waiting!`,
-          `Gotcha${name}! One more piece — your ${nickname}?`,
+          `Alright${name}, let's keep the momentum! What's your ${nextField}? 🌞`,
+          `You're on fire${name}! Hit me with your ${nextField} next 😏`,
+          `Sweet progress${name} — now I need your ${nextField}. Spill it! ✨`,
+          `Almost shining${name}! What's the ${nextField} so we can lock this in?`,
+          `No rush, sunshine${name} — what's your ${nextField}? 🍔`,
+          `Stoked on this${name}! Just need your ${nextField} to make it official 💦`,
+          `Radical${name} — what's your ${nextField}? Panels are waiting!`,
+          `Gotcha${name}! One more piece — your ${nextField}?`,
         ];
         const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
 
@@ -175,9 +207,10 @@ Here's what I've got for your booking${state.fullName ? `, ${state.fullName}` : 
 - Date & Time: ${state.dateTime || "Not set"}
 - Service: Cleaning ${state.panelCount} solar panels for $${price.toFixed(2)}
 
-Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
+All good? Say YES to lock it in, or tell me what to tweak, babe! 🌞`;
         reply = summary.trim();
-        state = { ...state, awaitingConfirmation: true, lastAskedField: undefined };
+        state.awaitingConfirmation = true;
+        state.lastAskedField = undefined;
       } else if (
         ["yes", "confirm", "book it", "go ahead", "sure", "okay", "yep", "yeah"].some((w) =>
           messageLower.includes(w)
@@ -245,20 +278,18 @@ Look good? Say YES to lock it in, or tell me what needs tweaking, babe! 🌞`;
               console.error("Google Sheet append error:", sheetErr);
             }
 
-            reply = `Locked in, ${fullName.split(" ")[0]}! Your booking is set like a perfect wave. Confirmation email headed to ${email}. See you ${state.dateTime} — those panels are gonna be sparkling! Questions? Holler anytime 🌞✨`;
+            reply = `Locked in, ${fullName.split(" ")[0]}! Your booking is set like a perfect wave. Confirmation email headed to ${email}. See you ${dateTime} — those panels are gonna be sparkling! Questions? Holler anytime 🌞✨`;
             state = { ...state, confirmed: true, awaitingConfirmation: false };
           } else {
-            reply =
-              "Hmm, the confirmation email hit a snag — Aaron will reach out to finalize. Sorry about that! 😅";
+            reply = "Hmm, the confirmation email hit a snag — Aaron will reach out to finalize. Sorry about that! 😅";
             console.error("Email send failed:", emailResult.error);
           }
         } catch (err) {
-          reply =
-            "Booking ran into a little cloud — Aaron will get in touch to sort it. Hang tight!";
+          reply = "Booking ran into a little cloud — Aaron will get in touch to sort it. Hang tight!";
           console.error("Email trigger error:", err);
         }
       } else {
-        reply = "Quick double-check — does everything in the summary look right? Say YES to confirm, or let me know what to change. We're so close! 😏";
+        reply = "Quick double-check — does everything look right? Say YES to confirm, or tell me what to change. We're so close! 😏";
       }
 
       return NextResponse.json({ reply, state });
