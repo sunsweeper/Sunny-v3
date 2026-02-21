@@ -190,7 +190,11 @@ export default function Page() {
             const isUser = message.role === "user";
             return (
               <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
-                {isUser ? <div className="you-tag">You</div> : <Image src="/sunny-avatar.png" alt="Sunny avatar" width={84} height={84} className="sunny-avatar" />}
+                {isUser ? (
+                  <Image src="/user-avatar.png" alt="User avatar" width={84} height={84} className="user-avatar" />
+                ) : (
+                  <Image src="/sunny-avatar.png" alt="Sunny avatar" width={84} height={84} className="sunny-avatar" />
+                )}
                 <p className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>{message.content}</p>
               </div>
             );
