@@ -144,6 +144,10 @@ body {
   color: var(--ink);
   background: transparent;
   padding-left: 0;
+  font-size: clamp(1.5rem, 1.8vw, 2.2rem);   /* ← bigger than current */
+  line-height: 1.45;                           /* ← a bit more breathing room */
+  font-weight: 500;                            /* ← slightly lighter if 600 feels too heavy */
+  font-family: 'Inter', system-ui, sans-serif; /* ← example: change to a cleaner font */
 }
 
 .typing {
