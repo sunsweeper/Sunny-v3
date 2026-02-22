@@ -45,7 +45,9 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "solarPanelCleaning", label: "Solar Panel Cleaning" },
   { key: "birdProofing", label: "Bird Proofing" },
   { key: "roofWashing", label: "Roof Wash" },
-  { key: "gutterCleaningRepair", label: "Gutter Cleaning/Repair" },
+  { key: "pressureWashing", label: "Pressure Washing" },  
+  { key: "gutterCleaningRepair", label: "Gutter Cleaning" }, 
+  { key: "gutterLeakRepair", label: "Gutter Leak Repair" },
 ];
 
 const QUICK_SUGGESTIONS = [
