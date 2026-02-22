@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 type Message = {
   role: "user" | "assistant";
@@ -129,7 +129,7 @@ export default function Page() {
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       void handleSend();
@@ -200,7 +200,7 @@ export default function Page() {
       <section ref={chatShellRef} className="chat-shell">
         <div ref={messagesRef} className="messages">
           {!hasMessages && (
-            <p className="helper-text">Say hi, ask a question, or pick a service above when you're ready.</p>
+            <p className="helper-text">Say hi, ask a question, or pick a service above when you’re ready.</p>
           )}
 
           {messages.map((message, index) => {
