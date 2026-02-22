@@ -216,7 +216,7 @@ export default function Page() {
       <section ref={chatShellRef} className="chat-shell">
         <div ref={messagesRef} className="messages">
           {!hasMessages && (
-            <p className="helper-text">Say hi, ask a question, or pick a service above when you're ready.</p>
+            <p className="helper-text">Say hi, ask a question, or pick a service above when you{'\'re} ready.</p>
           )}
 
           {messages.map((message, index) => {
@@ -323,7 +323,7 @@ export default function Page() {
           fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif",
         }}
       >
-        {/* Your footer content goes here – unchanged */}
+        {/* Your footer content – unchanged */}
         <div
           style={{
             maxWidth: "1200px",
@@ -333,9 +333,9 @@ export default function Page() {
             gap: "32px",
           }}
         >
-          {/* ... footer columns ... */}
+          {/* footer columns here */}
         </div>
-        {/* ... hr and copyright ... */}
+        {/* hr and copyright section */}
       </footer>
     </main>
   );
