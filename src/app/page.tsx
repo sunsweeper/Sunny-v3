@@ -71,7 +71,10 @@ export default function Page() {
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
-  const hasMessages = useMemo(() => messages.length > 1 || activeService !== null, [messages.length, activeService]);
+  const hasMessages = useMemo(
+    () => messages.length > 1 || activeService !== null,
+    [messages.length, activeService]
+  );
 
   useEffect(() => {
     const messagesElement = messagesRef.current;
@@ -247,7 +250,7 @@ export default function Page() {
                   type="button"
                   onClick={() => {
                     setInput(q);
-                    // Uncomment next line if you want auto-send on click:
+                    // Uncomment the line below if you want the question to auto-send on click:
                     // void handleSend();
                   }}
                   className="suggestion-btn"
@@ -294,8 +297,7 @@ export default function Page() {
         </div>
       </section>
 
-      {/* Your existing footers remain unchanged */}
-      <footer className="beta-footer"></footer>
+      <footer className="beta-footer" />
 
       <footer
         style={{
@@ -305,7 +307,19 @@ export default function Page() {
           fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif",
         }}
       >
-        {/* ... your footer content stays exactly the same ... */}
+        {/* Your original footer content remains unchanged */}
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+            gap: "32px",
+          }}
+        >
+          {/* ... rest of your footer ... */}
+        </div>
+        {/* ... hr and copyright section ... */}
       </footer>
     </main>
   );
