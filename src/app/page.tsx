@@ -8,7 +8,13 @@ type Message = {
   content: string;
 };
 
-type ServiceKey = "solarPanelCleaning" | "birdProofing" | "roofWashing" | "gutterCleaningRepair";
+type ServiceKey =
+  | "solarPanelCleaning"
+  | "birdProofing"
+  | "roofWashing"
+  | "gutterCleaningRepair"
+  | "pressureWashing"
+  | "gutterLeakRepair";
 
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
@@ -39,14 +45,22 @@ const SERVICE_PROMPTS: Record<ServiceKey, string[]> = {
     "Blocked or damaged gutters cause bigger problems fast (water damage, foundation issues). Want to know our cleaning process, common repairs we handle, or ballpark pricing?",
     "Gutters should be invisible — when they're not, it's usually leaves, debris, or wear. I can explain prevention tips, what we inspect, and fixes. What's the situation?",
   ],
+  pressureWashing: [
+    "Pressure washing — let's clarify what surface we're talking about. We use low-pressure soft washing for most jobs (safe for roofs, siding, solar panels), never high-pressure blasting that can cause damage. What's the area you want cleaned?",
+    "We avoid aggressive high-pressure on delicate surfaces here on the coast. I can explain our gentle approach, when it's appropriate, and rough pricing. What are you looking to wash?",
+  ],
+  gutterLeakRepair: [
+    "Gutter leak repair — leaks often start at seams, holes, or poor slope. I can help identify the cause from what you're seeing and explain our fix options (sealing, patching, or section replacement). What's happening with your gutters?",
+    "Even small leaks can lead to big water damage quickly. Tell me the symptoms (drips, stains, overflow) and I'll give you next steps and ballpark costs.",
+  ],
 };
 
 const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "solarPanelCleaning", label: "Solar Panel Cleaning" },
   { key: "birdProofing", label: "Bird Proofing" },
   { key: "roofWashing", label: "Roof Wash" },
-  { key: "pressureWashing", label: "Pressure Washing" },  
-  { key: "gutterCleaningRepair", label: "Gutter Cleaning" }, 
+  { key: "pressureWashing", label: "Pressure Washing" },
+  { key: "gutterCleaningRepair", label: "Gutter Cleaning" },
   { key: "gutterLeakRepair", label: "Gutter Leak Repair" },
 ];
 
@@ -202,7 +216,7 @@ export default function Page() {
       <section ref={chatShellRef} className="chat-shell">
         <div ref={messagesRef} className="messages">
           {!hasMessages && (
-            <p className="helper-text">Say hi, ask a question, or pick a service above when you&apos;re ready.</p>
+            <p className="helper-text">Say hi, ask a question, or pick a service above when you're ready.</p>
           )}
 
           {messages.map((message, index) => {
@@ -252,7 +266,7 @@ export default function Page() {
                   type="button"
                   onClick={() => {
                     setInput(q);
-                    // Uncomment the line below if you want the question to auto-send on click:
+                    // Uncomment next line to auto-send on suggestion click:
                     // void handleSend();
                   }}
                   className="suggestion-btn"
@@ -309,7 +323,7 @@ export default function Page() {
           fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif",
         }}
       >
-        {/* Your original footer content remains unchanged */}
+        {/* Your footer content goes here – unchanged */}
         <div
           style={{
             maxWidth: "1200px",
@@ -319,9 +333,9 @@ export default function Page() {
             gap: "32px",
           }}
         >
-          {/* ... rest of your footer ... */}
+          {/* ... footer columns ... */}
         </div>
-        {/* ... hr and copyright section ... */}
+        {/* ... hr and copyright ... */}
       </footer>
     </main>
   );
