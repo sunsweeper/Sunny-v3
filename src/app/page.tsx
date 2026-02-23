@@ -87,10 +87,7 @@ export default function Page() {
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
-  const hasMessages = useMemo(
-    () => messages.length > 1 || activeService !== null,
-    [messages.length, activeService]
-  );
+  const hasMessages = useMemo(() => messages.length > 1 || activeService !== null, [messages.length, activeService]);
 
   useEffect(() => {
     const messagesElement = messagesRef.current;
@@ -190,6 +187,7 @@ export default function Page() {
             Call <span>or</span> text <small>for a live human</small>
           </p>
         </div>
+
         <nav className="service-nav" aria-label="Core services">
           {SERVICE_OPTIONS.map((service, index) => {
             const isActive = activeService === service.key;
@@ -215,19 +213,17 @@ export default function Page() {
 
       <section ref={chatShellRef} className="chat-shell">
         <div ref={messagesRef} className="messages">
-        {!hasMessages && (
-  <p className="helper-text">Say hi, ask a question, or pick a service above when you{'\''}re ready.</p>
-)}
+          {!hasMessages && (
+            <p className="helper-text">
+              Say hi, ask a question, or pick a service above when you{"'"}re ready.
+            </p>
+          )}
 
           {messages.map((message, index) => {
             const isUser = message.role === "user";
             return (
               <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
-                {isUser ? (
-                  <Image src="/user-avatar.png" alt="User avatar" width={84} height={84} className="user-avatar" />
-                ) : (
-                  <Image src="/sunny-avatar.png" alt="Sunny avatar" width={84} height={84} className="sunny-avatar" />
-                )}
+                {/* Avatars removed */}
                 <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
                   {message.content.split("\n").map((line, i) => (
                     <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>
@@ -241,7 +237,6 @@ export default function Page() {
 
           {isLoading && (
             <div className="msg-row assistant">
-              <Image src="/sunny-avatar.png" alt="Sunny avatar" width={84} height={84} className="sunny-avatar" />
               <div>
                 <p className="typing">Sunny is thinking...</p>
               </div>
@@ -272,11 +267,14 @@ export default function Page() {
                   style={{
                     padding: "0.6rem 1.1rem",
                     borderRadius: "1.5rem",
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    background: "rgba(255,255,255,0.08)",
                     cursor: "pointer",
                     fontSize: "0.95rem",
                     transition: "background 0.2s",
+                    color: "rgba(255,255,255,0.92)",
+                    backdropFilter: "blur(14px) saturate(160%)",
+                    WebkitBackdropFilter: "blur(14px) saturate(160%)",
                   }}
                 >
                   {q}
