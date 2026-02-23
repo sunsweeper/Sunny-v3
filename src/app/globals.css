@@ -74,6 +74,15 @@ footer {
   flex: 0 0 auto;
 }
 
+.headline {
+  font-size: clamp(2.3rem, 3.4vw, 3.75rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0;
+  font-weight: 300;
+  text-wrap: balance;
+}
+
 .hero-logo {
   width: min(500px, 52vw);
   height: auto;
@@ -108,6 +117,12 @@ footer {
   opacity: 0.85;
 }
 
+.service-divider {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: clamp(1.15rem, 1.35vw, 1.5rem);
+  font-weight: 700;
+}
+
 /* =========================
    CHAT SHELL – TRUE GLASS
    ========================= */
@@ -116,19 +131,13 @@ footer {
   width: min(1320px, 95%);
   margin: auto auto clamp(6px, 2vh, 18px);
 
-  /* Transparent body */
   background: rgba(255, 255, 255, 0.08);
-
-  /* Crystal edge */
   border: 1px solid rgba(255, 255, 255, 0.35);
-
   border-radius: 22px;
 
-  /* Refraction blur */
   backdrop-filter: blur(22px) saturate(160%);
   -webkit-backdrop-filter: blur(22px) saturate(160%);
 
-  /* Inner light rim + subtle outer glow */
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.25),
     0 10px 40px rgba(0, 0, 0, 0.35);
@@ -137,18 +146,33 @@ footer {
 }
 
 /* =========================
-   MESSAGES
+   MESSAGES – GLASS CENTER
    ========================= */
 
 .messages {
   display: grid;
   gap: 18px;
-  background: rgba(255, 255, 255, 0.88);
-  border-radius: 16px 16px 4px 4px;
+
+  /* SAME REFRACTIVE GLASS FEEL */
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 18px;
+
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 18px 28px rgba(255, 255, 255, 0.06);
+
   padding: clamp(16px, 2.2vw, 22px);
+
   min-height: clamp(220px, 26vw, 360px);
   max-height: 48vh;
   overflow-y: auto;
+
+  /* NEW: WHITE TEXT IN THE CENTER PANEL */
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .msg-row {
@@ -157,28 +181,42 @@ footer {
   align-items: center;
 }
 
+/* Message bubbles now sit on glass, so make them lightly tinted */
 .bubble {
   margin: 0;
-  font-size: clamp(1.4rem, 1.65vw, 2rem);
-  line-height: 1.34;
+  font-size: clamp(1.35rem, 1.55vw, 1.95rem);
+  line-height: 1.36;
   font-weight: 600;
   border-radius: 14px;
   padding: 12px 14px;
+  color: rgba(255, 255, 255, 0.92);
 }
 
+/* User bubble: deeper navy glass */
 .user-bubble {
-  color: #ffffff;
-  background: var(--navy);
+  background: rgba(6, 23, 44, 0.40);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
 }
 
+/* Assistant bubble: lighter clear glass */
 .assistant-bubble {
-  color: var(--ink);
-  background: transparent;
-  padding-left: 0;
-  font-size: clamp(1.5rem, 1.8vw, 2.2rem);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+
+  font-size: clamp(1.45rem, 1.7vw, 2.1rem);
   line-height: 1.45;
   font-weight: 500;
   font-family: "Inter", system-ui, sans-serif;
+}
+
+.typing {
+  color: rgba(255, 255, 255, 0.85);
+  font-style: italic;
+  font-weight: 600;
 }
 
 /* =========================
@@ -192,42 +230,144 @@ footer {
   align-items: stretch;
 }
 
+/* Input also glass, readable */
 .chat-input {
   width: 100%;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #1e1e1e;
-  font-size: clamp(1.65rem, 2.2vw, 2.4rem);
-  line-height: 1.3;
+
+  background: rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.92);
+
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+
+  font-size: clamp(1.55rem, 2.0vw, 2.25rem);
+  line-height: 1.25;
+
   resize: none;
   padding: 14px 20px;
   min-height: 62px;
   outline: none;
+
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .chat-input::placeholder {
-  color: #111827;
-  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.62);
+  opacity: 1;
+  font-size: 0.85em;
+}
+
+.chat-input:focus {
+  border-color: rgba(245, 179, 1, 0.55);
+  box-shadow: 0 0 0 3px rgba(245, 179, 1, 0.25);
 }
 
 .send-btn {
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 14px;
-  background: var(--ink);
-  color: #fff;
+
+  background: rgba(6, 23, 44, 0.55);
+  color: rgba(255, 255, 255, 0.92);
+
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+
   min-width: clamp(98px, 9vw, 130px);
   padding: 0 16px;
   font-size: clamp(1.1rem, 1.2vw, 1.25rem);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+
   cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.2s ease;
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .send-btn:hover:not(:disabled) {
-  background: #111827;
+  background: rgba(6, 23, 44, 0.68);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .send-btn:active:not(:disabled) {
   transform: translateY(1px);
+}
+
+.send-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 640px) {
+  .messages {
+    min-height: 420px;
+    max-height: 520px;
+  }
+
+  .chat-input {
+    min-height: 68px;
+    font-size: 1.85rem;
+    border-radius: 12px;
+    line-height: 1.2;
+    padding: 16px 18px;
+  }
+
+  .chat-input::placeholder {
+    font-size: 0.8em;
+    line-height: 1.2;
+  }
+
+  .send-btn {
+    min-height: 68px;
+    min-width: 96px;
+    border-radius: 14px;
+  }
+}
+
+/* =========================
+   PRIVACY PAGE
+   ========================= */
+
+.privacy-shell {
+  position: relative;
+  min-height: 100vh;
+  padding: 28px 0 44px;
+
+  background-color: var(--navy);
+  background-image: url("/solar-background.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  filter: brightness(1.08) contrast(1.05);
+}
+
+.privacy-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(6, 23, 44, 0.28),
+    rgba(6, 23, 44, 0.42)
+  );
+  pointer-events: none;
+}
+
+.privacy-hero,
+.privacy-content {
+  position: relative;
+  z-index: 1;
+}
+
+.privacy-content {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(2, 15, 30, 0.3);
+  padding: clamp(20px, 3vw, 40px);
 }
