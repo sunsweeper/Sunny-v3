@@ -1,17 +1,8 @@
 :root {
-  /* Primary brand background */
   --navy: #1f3f5b;
-
-  /* Logo-matched deep blue for panels/cards */
   --panel: #203a56;
-
-  /* Deep authority ink */
   --ink: #06172c;
-
-  /* Solar accent */
   --gold: #f5b301;
-
-  /* Soft UI surface */
   --surface: #d7dce6;
 }
 
@@ -28,17 +19,52 @@ body {
   color: #fff;
 }
 
+/* =========================
+   PAGE SHELL + BACKGROUND
+   ========================= */
+
 .page-shell {
+  position: relative;
   min-height: 100vh;
   padding: 14px 0 34px;
+
   background-color: var(--navy);
-  background-image: url("/background.png");
+  background-image: url("/solar-background.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+
+  filter: brightness(1.08) contrast(1.05);
+
+  display: flex;
+  flex-direction: column;
 }
 
-/* ---------------- HERO ---------------- */
+/* Overlay */
+.page-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(6, 23, 44, 0.32),
+    rgba(6, 23, 44, 0.45)
+  );
+  pointer-events: none;
+}
+
+/* Ensure content above overlay */
+.hero,
+.chat-shell,
+.beta-footer,
+footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================
+   HERO
+   ========================= */
 
 .hero {
   width: min(1320px, 95%);
@@ -47,6 +73,7 @@ body {
   gap: 6px;
   justify-items: center;
   text-align: center;
+  flex: 0 0 auto;
 }
 
 .headline {
@@ -63,7 +90,9 @@ body {
   height: auto;
 }
 
-/* ---------------- NAV ---------------- */
+/* =========================
+   NAV
+   ========================= */
 
 .service-nav {
   display: flex;
@@ -96,23 +125,30 @@ body {
   font-weight: 700;
 }
 
-/* ---------------- CHAT SHELL ---------------- */
+/* =========================
+   CHAT SHELL
+   ========================= */
 
 .chat-shell {
   width: min(1320px, 95%);
-  margin: 8px auto 0;
+
+  /* This pushes it toward sunrise */
+  margin: auto auto clamp(60px, 10vh, 120px);
+
   background: var(--panel);
   padding: clamp(18px, 2.7vw, 34px) clamp(16px, 3.6vw, 48px);
   border-radius: 20px;
   box-shadow: 0 16px 40px rgba(2, 15, 30, 0.25);
 }
 
-/* ---------------- MESSAGES ---------------- */
+/* =========================
+   MESSAGES
+   ========================= */
 
 .messages {
   display: grid;
   gap: 18px;
-  background: #ffffff; /* PURE WHITE */
+  background: #ffffff;
   border-radius: 16px 16px 4px 4px;
   padding: clamp(16px, 2.8vw, 26px);
   min-height: clamp(280px, 47vw, 560px);
@@ -144,10 +180,10 @@ body {
   color: var(--ink);
   background: transparent;
   padding-left: 0;
-  font-size: clamp(1.5rem, 1.8vw, 2.2rem);   /* ← bigger than current */
-  line-height: 1.45;                           /* ← a bit more breathing room */
-  font-weight: 500;                            /* ← slightly lighter if 600 feels too heavy */
-  font-family: 'Inter', system-ui, sans-serif; /* ← example: change to a cleaner font */
+  font-size: clamp(1.5rem, 1.8vw, 2.2rem);
+  line-height: 1.45;
+  font-weight: 500;
+  font-family: "Inter", system-ui, sans-serif;
 }
 
 .typing {
@@ -156,7 +192,9 @@ body {
   font-weight: 600;
 }
 
-/* ---------------- INPUT ---------------- */
+/* =========================
+   INPUT
+   ========================= */
 
 .input-wrap {
   margin-top: 18px;
@@ -180,7 +218,6 @@ body {
   transition: box-shadow 0.2s ease;
 }
 
-/* Smaller placeholder text */
 .chat-input::placeholder {
   color: #111827;
   opacity: 0.65;
@@ -218,7 +255,9 @@ body {
   cursor: not-allowed;
 }
 
-/* ---------------- MOBILE FIXES ---------------- */
+/* =========================
+   MOBILE
+   ========================= */
 
 @media (max-width: 640px) {
 
@@ -247,57 +286,38 @@ body {
   }
 }
 
-/* ---------------- PRIVACY POLICY PAGE ---------------- */
+/* =========================
+   PRIVACY PAGE
+   ========================= */
 
 .privacy-shell {
+  position: relative;
   min-height: 100vh;
   padding: 28px 0 44px;
   background-color: var(--navy);
-  background-image: url("/background.png");
+  background-image: url("/solar-background.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  filter: brightness(1.08) contrast(1.05);
+}
+
+.privacy-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(6, 23, 44, 0.32),
+    rgba(6, 23, 44, 0.45)
+  );
+  pointer-events: none;
 }
 
 .privacy-hero,
 .privacy-content {
-  width: min(1040px, 92%);
-  margin: 0 auto;
-}
-
-.privacy-hero {
-  display: grid;
-  justify-items: center;
-  text-align: center;
-  gap: 10px;
-  margin-bottom: 24px;
-}
-
-.privacy-logo {
-  width: min(360px, 64vw);
-  height: auto;
-}
-
-.privacy-kicker {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.9rem;
-  color: var(--gold);
-  font-weight: 700;
-}
-
-.privacy-hero h1 {
-  margin: 0;
-  color: #fff;
-  line-height: 1.2;
-  font-size: clamp(1.9rem, 3.2vw, 2.7rem);
-}
-
-.privacy-effective-date {
-  margin: 0;
-  font-weight: 600;
-  color: #dbeafe;
+  position: relative;
+  z-index: 1;
 }
 
 .privacy-content {
@@ -306,31 +326,4 @@ body {
   border-radius: 16px;
   box-shadow: 0 16px 40px rgba(2, 15, 30, 0.3);
   padding: clamp(20px, 3vw, 40px);
-}
-
-.privacy-content h2 {
-  margin: 30px 0 12px;
-  font-size: clamp(1.3rem, 2.1vw, 1.6rem);
-}
-
-.privacy-content h3 {
-  margin: 18px 0 10px;
-  font-size: 1.15rem;
-}
-
-.privacy-content p,
-.privacy-content li {
-  color: #0f172a;
-  line-height: 1.65;
-  font-size: 1.03rem;
-}
-
-.privacy-content ul {
-  margin: 10px 0 12px;
-  padding-left: 1.4rem;
-}
-
-.privacy-content a {
-  color: #1d4ed8;
-  font-weight: 600;
 }
