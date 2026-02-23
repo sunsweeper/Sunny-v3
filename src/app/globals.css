@@ -1,17 +1,8 @@
 :root {
-  /* Primary brand background */
   --navy: #1f3f5b;
-
-  /* Logo-matched deep blue for panels/cards */
   --panel: #203a56;
-
-  /* Deep authority ink */
   --ink: #06172c;
-
-  /* Solar accent */
   --gold: #f5b301;
-
-  /* Soft UI surface */
   --surface: #d7dce6;
 }
 
@@ -28,6 +19,10 @@ body {
   color: #fff;
 }
 
+/* =========================
+   PAGE SHELL + BACKGROUND
+   ========================= */
+
 .page-shell {
   position: relative;
   min-height: 100vh;
@@ -37,22 +32,25 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+
+  /* Light boost without washing it out */
+  filter: brightness(1.08) contrast(1.05);
 }
 
-/* Dark overlay for better legibility over the background */
+/* Lighter dark overlay for depth without dimming too much */
 .page-shell::before {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(6, 23, 44, 0.62),
-    rgba(6, 23, 44, 0.78)
+    rgba(6, 23, 44, 0.32),
+    rgba(6, 23, 44, 0.45)
   );
   pointer-events: none;
 }
 
-/* Ensure page content sits above the overlay */
+/* Ensure content sits above overlay */
 .hero,
 .chat-shell,
 .beta-footer,
@@ -61,7 +59,9 @@ footer {
   z-index: 1;
 }
 
-/* ---------------- HERO ---------------- */
+/* =========================
+   HERO
+   ========================= */
 
 .hero {
   width: min(1320px, 95%);
@@ -86,7 +86,9 @@ footer {
   height: auto;
 }
 
-/* ---------------- NAV ---------------- */
+/* =========================
+   NAV
+   ========================= */
 
 .service-nav {
   display: flex;
@@ -119,7 +121,9 @@ footer {
   font-weight: 700;
 }
 
-/* ---------------- CHAT SHELL ---------------- */
+/* =========================
+   CHAT SHELL
+   ========================= */
 
 .chat-shell {
   width: min(1320px, 95%);
@@ -130,12 +134,14 @@ footer {
   box-shadow: 0 16px 40px rgba(2, 15, 30, 0.25);
 }
 
-/* ---------------- MESSAGES ---------------- */
+/* =========================
+   MESSAGES
+   ========================= */
 
 .messages {
   display: grid;
   gap: 18px;
-  background: #ffffff; /* PURE WHITE */
+  background: #ffffff;
   border-radius: 16px 16px 4px 4px;
   padding: clamp(16px, 2.8vw, 26px);
   min-height: clamp(280px, 47vw, 560px);
@@ -167,9 +173,9 @@ footer {
   color: var(--ink);
   background: transparent;
   padding-left: 0;
-  font-size: clamp(1.5rem, 1.8vw, 2.2rem);   /* bigger than current */
-  line-height: 1.45;                         /* a bit more breathing room */
-  font-weight: 500;                          /* slightly lighter */
+  font-size: clamp(1.5rem, 1.8vw, 2.2rem);
+  line-height: 1.45;
+  font-weight: 500;
   font-family: "Inter", system-ui, sans-serif;
 }
 
@@ -179,7 +185,9 @@ footer {
   font-weight: 600;
 }
 
-/* ---------------- INPUT ---------------- */
+/* =========================
+   INPUT
+   ========================= */
 
 .input-wrap {
   margin-top: 18px;
@@ -203,7 +211,6 @@ footer {
   transition: box-shadow 0.2s ease;
 }
 
-/* Smaller placeholder text */
 .chat-input::placeholder {
   color: #111827;
   opacity: 0.65;
@@ -241,9 +248,12 @@ footer {
   cursor: not-allowed;
 }
 
-/* ---------------- MOBILE FIXES ---------------- */
+/* =========================
+   MOBILE FIXES
+   ========================= */
 
 @media (max-width: 640px) {
+
   .messages {
     min-height: 420px;
     max-height: 520px;
@@ -269,7 +279,9 @@ footer {
   }
 }
 
-/* ---------------- PRIVACY POLICY PAGE ---------------- */
+/* =========================
+   PRIVACY POLICY PAGE
+   ========================= */
 
 .privacy-shell {
   position: relative;
@@ -280,67 +292,25 @@ footer {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  filter: brightness(1.08) contrast(1.05);
 }
 
-/* Dark overlay for privacy page as well */
 .privacy-shell::before {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(6, 23, 44, 0.62),
-    rgba(6, 23, 44, 0.78)
+    rgba(6, 23, 44, 0.32),
+    rgba(6, 23, 44, 0.45)
   );
   pointer-events: none;
 }
 
-/* Ensure privacy content sits above overlay */
 .privacy-hero,
 .privacy-content {
   position: relative;
   z-index: 1;
-}
-
-.privacy-hero,
-.privacy-content {
-  width: min(1040px, 92%);
-  margin: 0 auto;
-}
-
-.privacy-hero {
-  display: grid;
-  justify-items: center;
-  text-align: center;
-  gap: 10px;
-  margin-bottom: 24px;
-}
-
-.privacy-logo {
-  width: min(360px, 64vw);
-  height: auto;
-}
-
-.privacy-kicker {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.9rem;
-  color: var(--gold);
-  font-weight: 700;
-}
-
-.privacy-hero h1 {
-  margin: 0;
-  color: #fff;
-  line-height: 1.2;
-  font-size: clamp(1.9rem, 3.2vw, 2.7rem);
-}
-
-.privacy-effective-date {
-  margin: 0;
-  font-weight: 600;
-  color: #dbeafe;
 }
 
 .privacy-content {
@@ -349,31 +319,4 @@ footer {
   border-radius: 16px;
   box-shadow: 0 16px 40px rgba(2, 15, 30, 0.3);
   padding: clamp(20px, 3vw, 40px);
-}
-
-.privacy-content h2 {
-  margin: 30px 0 12px;
-  font-size: clamp(1.3rem, 2.1vw, 1.6rem);
-}
-
-.privacy-content h3 {
-  margin: 18px 0 10px;
-  font-size: 1.15rem;
-}
-
-.privacy-content p,
-.privacy-content li {
-  color: #0f172a;
-  line-height: 1.65;
-  font-size: 1.03rem;
-}
-
-.privacy-content ul {
-  margin: 10px 0 12px;
-  padding-left: 1.4rem;
-}
-
-.privacy-content a {
-  color: #1d4ed8;
-  font-weight: 600;
 }
