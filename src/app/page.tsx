@@ -215,9 +215,9 @@ export default function Page() {
 
       <section ref={chatShellRef} className="chat-shell">
         <div ref={messagesRef} className="messages">
-          {!hasMessages && (
-            <p className="helper-text">Say hi, ask a question, or pick a service above when you're ready.</p>
-          )}
+        {!hasMessages && (
+  <p className="helper-text">Say hi, ask a question, or pick a service above when you{'\''}re ready.</p>
+)}
 
           {messages.map((message, index) => {
             const isUser = message.role === "user";
