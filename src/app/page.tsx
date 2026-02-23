@@ -64,14 +64,6 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "gutterLeakRepair", label: "Gutter Leak Repair" },
 ];
 
-const QUICK_SUGGESTIONS = [
-  "How much does solar panel cleaning cost?",
-  "Do you handle bird proofing for solar panels?",
-  "What's involved in a roof wash?",
-  "When should I clean my gutters?",
-  "What areas do you serve in Santa Barbara County?",
-];
-
 const getRandomServicePrompt = (service: ServiceKey): string => {
   const promptOptions = SERVICE_PROMPTS[service];
   const randomIndex = Math.floor(Math.random() * promptOptions.length);
@@ -128,9 +120,7 @@ export default function Page() {
       const reply = data.reply?.trim() || "I’m sorry—something went wrong while responding.";
 
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-      if (data.state) {
-        setChatState(data.state);
-      }
+      if (data.state) setChatState(data.state);
     } catch (error) {
       console.error("Chat fetch error:", error);
       setMessages((prev) => [
@@ -157,13 +147,12 @@ export default function Page() {
     chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  const showQuickSuggestions = messages.length === 1 && !activeService && !isLoading;
-
   return (
     <main className="page-shell">
       <section className="hero">
         <p className="headline">The solar panel and roof cleaning experts.</p>
         <Image src="/logo.png" alt="SunSweeper logo" width={640} height={350} className="hero-logo" priority />
+
         <div className="contact-wrap">
           <a
             className="phone"
@@ -223,7 +212,6 @@ export default function Page() {
             const isUser = message.role === "user";
             return (
               <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
-                {/* Avatars removed */}
                 <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
                   {message.content.split("\n").map((line, i) => (
                     <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>
@@ -240,46 +228,6 @@ export default function Page() {
               <div>
                 <p className="typing">Sunny is thinking...</p>
               </div>
-            </div>
-          )}
-
-          {showQuickSuggestions && (
-            <div
-              className="quick-suggestions"
-              style={{
-                margin: "1.5rem 0",
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "0.75rem",
-                justifyContent: "center",
-                padding: "0 1rem",
-              }}
-            >
-              {QUICK_SUGGESTIONS.map((q, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => {
-                    setInput(q);
-                    // void handleSend(); // auto-send if uncommented
-                  }}
-                  className="suggestion-btn"
-                  style={{
-                    padding: "0.6rem 1.1rem",
-                    borderRadius: "1.5rem",
-                    border: "1px solid rgba(255,255,255,0.22)",
-                    background: "rgba(255,255,255,0.08)",
-                    cursor: "pointer",
-                    fontSize: "0.95rem",
-                    transition: "background 0.2s",
-                    color: "rgba(255,255,255,0.92)",
-                    backdropFilter: "blur(14px) saturate(160%)",
-                    WebkitBackdropFilter: "blur(14px) saturate(160%)",
-                  }}
-                >
-                  {q}
-                </button>
-              ))}
             </div>
           )}
         </div>
