@@ -215,25 +215,62 @@ export default function Page() {
 
       <section ref={chatShellRef} className="chat-shell">
         <div ref={messagesRef} className="messages">
-        {!hasMessages && (
-  <p className="helper-text">Say hi, ask a question, or pick a service above when you{'\''}re ready.</p>
-)}
+          {!hasMessages && (
+            <p className="helper-text">Say hi, ask a question, or pick a service above when you{"'"}re ready.</p>
+          )}
 
           {messages.map((message, index) => {
             const isUser = message.role === "user";
+
+            // Option 3: identity via edge glow (no avatars)
+            const edge = isUser
+              ? {
+                  background: "linear-gradient(180deg, rgba(56,189,248,0.95) 0%, rgba(56,189,248,0.35) 100%)",
+                  boxShadow: "0 0 14px rgba(56,189,248,0.55)",
+                }
+              : {
+                  background: "linear-gradient(180deg, rgba(251,191,36,0.95) 0%, rgba(251,191,36,0.35) 100%)",
+                  boxShadow: "0 0 14px rgba(251,191,36,0.55)",
+                };
+
             return (
               <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
-                {isUser ? (
-                  <Image src="/user-avatar.png" alt="User avatar" width={84} height={84} className="user-avatar" />
-                ) : (
-                  <Image src="/sunny-avatar.png" alt="Sunny avatar" width={84} height={84} className="sunny-avatar" />
-                )}
-                <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
-                  {message.content.split("\n").map((line, i) => (
-                    <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>
-                      {line}
-                    </p>
-                  ))}
+                <div
+                  className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}
+                  style={{
+                    position: "relative",
+                    overflow: "hidden",
+                    // If your CSS already sets bubble bg, this keeps it.
+                    // If not, this provides a tasteful glassy fallback.
+                    background: isUser
+                      ? "linear-gradient(180deg, rgba(56,189,248,0.14) 0%, rgba(56,189,248,0.08) 100%)"
+                      : "linear-gradient(180deg, rgba(251,191,36,0.12) 0%, rgba(251,191,36,0.06) 100%)",
+                    border: "1px solid rgba(255,255,255,0.14)",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.22)",
+                    backdropFilter: "blur(14px)",
+                    WebkitBackdropFilter: "blur(14px)",
+                  }}
+                >
+                  {/* Edge glow identity bar */}
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 10,
+                      bottom: 10,
+                      width: 3,
+                      borderRadius: 999,
+                      ...edge,
+                    }}
+                  />
+                  <div style={{ paddingLeft: 8 }}>
+                    {message.content.split("\n").map((line, i) => (
+                      <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>
+                        {line}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </div>
             );
@@ -241,9 +278,36 @@ export default function Page() {
 
           {isLoading && (
             <div className="msg-row assistant">
-              <Image src="/sunny-avatar.png" alt="Sunny avatar" width={84} height={84} className="sunny-avatar" />
-              <div>
-                <p className="typing">Sunny is thinking...</p>
+              <div
+                className="bubble assistant-bubble"
+                style={{
+                  position: "relative",
+                  overflow: "hidden",
+                  background: "linear-gradient(180deg, rgba(251,191,36,0.12) 0%, rgba(251,191,36,0.06) 100%)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.22)",
+                  backdropFilter: "blur(14px)",
+                  WebkitBackdropFilter: "blur(14px)",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 10,
+                    bottom: 10,
+                    width: 3,
+                    borderRadius: 999,
+                    background: "linear-gradient(180deg, rgba(251,191,36,0.95) 0%, rgba(251,191,36,0.35) 100%)",
+                    boxShadow: "0 0 14px rgba(251,191,36,0.55)",
+                  }}
+                />
+                <div style={{ paddingLeft: 8 }}>
+                  <p className="typing" style={{ margin: 0 }}>
+                    Sunny is thinking<span style={{ opacity: 0.7 }}>...</span>
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -272,11 +336,14 @@ export default function Page() {
                   style={{
                     padding: "0.6rem 1.1rem",
                     borderRadius: "1.5rem",
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    background: "rgba(255,255,255,0.08)",
+                    color: "#ffffff",
                     cursor: "pointer",
                     fontSize: "0.95rem",
                     transition: "background 0.2s",
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
                   }}
                 >
                   {q}
