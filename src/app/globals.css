@@ -27,17 +27,20 @@ body {
   position: relative;
   min-height: 100vh;
   padding: 14px 0 34px;
+
   background-color: var(--navy);
   background-image: url("/solar-background.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
 
-  /* Light boost without washing it out */
   filter: brightness(1.08) contrast(1.05);
+
+  display: flex;
+  flex-direction: column;
 }
 
-/* Lighter dark overlay for depth without dimming too much */
+/* Overlay */
 .page-shell::before {
   content: "";
   position: absolute;
@@ -50,7 +53,7 @@ body {
   pointer-events: none;
 }
 
-/* Ensure content sits above overlay */
+/* Ensure content above overlay */
 .hero,
 .chat-shell,
 .beta-footer,
@@ -70,6 +73,7 @@ footer {
   gap: 6px;
   justify-items: center;
   text-align: center;
+  flex: 0 0 auto;
 }
 
 .headline {
@@ -127,7 +131,10 @@ footer {
 
 .chat-shell {
   width: min(1320px, 95%);
-  margin: 8px auto 0;
+
+  /* This pushes it toward sunrise */
+  margin: auto auto clamp(60px, 10vh, 120px);
+
   background: var(--panel);
   padding: clamp(18px, 2.7vw, 34px) clamp(16px, 3.6vw, 48px);
   border-radius: 20px;
@@ -249,7 +256,7 @@ footer {
 }
 
 /* =========================
-   MOBILE FIXES
+   MOBILE
    ========================= */
 
 @media (max-width: 640px) {
@@ -280,7 +287,7 @@ footer {
 }
 
 /* =========================
-   PRIVACY POLICY PAGE
+   PRIVACY PAGE
    ========================= */
 
 .privacy-shell {
