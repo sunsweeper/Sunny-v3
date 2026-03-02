@@ -17,13 +17,12 @@ type ServiceKey =
   | "pressureWashing"
   | "gutterLeakRepair";
 
-const INITIAL_MESSAGE: Message = {
+const getInitialGreeting = (name: string | null): Message => ({
   role: "assistant",
-  content:
-    "Hey! I'm Sunny from SunSweeper 🌞\n\n" +
-    "I'm here to give you straight answers on solar panel cleaning, roof washing, bird proofing, gutters — pricing, scheduling, what to expect on the Central Coast, and anything else you need.\n\n" +
-    "No runaround, no sales pitch. Just ask away — what's on your mind?",
-};
+  content: name
+    ? `Hey ${name}, welcome to SunSweeper.com. How can I help you today?`
+    : "Hey, welcome to SunSweeper.com. How can I help you today?",
+});
 
 const SERVICE_TO_UCS_KEY: Record<ServiceKey, UcsServiceKey> = {
   solarPanelCleaning: "solar_panel_cleaning",
@@ -64,7 +63,7 @@ const withOptionalName = (followUp: string, knownName: string | null): string =>
 };
 
 export default function Page() {
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>([getInitialGreeting(null)]);
   const [chatState, setChatState] = useState<Record<string, unknown>>({});
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -89,7 +88,12 @@ export default function Page() {
       setSessionId(generated);
     }
 
-    setKnownName(sanitizeKnownName(window.localStorage.getItem("sunny_known_name")));
+    const storedName = sanitizeKnownName(window.localStorage.getItem("sunny_known_name"));
+    setKnownName(storedName);
+    setMessages((prev) => {
+      if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev;
+      return [getInitialGreeting(storedName)];
+    });
   }, []);
 
   useEffect(() => {
@@ -275,10 +279,12 @@ export default function Page() {
             aria-label="Send message to Sunny"
           >
             <span aria-hidden="true">➤</span>
-            <span className="send-label">Send</span>
+            <span className="send-label" style={{ fontWeight: 800, color: "#fff" }}>
+              Send
+            </span>
           </button>
         </div>
-        <p className="helper-text" style={{ marginTop: "0.5rem" }}>
+        <p className="helper-text" style={{ marginTop: "0.5rem", fontSize: "0.8rem", textAlign: "center" }}>
           Not getting what you need from Sunny? Tell him you’d like to speak with a live person — he’ll take a
           message and get it to a specialist.
         </p>
