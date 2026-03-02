@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { ucsContent, universalFollowUps, type UcsServiceKey } from "../lib/ucsContent";
 
 type Message = {
   role: "user" | "assistant";
@@ -24,35 +25,13 @@ const INITIAL_MESSAGE: Message = {
     "No runaround, no sales pitch. Just ask away — what's on your mind?",
 };
 
-const SERVICE_PROMPTS: Record<ServiceKey, string[]> = {
-  solarPanelCleaning: [
-    "Solar panel cleaning — got it. Dirt and bird droppings can quietly cut your production by 15–30% here on the Central Coast. I can walk you through when cleaning pays off, our safe method, and rough pricing for your setup. Where do you want to start?",
-    "Panels usually look cleaner than they actually are. Let's figure out if yours need attention right now, how we clean without damage, and what kind of energy boost people typically see. Questions about process, cost, or timing?",
-    "You're in the right spot for solar panel questions. I can explain frequency recommendations for your area, what affects output most, and clear pricing options. What would help you decide?",
-  ],
-  birdProofing: [
-    "Bird proofing time — birds love turning solar arrays into nesting zones around here. I can explain the damage they cause, our humane mesh solutions, and how we make sure they don't come back. What are you noticing under your panels?",
-    "Under-panel bird activity is more common than most people think — droppings, nests, even fire risks. Want the short version of how we fix it permanently, or details on cost and install?",
-    "Pigeons and other birds pick favorite roofs and keep returning. I can break down why, what damage looks like over time, and our proven proofing approach. Tell me what you're dealing with.",
-  ],
-  roofWashing: [
-    "Roof washing — algae, moss, and stains build up fast in our coastal climate. I can help you understand what's safe for your roof type, when it's worth doing, and pricing. What's the current condition like?",
-    "A clean roof lasts longer and looks way better. I can walk through our low-pressure soft-wash method (never high-pressure), frequency, and whether it's mostly cosmetic or protective for you. Where should we begin?",
-    "Roofs don't come with warning lights. Let's talk about what we see most often in Santa Barbara & SLO counties, safe cleaning options, and costs — no pressure, just info.",
-  ],
-  gutterCleaningRepair: [
-    "Gutters — they only get attention when something overflows or sags. I can help check if you're due for cleaning, spot early repair needs, or prevent future issues. What's going on with yours?",
-    "Blocked or damaged gutters cause bigger problems fast (water damage, foundation issues). Want to know our cleaning process, common repairs we handle, or ballpark pricing?",
-    "Gutters should be invisible — when they're not, it's usually leaves, debris, or wear. I can explain prevention tips, what we inspect, and fixes. What's the situation?",
-  ],
-  pressureWashing: [
-    "Pressure washing — let's clarify what surface we're talking about. We use low-pressure soft washing for most jobs (safe for roofs, siding, solar panels), never high-pressure blasting that can cause damage. What's the area you want cleaned?",
-    "We avoid aggressive high-pressure on delicate surfaces here on the coast. I can explain our gentle approach, when it's appropriate, and rough pricing. What are you looking to wash?",
-  ],
-  gutterLeakRepair: [
-    "Gutter leak repair — leaks often start at seams, holes, or poor slope. I can help identify the cause from what you're seeing and explain our fix options (sealing, patching, or section replacement). What's happening with your gutters?",
-    "Even small leaks can lead to big water damage quickly. Tell me the symptoms (drips, stains, overflow) and I'll give you next steps and ballpark costs.",
-  ],
+const SERVICE_TO_UCS_KEY: Record<ServiceKey, UcsServiceKey> = {
+  solarPanelCleaning: "solar_panel_cleaning",
+  birdProofing: "bird_proofing",
+  roofWashing: "roof_cleaning",
+  gutterCleaningRepair: "gutter_cleaning",
+  pressureWashing: "exterior_cleaning",
+  gutterLeakRepair: "gutter_repair_install",
 };
 
 const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
@@ -64,10 +43,24 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "gutterLeakRepair", label: "Gutter Leak Repair" },
 ];
 
-const getRandomServicePrompt = (service: ServiceKey): string => {
-  const promptOptions = SERVICE_PROMPTS[service];
-  const randomIndex = Math.floor(Math.random() * promptOptions.length);
-  return promptOptions[randomIndex];
+const getRandomItem = <T,>(items: readonly T[]): T => {
+  const randomIndex = Math.floor(Math.random() * items.length);
+  return items[randomIndex];
+};
+
+const sanitizeKnownName = (value: string | null): string | null => {
+  if (!value) return null;
+  const firstToken = value.trim().split(/\s+/)[0] ?? "";
+  const lettersOnly = firstToken.replace(/[^A-Za-z]/g, "");
+  if (lettersOnly.length < 2 || lettersOnly.length > 20) return null;
+
+  const normalized = lettersOnly.toLowerCase();
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+};
+
+const withOptionalName = (followUp: string, knownName: string | null): string => {
+  if (!knownName) return followUp;
+  return followUp.replace(/\?$/, `, ${knownName}?`);
 };
 
 export default function Page() {
@@ -77,6 +70,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeService, setActiveService] = useState<ServiceKey | null>(null);
   const [sessionId, setSessionId] = useState("sunny-session-fallback");
+  const [knownName, setKnownName] = useState<string | null>(null);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -84,17 +78,18 @@ export default function Page() {
 
 
   useEffect(() => {
-    const existing = window.localStorage.getItem("sunnySessionId");
+    const existing = window.localStorage.getItem("sunny_session_id");
     if (existing) {
       setSessionId(existing);
-      return;
+    } else {
+      const generated = typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `sunny-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      window.localStorage.setItem("sunny_session_id", generated);
+      setSessionId(generated);
     }
 
-    const generated = typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `sunny-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    window.localStorage.setItem("sunnySessionId", generated);
-    setSessionId(generated);
+    setKnownName(sanitizeKnownName(window.localStorage.getItem("sunny_known_name")));
   }, []);
 
   useEffect(() => {
@@ -157,9 +152,13 @@ export default function Page() {
   };
 
   const handleServiceClick = (service: ServiceKey) => {
-    const selectedPrompt = getRandomServicePrompt(service);
+    const ucsKey = SERVICE_TO_UCS_KEY[service];
+    const serviceLine = getRandomItem(ucsContent[ucsKey]);
+    const universalFollowUp = getRandomItem(universalFollowUps);
+    const followUpWithOptionalName = withOptionalName(universalFollowUp, knownName);
+
     setActiveService(service);
-    setMessages([{ role: "assistant", content: selectedPrompt }]);
+    setMessages((prev) => [...prev, { role: "assistant", content: `${serviceLine}\n\n${followUpWithOptionalName}` }]);
     setChatState((prev) => ({ ...prev, selectedService: service }));
     chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
