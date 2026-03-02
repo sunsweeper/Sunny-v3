@@ -3,6 +3,11 @@ import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import {
+  frustrationDelta,
+  isHandoffAccepted,
+  shouldOfferHandoff,
+} from "../../../lib/frustration";
 
 import { SAFE_FAIL_MESSAGE } from "../../../sunnyRuntime";
 
@@ -34,6 +39,39 @@ type BookingState = {
   [key: string]: unknown;
 };
 
+type SessionState = {
+  frustrationScore: number;
+  lastHandoffOfferedAt: number | null;
+  handoffActive: boolean;
+  handoffCollecting: "contact" | "message" | null;
+  handoffContact?: string;
+  handoffMessage?: string;
+};
+
+const sessionStateMap = new Map<string, SessionState>();
+
+const getDefaultSessionState = (): SessionState => ({
+  frustrationScore: 0,
+  lastHandoffOfferedAt: null,
+  handoffActive: false,
+  handoffCollecting: null,
+});
+
+const HANDOFF_LOG_PATH = path.join(process.cwd(), "logs", "handoff-requests.jsonl");
+
+function logHandoffRequest(payload: {
+  sessionId: string;
+  contact: string;
+  message: string;
+}) {
+  fs.mkdirSync(path.dirname(HANDOFF_LOG_PATH), { recursive: true });
+  fs.appendFileSync(
+    HANDOFF_LOG_PATH,
+    `${JSON.stringify({ timestamp: new Date().toISOString(), ...payload })}\n`,
+    "utf8"
+  );
+}
+
 export async function POST(request: Request) {
   const timestamp = new Date().toISOString();
   console.log("[SUNNY-API-MARKER] /api/chat POST hit at", timestamp);
@@ -43,12 +81,88 @@ export async function POST(request: Request) {
       message?: string;
       state?: BookingState;
       messages?: Message[];
+      sessionId?: string;
     };
 
     const rawMessage = body.message ?? "";
     const message = rawMessage.trim();
     const messageLower = message.toLowerCase();
     let currentState = body.state ?? {};
+    const sessionId = (body.sessionId || "anonymous").trim() || "anonymous";
+    const now = Date.now();
+    const priorSessionState = sessionStateMap.get(sessionId) ?? getDefaultSessionState();
+    let sessionState: SessionState = {
+      ...priorSessionState,
+      frustrationScore: Math.max(0, priorSessionState.frustrationScore - 1) + frustrationDelta(message),
+    };
+
+    const offerHandoff = shouldOfferHandoff({
+      frustrationScore: sessionState.frustrationScore,
+      handoffActive: sessionState.handoffActive,
+      lastHandoffOfferedAt: sessionState.lastHandoffOfferedAt,
+      now,
+    });
+
+    if (offerHandoff) {
+      sessionState.lastHandoffOfferedAt = now;
+    }
+
+    const userAcceptedHandoff =
+      sessionState.lastHandoffOfferedAt !== null &&
+      now - sessionState.lastHandoffOfferedAt <= 10 * 60 * 1000 &&
+      !sessionState.handoffActive &&
+      isHandoffAccepted(message);
+
+    if (userAcceptedHandoff) {
+      sessionState.handoffActive = true;
+      sessionState.handoffCollecting = "contact";
+      sessionStateMap.set(sessionId, sessionState);
+      return NextResponse.json({
+        reply:
+          "Perfect — I can hand this to a live specialist. What’s the best phone number or email for them to reach you? 🌞",
+        state: currentState,
+      });
+    }
+
+    if (sessionState.handoffActive) {
+      if (sessionState.handoffCollecting === "contact") {
+        sessionState.handoffContact = message;
+        sessionState.handoffCollecting = "message";
+        sessionStateMap.set(sessionId, sessionState);
+        return NextResponse.json({
+          reply: "Got it. Give me a short message about what you need help with, and I’ll pass it along.",
+          state: currentState,
+        });
+      }
+
+      if (sessionState.handoffCollecting === "message") {
+        sessionState.handoffMessage = message;
+        if (sessionState.handoffContact && sessionState.handoffMessage) {
+          logHandoffRequest({
+            sessionId,
+            contact: sessionState.handoffContact,
+            message: sessionState.handoffMessage,
+          });
+        }
+
+        sessionState = {
+          ...sessionState,
+          handoffActive: false,
+          handoffCollecting: null,
+          handoffContact: undefined,
+          handoffMessage: undefined,
+        };
+        sessionStateMap.set(sessionId, sessionState);
+
+        return NextResponse.json({
+          reply:
+            "Done — I’ve sent your message to a live specialist. Someone from our team will follow up using your contact info soon. ✨",
+          state: currentState,
+        });
+      }
+    }
+
+    sessionStateMap.set(sessionId, sessionState);
     console.log(
       "[SUNNY-API-MARKER] Incoming message:",
       message.substring(0, 100),
@@ -300,6 +414,15 @@ All good? Say YES to lock it in, or tell me what to tweak, babe! 🌞`;
     // ──────────────────────────────────────────────────────────────
     const openaiMessages: ChatCompletionMessageParam[] = [
       { role: "system", content: SUNNY_SYSTEM_PROMPT },
+      ...(offerHandoff
+        ? [
+            {
+              role: "system" as const,
+              content:
+                "The user appears frustrated. Briefly offer a live-person option in a confident, supportive tone. Keep it short and do not over-apologize.",
+            },
+          ]
+        : []),
       ...(body.messages || []).slice(-8).map(m => ({ role: m.role as "user" | "assistant", content: m.content }) as ChatCompletionMessageParam),
       { role: "user", content: message },
     ];
