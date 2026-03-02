@@ -154,7 +154,16 @@ export default function Page() {
   const handleServiceClick = (service: ServiceKey) => {
     const ucsKey = SERVICE_TO_UCS_KEY[service];
     const serviceLine = getRandomItem(ucsContent[ucsKey]);
-    const universalFollowUp = getRandomItem(universalFollowUps);
+    const lastAssistantMessage = [...messages].reverse().find((message) => message.role === "assistant")?.content ?? "";
+
+    let universalFollowUp = getRandomItem(universalFollowUps);
+    let attempts = 0;
+
+    while (lastAssistantMessage.endsWith(withOptionalName(universalFollowUp, knownName)) && attempts < 4) {
+      universalFollowUp = getRandomItem(universalFollowUps);
+      attempts += 1;
+    }
+
     const followUpWithOptionalName = withOptionalName(universalFollowUp, knownName);
 
     setActiveService(service);
@@ -249,9 +258,6 @@ export default function Page() {
         </div>
 
         <div className="input-wrap">
-          <label htmlFor="chat-input" className="sr-only">
-            Message Sunny
-          </label>
           <textarea
             id="chat-input"
             value={input}
