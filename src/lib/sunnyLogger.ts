@@ -27,7 +27,6 @@ export const logSunny = (payload: SunnyLogPayload): void => {
 
     void fetch(LOG_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       keepalive: true,
       body: JSON.stringify({
         session_id: sessionId,
@@ -39,7 +38,7 @@ export const logSunny = (payload: SunnyLogPayload): void => {
         url: window.location.href,
         user_agent: navigator.userAgent,
       }),
-    });
+    }).catch(() => {});
   } catch {
     // fail silently
   }
