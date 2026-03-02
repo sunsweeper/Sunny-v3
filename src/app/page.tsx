@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { frustrationDelta, shouldOfferHandoff } from "../lib/frustration";
+import { detectHumanRequest, detectLeadReason, extractEmail, extractPhone } from "../lib/leadSignals";
 import { ucsContent, universalFollowUps, type UcsServiceKey } from "../lib/ucsContent";
 import { logSunny } from "../lib/sunnyLogger";
 
@@ -71,6 +73,9 @@ export default function Page() {
   const [activeService, setActiveService] = useState<ServiceKey | null>(null);
   const [sessionId, setSessionId] = useState("sunny-session-fallback");
   const [knownName, setKnownName] = useState<string | null>(null);
+  const [clientFrustrationScore, setClientFrustrationScore] = useState(0);
+  const [lastClientHandoffOfferedAt, setLastClientHandoffOfferedAt] = useState<number | null>(null);
+  const [clientHandoffActive] = useState(false);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -113,7 +118,47 @@ export default function Page() {
     const userMessage: Message = { role: "user", content: trimmed };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
-    logSunny({ role: "user", type: "message", text: trimmed });
+
+    const extractedEmail = extractEmail(trimmed);
+    const extractedPhone = extractPhone(trimmed);
+
+    if (extractedEmail) {
+      window.localStorage.setItem("sunny_known_email", extractedEmail);
+    }
+
+    if (extractedPhone) {
+      window.localStorage.setItem("sunny_known_phone", extractedPhone);
+    }
+
+    const email = window.localStorage.getItem("sunny_known_email") || "";
+    const phone = window.localStorage.getItem("sunny_known_phone") || "";
+    const { lead_detected, lead_reason } = detectLeadReason(trimmed);
+
+    const now = Date.now();
+    const nextFrustrationScore = Math.max(0, clientFrustrationScore - 1) + frustrationDelta(trimmed);
+    const frustrationTriggered = shouldOfferHandoff({
+      frustrationScore: nextFrustrationScore,
+      handoffActive: clientHandoffActive,
+      lastHandoffOfferedAt: lastClientHandoffOfferedAt,
+      now,
+    });
+
+    setClientFrustrationScore(nextFrustrationScore);
+    if (frustrationTriggered) {
+      setLastClientHandoffOfferedAt(now);
+    }
+
+    logSunny({
+      role: "user",
+      type: "message",
+      text: trimmed,
+      lead_detected,
+      lead_reason,
+      phone,
+      email,
+      handoff_requested: frustrationTriggered || detectHumanRequest(trimmed) || lead_detected,
+    });
+
     setInput("");
     setIsLoading(true);
 
@@ -137,7 +182,14 @@ export default function Page() {
       const reply = data.reply?.trim() || "I’m sorry—something went wrong while responding.";
 
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-      logSunny({ role: "assistant", type: "message", text: reply });
+      logSunny({
+        role: "assistant",
+        type: "message",
+        text: reply,
+        lead_detected: false,
+        lead_reason: "",
+        handoff_requested: false,
+      });
       if (data.state) setChatState(data.state);
     } catch (error) {
       console.error("Chat fetch error:", error);
@@ -146,7 +198,14 @@ export default function Page() {
         ...prev,
         { role: "assistant", content: fallbackReply },
       ]);
-      logSunny({ role: "assistant", type: "message", text: fallbackReply });
+      logSunny({
+        role: "assistant",
+        type: "message",
+        text: fallbackReply,
+        lead_detected: false,
+        lead_reason: "",
+        handoff_requested: false,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -178,7 +237,15 @@ export default function Page() {
 
     setActiveService(service);
     setMessages((prev) => [...prev, { role: "assistant", content: ucsMessage }]);
-    logSunny({ role: "assistant", type: "ucs", service_key: ucsKey, text: ucsMessage });
+    logSunny({
+      role: "assistant",
+      type: "ucs",
+      service_key: ucsKey,
+      text: ucsMessage,
+      lead_detected: false,
+      lead_reason: "",
+      handoff_requested: false,
+    });
     setChatState((prev) => ({ ...prev, selectedService: service }));
     chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
