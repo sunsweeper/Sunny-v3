@@ -3,6 +3,11 @@ export type SunnyLogPayload = {
   type: "message" | "ucs";
   text: string;
   service_key?: string;
+  lead_detected?: boolean;
+  lead_reason?: string;
+  handoff_requested?: boolean;
+  phone?: string;
+  email?: string;
 };
 
 const LOG_URL = process.env.NEXT_PUBLIC_SUNNY_LOG_URL;
@@ -24,6 +29,8 @@ export const logSunny = (payload: SunnyLogPayload): void => {
   try {
     const sessionId = getSessionId();
     const knownName = window.localStorage.getItem("sunny_known_name");
+    const knownPhone = window.localStorage.getItem("sunny_known_phone") || "";
+    const knownEmail = window.localStorage.getItem("sunny_known_email") || "";
 
     void fetch(LOG_URL, {
       method: "POST",
@@ -35,6 +42,11 @@ export const logSunny = (payload: SunnyLogPayload): void => {
         type: payload.type,
         service_key: payload.service_key,
         text: payload.text,
+        lead_detected: payload.lead_detected ?? false,
+        lead_reason: payload.lead_reason ?? "",
+        handoff_requested: payload.handoff_requested ?? false,
+        phone: payload.phone ?? knownPhone,
+        email: payload.email ?? knownEmail,
         url: window.location.href,
         user_agent: navigator.userAgent,
       }),
