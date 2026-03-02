@@ -76,10 +76,26 @@ export default function Page() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeService, setActiveService] = useState<ServiceKey | null>(null);
+  const [sessionId, setSessionId] = useState("sunny-session-fallback");
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
   const hasMessages = useMemo(() => messages.length > 1 || activeService !== null, [messages.length, activeService]);
+
+
+  useEffect(() => {
+    const existing = window.localStorage.getItem("sunnySessionId");
+    if (existing) {
+      setSessionId(existing);
+      return;
+    }
+
+    const generated = typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `sunny-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    window.localStorage.setItem("sunnySessionId", generated);
+    setSessionId(generated);
+  }, []);
 
   useEffect(() => {
     const messagesElement = messagesRef.current;
@@ -109,6 +125,7 @@ export default function Page() {
           message: trimmed,
           state: chatState,
           messages: nextMessages,
+          sessionId,
         }),
       });
 
@@ -256,6 +273,10 @@ export default function Page() {
             <span className="send-label">Send</span>
           </button>
         </div>
+        <p className="helper-text" style={{ marginTop: "0.5rem" }}>
+          Not getting what you need from Sunny? Tell him you’d like to speak with a live person — he’ll take a
+          message and get it to a specialist.
+        </p>
       </section>
 
       <footer className="beta-footer" />
