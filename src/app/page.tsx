@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ucsContent, universalFollowUps, type UcsServiceKey } from "../lib/ucsContent";
 
 type Message = {
@@ -73,7 +73,6 @@ export default function Page() {
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
-  const hasMessages = useMemo(() => messages.length > 1 || activeService !== null, [messages.length, activeService]);
 
 
   useEffect(() => {
@@ -231,12 +230,6 @@ export default function Page() {
 
       <section ref={chatShellRef} className="chat-shell">
         <div ref={messagesRef} className="messages">
-          {!hasMessages && (
-            <p className="helper-text">
-              Say hi, ask a question, or pick a service above when you{"'"}re ready.
-            </p>
-          )}
-
           {messages.map((message, index) => {
             const isUser = message.role === "user";
             return (
@@ -284,7 +277,7 @@ export default function Page() {
             </span>
           </button>
         </div>
-        <p className="helper-text" style={{ marginTop: "0.5rem", fontSize: "0.8rem", textAlign: "center" }}>
+        <p className="helper-text" style={{ marginTop: "0.9rem", fontSize: "0.8rem", textAlign: "center" }}>
           Not getting what you need from Sunny? Tell him you’d like to speak with a live person — he’ll take a
           message and get it to a specialist.
         </p>
