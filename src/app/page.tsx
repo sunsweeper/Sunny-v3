@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ucsContent, universalFollowUps, type UcsServiceKey } from "../lib/ucsContent";
+import { logSunny } from "../lib/sunnyLogger";
 
 type Message = {
   role: "user" | "assistant";
@@ -112,6 +113,7 @@ export default function Page() {
     const userMessage: Message = { role: "user", content: trimmed };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
+    logSunny({ role: "user", type: "message", text: trimmed });
     setInput("");
     setIsLoading(true);
 
@@ -135,13 +137,16 @@ export default function Page() {
       const reply = data.reply?.trim() || "I’m sorry—something went wrong while responding.";
 
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+      logSunny({ role: "assistant", type: "message", text: reply });
       if (data.state) setChatState(data.state);
     } catch (error) {
       console.error("Chat fetch error:", error);
+      const fallbackReply = "I’m having trouble right now. Please try again in a moment.";
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "I’m having trouble right now. Please try again in a moment." },
+        { role: "assistant", content: fallbackReply },
       ]);
+      logSunny({ role: "assistant", type: "message", text: fallbackReply });
     } finally {
       setIsLoading(false);
     }
@@ -169,8 +174,11 @@ export default function Page() {
 
     const followUpWithOptionalName = withOptionalName(universalFollowUp, knownName);
 
+    const ucsMessage = `${serviceLine}\n\n${followUpWithOptionalName}`;
+
     setActiveService(service);
-    setMessages((prev) => [...prev, { role: "assistant", content: `${serviceLine}\n\n${followUpWithOptionalName}` }]);
+    setMessages((prev) => [...prev, { role: "assistant", content: ucsMessage }]);
+    logSunny({ role: "assistant", type: "ucs", service_key: ucsKey, text: ucsMessage });
     setChatState((prev) => ({ ...prev, selectedService: service }));
     chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
