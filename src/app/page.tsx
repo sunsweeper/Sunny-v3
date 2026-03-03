@@ -77,6 +77,7 @@ export default function Page() {
   const [clientFrustrationScore, setClientFrustrationScore] = useState(0);
   const [lastClientHandoffOfferedAt, setLastClientHandoffOfferedAt] = useState<number | null>(null);
   const [clientHandoffActive] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -95,12 +96,20 @@ export default function Page() {
     }
 
     const storedName = sanitizeKnownName(window.localStorage.getItem("sunny_known_name"));
+    const hasVisited = window.localStorage.getItem("sunny_has_visited") === "true";
+
+    setShowOnboardingModal(!hasVisited);
     setKnownName(storedName);
     setMessages((prev) => {
       if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev;
       return [getInitialGreeting(storedName)];
     });
   }, []);
+
+  const handleStartChat = () => {
+    window.localStorage.setItem("sunny_has_visited", "true");
+    setShowOnboardingModal(false);
+  };
 
   useEffect(() => {
     const messagesElement = messagesRef.current;
@@ -377,6 +386,33 @@ export default function Page() {
       >
         {/* Your full footer content here */}
       </footer>
+
+      {showOnboardingModal && (
+        <div className="sunny-onboarding-overlay" role="dialog" aria-modal="true" aria-label="Welcome to Sunny">
+          <div className="sunny-onboarding-modal">
+            <p>
+              Our website is different than most.
+              <br />
+              <br />
+              The entire site runs through our AI Customer Service Lead, Sunny.
+              <br />
+              <br />
+              No clicking through endless pages.
+              <br />
+              No booking platforms.
+              <br />
+              No sales scripts.
+              <br />
+              <br />
+              Just ask Sunny what you need.
+            </p>
+
+            <button type="button" className="sunny-onboarding-btn" onClick={handleStartChat}>
+              Click to chat with Sunny
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
