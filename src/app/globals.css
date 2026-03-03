@@ -307,15 +307,33 @@ footer {
 }
 
 .sunny-onboarding-btn {
-  margin-top: 24px;
   border: 0;
   border-radius: 12px;
   padding: 12px 22px;
   font-size: 1rem;
   font-weight: 700;
+  line-height: 1.2;
+  width: 100%;
+  min-height: 46px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.sunny-onboarding-actions {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sunny-onboarding-btn-gold {
   color: #fff;
   background: var(--gold);
-  cursor: pointer;
+}
+
+.sunny-onboarding-btn-dark {
+  color: #fff;
+  background: #000;
 }
 
 .sunny-onboarding-btn:hover,

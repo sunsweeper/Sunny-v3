@@ -391,25 +391,44 @@ export default function Page() {
         <div className="sunny-onboarding-overlay" role="dialog" aria-modal="true" aria-label="Welcome to Sunny">
           <div className="sunny-onboarding-modal">
             <p>
-              Our website is different than most.
+              Welcome to SunSweeper.com.
+              <br />
+              We’re the solar panel and roof cleaning experts.
               <br />
               <br />
-              The entire site runs through our AI Customer Service Lead, Sunny.
+              If this is your first time here, this site works differently than most.
               <br />
               <br />
-              No clicking through endless pages.
-              <br />
-              No booking platforms.
-              <br />
-              No sales scripts.
+              The entire site runs through our Customer Service Lead, Sunny.
               <br />
               <br />
-              Just ask Sunny what you need.
+              Sunny is a wicked fast typist, available 24/7, doesn’t need coffee, and has an unhealthy obsession with
+              clean panels and straight answers.
+              <br />
+              <br />
+              Want to learn about our services? Ask Sunny.
+              <br />
+              Want to see photos of past work? Ask Sunny.
+              <br />
+              Want to book a solar panel cleaning for the 25 panels on your second-story barn roof? Sunny can handle
+              that too.
+              <br />
+              <br />
+              Ready to give Sunny a try?
             </p>
 
-            <button type="button" className="sunny-onboarding-btn" onClick={handleStartChat}>
-              Click to chat with Sunny
-            </button>
+            <div className="sunny-onboarding-actions">
+              <button type="button" className="sunny-onboarding-btn sunny-onboarding-btn-gold" onClick={handleStartChat}>
+                Yes
+              </button>
+              <button
+                type="button"
+                className="sunny-onboarding-btn sunny-onboarding-btn-dark"
+                onClick={handleStartChat}
+              >
+                Yes
+              </button>
+            </div>
           </div>
         </div>
       )}
