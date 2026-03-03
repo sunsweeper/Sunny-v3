@@ -436,16 +436,7 @@ All good? Say YES to lock it in, or tell me what to tweak, babe! 🌞`;
       frequency_penalty: 0.2,
     });
 
-    let reply = completion.choices[0]?.message?.content?.trim() || "Got a little foggy there... hit me again, sunshine? 🌞";
-
-    if (Math.random() < 0.35 && !reply.toLowerCase().includes("santa maria") && !reply.toLowerCase().includes("orcutt")) {
-      const addOns = [
-        " ...classic valley dust vibes, right?",
-        " ...you know how the Central Coast rolls!",
-        " ...Righetti Warrior style all day!",
-      ];
-      reply += addOns[Math.floor(Math.random() * addOns.length)];
-    }
+    const reply = completion.choices[0]?.message?.content?.trim() || "I ran into an issue processing that—please try again.";
 
     let state = { ...currentState };
 
