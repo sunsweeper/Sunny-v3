@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { frustrationDelta, shouldOfferHandoff } from "../lib/frustration";
 import { detectHumanRequest, detectLeadReason, extractEmail, extractPhone } from "../lib/leadSignals";
+import { extractFirstName } from "../lib/nameExtract";
 import { ucsContent, universalFollowUps, type UcsServiceKey } from "../lib/ucsContent";
 import { logSunny } from "../lib/sunnyLogger";
 
@@ -121,6 +122,12 @@ export default function Page() {
 
     const extractedEmail = extractEmail(trimmed);
     const extractedPhone = extractPhone(trimmed);
+    const extractedName = extractFirstName(trimmed);
+
+    if (extractedName) {
+      window.localStorage.setItem("sunny_known_name", extractedName);
+      setKnownName(extractedName);
+    }
 
     if (extractedEmail) {
       window.localStorage.setItem("sunny_known_email", extractedEmail);
