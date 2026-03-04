@@ -27,8 +27,6 @@ type ServiceKey =
 
 type NavLabel = "New Chat" | "Services" | "Reviews" | "SunPass" | "Contact Us";
 
-type NavLabel = "New Chat" | "Services" | "Reviews" | "SunPass" | "Contact Us";
-
 const getInitialGreeting = (name: string | null): Message => ({
   role: "assistant",
   content: name
