@@ -2,6 +2,9 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { ChatImageBubble } from "../components/chat/ChatImageBubble";
+import { Lightbox } from "../components/chat/Lightbox";
+import { solarImagePaths } from "../data/solarImagePaths";
 import { frustrationDelta, shouldOfferHandoff } from "../lib/frustration";
 import { detectHumanRequest, detectLeadReason, extractEmail, extractPhone } from "../lib/leadSignals";
 import { extractFirstName } from "../lib/nameExtract";
@@ -11,6 +14,7 @@ import { logSunny } from "../lib/sunnyLogger";
 type Message = {
   role: "user" | "assistant";
   content: string;
+  imagePaths?: string[];
 };
 
 type ServiceKey =
@@ -51,6 +55,18 @@ const getRandomItem = <T,>(items: readonly T[]): T => {
   return items[randomIndex];
 };
 
+const getRandomSolarImages = (count: number): string[] => {
+  const shuffled = [...solarImagePaths].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+};
+
+const isSolarCleaningQuestion = (value: string): boolean => {
+  const normalized = value.toLowerCase();
+  const hasSolarContext = /(solar|panel|panels|pv)/.test(normalized);
+  const hasCleaningIntent = /(clean|cleaning|dirty|dust|wash|washing|bird droppings|grime|photos|picture|images)/.test(normalized);
+  return hasSolarContext && hasCleaningIntent;
+};
+
 const sanitizeKnownName = (value: string | null): string | null => {
   if (!value) return null;
   const firstToken = value.trim().split(/\s+/)[0] ?? "";
@@ -78,6 +94,7 @@ export default function Page() {
   const [lastClientHandoffOfferedAt, setLastClientHandoffOfferedAt] = useState<number | null>(null);
   const [clientHandoffActive] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [lightboxImagePath, setLightboxImagePath] = useState<string | null>(null);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -197,7 +214,13 @@ export default function Page() {
 
       const reply = data.reply?.trim() || "I’m sorry—something went wrong while responding.";
 
-      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+      const nextAssistantMessage: Message = {
+        role: "assistant",
+        content: reply,
+        imagePaths: isSolarCleaningQuestion(trimmed) ? getRandomSolarImages(2) : undefined,
+      };
+
+      setMessages((prev) => [...prev, nextAssistantMessage]);
       logSunny({
         role: "assistant",
         type: "message",
@@ -252,7 +275,14 @@ export default function Page() {
     const ucsMessage = `${serviceLine}\n\n${followUpWithOptionalName}`;
 
     setActiveService(service);
-    setMessages((prev) => [...prev, { role: "assistant", content: ucsMessage }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: ucsMessage,
+        imagePaths: service === "solarPanelCleaning" ? getRandomSolarImages(2) : undefined,
+      },
+    ]);
     logSunny({
       role: "assistant",
       type: "ucs",
@@ -331,6 +361,9 @@ export default function Page() {
                       {line}
                     </p>
                   ))}
+                  {!isUser && message.imagePaths && message.imagePaths.length > 0 && (
+                    <ChatImageBubble images={message.imagePaths} onImageClick={setLightboxImagePath} />
+                  )}
                 </div>
               </div>
             );
@@ -432,6 +465,8 @@ export default function Page() {
           </div>
         </div>
       )}
+
+      <Lightbox imagePath={lightboxImagePath} onClose={() => setLightboxImagePath(null)} />
     </main>
   );
 }
