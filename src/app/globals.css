@@ -443,3 +443,94 @@ footer {
   line-height: 1;
   cursor: pointer;
 }
+
+.reviews-bubble {
+  margin-top: 6px;
+  display: grid;
+  gap: 12px;
+  max-width: min(980px, 96%);
+}
+
+.reviews-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.review-card {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(6, 23, 44, 0.4);
+  padding: 12px;
+}
+
+.review-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.review-source-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.review-source-google {
+  background: rgba(66, 133, 244, 0.2);
+  color: #dbe9ff;
+}
+
+.review-source-yelp {
+  background: rgba(239, 68, 68, 0.18);
+  color: #ffd7d7;
+}
+
+.review-stars {
+  color: #f5b301;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+}
+
+.review-author {
+  margin: 8px 0 4px;
+  font-weight: 700;
+}
+
+.review-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.review-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.review-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
+.review-link-btn:hover,
+.review-link-btn:focus-visible {
+  opacity: 0.9;
+}

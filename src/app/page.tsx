@@ -4,18 +4,15 @@ import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ChatImageBubble } from "../components/chat/ChatImageBubble";
 import { Lightbox } from "../components/chat/Lightbox";
+import { ReviewsBubble } from "../components/ReviewsBubble";
 import { solarImagePaths } from "../data/solarImagePaths";
 import { frustrationDelta, shouldOfferHandoff } from "../lib/frustration";
 import { detectHumanRequest, detectLeadReason, extractEmail, extractPhone } from "../lib/leadSignals";
 import { extractFirstName } from "../lib/nameExtract";
+import { pickReviews } from "../lib/pickReviews";
 import { ucsContent, universalFollowUps, type UcsServiceKey } from "../lib/ucsContent";
 import { logSunny } from "../lib/sunnyLogger";
-
-type Message = {
-  role: "user" | "assistant";
-  content: string;
-  imagePaths?: string[];
-};
+import { type ChatMessage } from "../types/chat";
 
 type ServiceKey =
   | "solarPanelCleaning"
@@ -27,8 +24,12 @@ type ServiceKey =
 
 type NavLabel = "New Chat" | "Services" | "Reviews" | "SunPass" | "Contact Us";
 
-const getInitialGreeting = (name: string | null): Message => ({
+const createMessageId = () => `msg-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+const getInitialGreeting = (name: string | null): ChatMessage => ({
+  id: createMessageId(),
   role: "assistant",
+  type: "text",
   content: name
     ? `Hey ${name}, welcome to SunSweeper.com. How can I help you today?`
     : "Hey, welcome to SunSweeper.com. How can I help you today?",
@@ -66,9 +67,10 @@ const NAV_OPENERS: Record<NavLabel, string[]> = {
     "You got it 💦 Want solar panels, roof, gutters, or full exterior love?",
   ],
   Reviews: [
-    "Love that you’re checking reviews ⭐ Want me to share what people usually praise most?",
-    "Totally fair — reviews matter. Want a quick overview of what customers say?",
-    "Smart move 👏 I can highlight the biggest customer wins if you want.",
+    "Love that you're checking reviews ⭐ Here are a few local highlights.",
+    "Reviews coming in hot ✨ I pulled a few favorites for you below.",
+    "Yesss social proof time 🙌 Here are three recent customer shoutouts.",
+    "Totally fair to check receipts 😎 Take a peek at these Google + Yelp wins.",
   ],
   SunPass: [
     "SunPass mode ☀️ Want the quick breakdown of what’s included?",
@@ -114,8 +116,24 @@ const withOptionalName = (followUp: string, knownName: string | null): string =>
   return followUp.replace(/\?$/, `, ${knownName}?`);
 };
 
+const getPreferredTagsFromText = (value: string): string[] => {
+  const normalized = value.toLowerCase();
+  if (normalized.includes("solar") || normalized.includes("panel")) return ["solar"];
+  if (normalized.includes("roof")) return ["roof"];
+  if (normalized.includes("gutter")) return ["gutter"];
+  if (normalized.includes("pressure")) return ["pressure"];
+  if (normalized.includes("commercial")) return ["commercial"];
+  return [];
+};
+
+const getLastUserPreferredTags = (chatMessages: ChatMessage[]): string[] => {
+  const lastUserMessage = [...chatMessages].reverse().find((message) => message.role === "user" && message.type === "text");
+  if (!lastUserMessage) return [];
+  return getPreferredTagsFromText(lastUserMessage.content);
+};
+
 export default function Page() {
-  const [messages, setMessages] = useState<Message[]>([getInitialGreeting(null)]);
+  const [messages, setMessages] = useState<ChatMessage[]>([getInitialGreeting(null)]);
   const [chatState, setChatState] = useState<Record<string, unknown>>({});
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -175,7 +193,7 @@ export default function Page() {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: trimmed };
+    const userMessage: ChatMessage = { id: createMessageId(), role: "user", type: "text", content: trimmed };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
 
@@ -235,7 +253,9 @@ export default function Page() {
         body: JSON.stringify({
           message: trimmed,
           state: chatState,
-          messages: nextMessages,
+          messages: nextMessages
+            .filter((message) => message.type === "text")
+            .map((message) => ({ role: message.role, content: message.content })),
           sessionId,
         }),
       });
@@ -247,8 +267,10 @@ export default function Page() {
 
       const reply = data.reply?.trim() || "I’m sorry—something went wrong while responding.";
 
-      const nextAssistantMessage: Message = {
+      const nextAssistantMessage: ChatMessage = {
+        id: createMessageId(),
         role: "assistant",
+        type: "text",
         content: reply,
         imagePaths: isSolarCleaningQuestion(trimmed) ? getRandomSolarImages(2) : undefined,
       };
@@ -268,7 +290,7 @@ export default function Page() {
       const fallbackReply = "I’m having trouble right now. Please try again in a moment.";
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: fallbackReply },
+        { id: createMessageId(), role: "assistant", type: "text", content: fallbackReply },
       ]);
       logSunny({
         role: "assistant",
@@ -293,7 +315,7 @@ export default function Page() {
   const handleServiceClick = (service: ServiceKey) => {
     const ucsKey = SERVICE_TO_UCS_KEY[service];
     const serviceLine = getRandomItem(ucsContent[ucsKey]);
-    const lastAssistantMessage = [...messages].reverse().find((message) => message.role === "assistant")?.content ?? "";
+    const lastAssistantMessage = [...messages].reverse().find((message) => message.role === "assistant" && message.type === "text")?.content ?? "";
 
     let universalFollowUp = getRandomItem(universalFollowUps);
     let attempts = 0;
@@ -311,7 +333,9 @@ export default function Page() {
     setMessages((prev) => [
       ...prev,
       {
+        id: createMessageId(),
         role: "assistant",
+        type: "text",
         content: ucsMessage,
         imagePaths: service === "solarPanelCleaning" ? getRandomSolarImages(2) : undefined,
       },
@@ -331,8 +355,10 @@ export default function Page() {
 
   const handleNavClick = (label: NavLabel) => {
     const opener = getRandomItem(NAV_OPENERS[label]);
-    const navMessage: Message = {
+    const navMessage: ChatMessage = {
+      id: createMessageId(),
       role: "assistant",
+      type: "text",
       content: opener,
     };
 
@@ -340,6 +366,18 @@ export default function Page() {
       setMessages([getInitialGreeting(knownName), navMessage]);
       setChatState({});
       setActiveService(null);
+    } else if (label === "Reviews") {
+      setMessages((prev) => {
+        const preferredTags = getLastUserPreferredTags(prev);
+        const picked = pickReviews({ n: 3, preferredTags });
+        const reviewsMessage: ChatMessage = {
+          id: createMessageId(),
+          role: "assistant",
+          type: "reviews",
+          reviews: picked,
+        };
+        return [...prev, navMessage, reviewsMessage];
+      });
     } else {
       setMessages((prev) => [...prev, navMessage]);
     }
@@ -447,10 +485,20 @@ export default function Page() {
 
       <section ref={chatShellRef} className="chat-shell">
         <div ref={messagesRef} className="messages">
-          {messages.map((message, index) => {
+          {messages.map((message) => {
             const isUser = message.role === "user";
+            if (message.type === "reviews") {
+              return (
+                <div key={message.id} className="msg-row assistant">
+                  <div className="bubble assistant-bubble">
+                    <ReviewsBubble reviews={message.reviews} />
+                  </div>
+                </div>
+              );
+            }
+
             return (
-              <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
+              <div key={message.id} className={`msg-row ${isUser ? "user" : "assistant"}`}>
                 <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
                   {message.content.split("\n").map((line, i) => (
                     <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>
