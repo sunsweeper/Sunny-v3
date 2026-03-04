@@ -1,0 +1,16 @@
+export const solarImagePaths = [
+  "/image/solar/Completed-Work1orcutt1.jpg",
+  "/image/solar/ag-after.jpg",
+  "/image/solar/commercial-after.jpg",
+  "/image/solar/commercial-before.jpg",
+  "/image/solar/commercial3-after.jpg",
+  "/image/solar/davis2-after.jpg",
+  "/image/solar/davis2-before.jpg",
+  "/image/solar/industrial-after.jpg",
+  "/image/solar/lom-after.jpg",
+  "/image/solar/lom-before.jpg",
+  "/image/solar/paso-after.jpg",
+  "/image/solar/paso-before.jpg",
+  "/image/solar/slo-after.jpg",
+  "/image/solar/slo-before.jpg",
+] as const;
