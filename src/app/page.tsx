@@ -11,11 +11,27 @@ import { extractFirstName } from "../lib/nameExtract";
 import { ucsContent, universalFollowUps, type UcsServiceKey } from "../lib/ucsContent";
 import { logSunny } from "../lib/sunnyLogger";
 
-type Message = {
+type TextMessage = {
   role: "user" | "assistant";
+  type: "text";
   content: string;
   imagePaths?: string[];
 };
+
+type ReviewsMessage = {
+  role: "assistant";
+  type: "reviews";
+  reviews: string[];
+  imagePaths?: string[];
+};
+
+type ChatMessage = TextMessage | ReviewsMessage;
+
+function isTextMessage(
+  m: ChatMessage,
+): m is Extract<ChatMessage, { type: "text" }> {
+  return m.type === "text";
+}
 
 type ServiceKey =
   | "solarPanelCleaning"
@@ -27,8 +43,9 @@ type ServiceKey =
 
 type NavLabel = "New Chat" | "Services" | "Reviews" | "SunPass" | "Contact Us";
 
-const getInitialGreeting = (name: string | null): Message => ({
+const getInitialGreeting = (name: string | null): ChatMessage => ({
   role: "assistant",
+  type: "text",
   content: name
     ? `Hey ${name}, welcome to SunSweeper.com. How can I help you today?`
     : "Hey, welcome to SunSweeper.com. How can I help you today?",
@@ -115,7 +132,7 @@ const withOptionalName = (followUp: string, knownName: string | null): string =>
 };
 
 export default function Page() {
-  const [messages, setMessages] = useState<Message[]>([getInitialGreeting(null)]);
+  const [messages, setMessages] = useState<ChatMessage[]>([getInitialGreeting(null)]);
   const [chatState, setChatState] = useState<Record<string, unknown>>({});
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -175,7 +192,7 @@ export default function Page() {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: trimmed };
+    const userMessage: ChatMessage = { role: "user", type: "text", content: trimmed };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
 
@@ -247,8 +264,9 @@ export default function Page() {
 
       const reply = data.reply?.trim() || "I’m sorry—something went wrong while responding.";
 
-      const nextAssistantMessage: Message = {
+      const nextAssistantMessage: ChatMessage = {
         role: "assistant",
+        type: "text",
         content: reply,
         imagePaths: isSolarCleaningQuestion(trimmed) ? getRandomSolarImages(2) : undefined,
       };
@@ -268,7 +286,7 @@ export default function Page() {
       const fallbackReply = "I’m having trouble right now. Please try again in a moment.";
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: fallbackReply },
+        { role: "assistant", type: "text", content: fallbackReply },
       ]);
       logSunny({
         role: "assistant",
@@ -293,7 +311,11 @@ export default function Page() {
   const handleServiceClick = (service: ServiceKey) => {
     const ucsKey = SERVICE_TO_UCS_KEY[service];
     const serviceLine = getRandomItem(ucsContent[ucsKey]);
-    const lastAssistantMessage = [...messages].reverse().find((message) => message.role === "assistant")?.content ?? "";
+    const lastAssistantMessage = [...messages]
+      .reverse()
+      .find((message): message is Extract<ChatMessage, { role: "assistant"; type: "text" }> =>
+        message.role === "assistant" && isTextMessage(message),
+      )?.content ?? "";
 
     let universalFollowUp = getRandomItem(universalFollowUps);
     let attempts = 0;
@@ -312,6 +334,7 @@ export default function Page() {
       ...prev,
       {
         role: "assistant",
+        type: "text",
         content: ucsMessage,
         imagePaths: service === "solarPanelCleaning" ? getRandomSolarImages(2) : undefined,
       },
@@ -331,8 +354,9 @@ export default function Page() {
 
   const handleNavClick = (label: NavLabel) => {
     const opener = getRandomItem(NAV_OPENERS[label]);
-    const navMessage: Message = {
+    const navMessage: ChatMessage = {
       role: "assistant",
+      type: "text",
       content: opener,
     };
 
@@ -452,7 +476,7 @@ export default function Page() {
             return (
               <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
                 <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
-                  {message.content.split("\n").map((line, i) => (
+                  {isTextMessage(message) && message.content.split("\n").map((line, i) => (
                     <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>
                       {line}
                     </p>
