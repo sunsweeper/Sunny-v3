@@ -123,6 +123,47 @@ footer {
   font-weight: 700;
 }
 
+.service-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.service-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 230px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(17, 32, 53, 0.96);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.3);
+  display: grid;
+  gap: 4px;
+  z-index: 20;
+}
+
+.service-dropdown-item {
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 10px;
+  transition: background-color 0.2s ease;
+}
+
+.service-dropdown-item:hover,
+.service-dropdown-item:focus-visible,
+.service-dropdown-item.active {
+  background: rgba(255, 255, 255, 0.13);
+}
+
 /* =========================
    CHAT SHELL – CRYSTAL GLASS
    ========================= */
