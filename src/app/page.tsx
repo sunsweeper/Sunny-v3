@@ -25,6 +25,8 @@ type ServiceKey =
   | "pressureWashing"
   | "gutterLeakRepair";
 
+type NavLabel = "New Chat" | "Services" | "Reviews" | "SunPass" | "Contact Us";
+
 const getInitialGreeting = (name: string | null): Message => ({
   role: "assistant",
   content: name
@@ -49,6 +51,36 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "gutterCleaningRepair", label: "Gutter Cleaning" },
   { key: "gutterLeakRepair", label: "Gutter Leak Repair" },
 ];
+
+const NAV_ITEMS: NavLabel[] = ["New Chat", "Services", "Reviews", "SunPass", "Contact Us"];
+
+const NAV_OPENERS: Record<NavLabel, string[]> = {
+  "New Chat": [
+    "Fresh chat, fresh sunshine 🌞 What can I help you with today?",
+    "New thread unlocked ✨ Want to talk services, pricing, or booking?",
+    "Hey hey, clean slate 😎 What are we tackling today?",
+  ],
+  Services: [
+    "Let’s do a quick service rundown 🌞 Which one are you curious about?",
+    "Sweet — I can walk you through every service we offer. What do you need?",
+    "You got it 💦 Want solar panels, roof, gutters, or full exterior love?",
+  ],
+  Reviews: [
+    "Love that you’re checking reviews ⭐ Want me to share what people usually praise most?",
+    "Totally fair — reviews matter. Want a quick overview of what customers say?",
+    "Smart move 👏 I can highlight the biggest customer wins if you want.",
+  ],
+  SunPass: [
+    "SunPass mode ☀️ Want the quick breakdown of what’s included?",
+    "Great pick — SunPass is all about consistent shine and less hassle. Want details?",
+    "Let’s talk SunPass ✨ I can break it down in 20 seconds.",
+  ],
+  "Contact Us": [
+    "Easy — I can help you get connected with the team 📞 What’s the best way to reach you?",
+    "Perfect, let’s get you in touch 🙌 Want to call, text, or leave a message here?",
+    "I got you 💛 If you want, I can collect your info and pass it to a specialist.",
+  ],
+};
 
 const getRandomItem = <T,>(items: readonly T[]): T => {
   const randomIndex = Math.floor(Math.random() * items.length);
@@ -95,6 +127,7 @@ export default function Page() {
   const [clientHandoffActive] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [lightboxImagePath, setLightboxImagePath] = useState<string | null>(null);
+  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -296,6 +329,32 @@ export default function Page() {
     chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
+  const handleNavClick = (label: NavLabel) => {
+    const opener = getRandomItem(NAV_OPENERS[label]);
+    const navMessage: Message = {
+      role: "assistant",
+      content: opener,
+    };
+
+    if (label === "New Chat") {
+      setMessages([getInitialGreeting(knownName), navMessage]);
+      setChatState({});
+      setActiveService(null);
+    } else {
+      setMessages((prev) => [...prev, navMessage]);
+    }
+
+    logSunny({
+      role: "assistant",
+      type: "message",
+      text: opener,
+      lead_detected: false,
+      lead_reason: "",
+      handoff_requested: false,
+    });
+    chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   return (
     <main className="page-shell">
       <section className="hero">
@@ -326,23 +385,60 @@ export default function Page() {
           </p>
         </div>
 
-        <nav className="service-nav" aria-label="Core services">
-          {SERVICE_OPTIONS.map((service, index) => {
-            const isActive = activeService === service.key;
+        <nav className="service-nav" aria-label="Site navigation">
+          {NAV_ITEMS.map((item, index) => {
+            const isServices = item === "Services";
             return (
-              <Fragment key={service.key}>
+              <Fragment key={item}>
                 {index > 0 && (
                   <span className="service-divider" aria-hidden="true">
                     |
                   </span>
                 )}
-                <button
-                  type="button"
-                  className={`service-link ${isActive ? "active" : ""}`}
-                  onClick={() => handleServiceClick(service.key)}
-                >
-                  {service.label}
-                </button>
+                {isServices ? (
+                  <div
+                    className="service-dropdown"
+                    onMouseEnter={() => setIsServicesDropdownOpen(true)}
+                    onMouseLeave={() => setIsServicesDropdownOpen(false)}
+                  >
+                    <button
+                      type="button"
+                      className="service-link"
+                      onClick={() => handleNavClick(item)}
+                      onFocus={() => setIsServicesDropdownOpen(true)}
+                      onBlur={() => setTimeout(() => setIsServicesDropdownOpen(false), 100)}
+                      aria-haspopup="menu"
+                      aria-expanded={isServicesDropdownOpen}
+                    >
+                      {item}
+                    </button>
+                    {isServicesDropdownOpen && (
+                      <div className="service-dropdown-menu" role="menu" aria-label="Service menu">
+                        {SERVICE_OPTIONS.map((service) => {
+                          const isActive = activeService === service.key;
+                          return (
+                            <button
+                              key={service.key}
+                              type="button"
+                              role="menuitem"
+                              className={`service-dropdown-item ${isActive ? "active" : ""}`}
+                              onClick={() => {
+                                handleServiceClick(service.key);
+                                setIsServicesDropdownOpen(false);
+                              }}
+                            >
+                              {service.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button type="button" className="service-link" onClick={() => handleNavClick(item)}>
+                    {item}
+                  </button>
+                )}
               </Fragment>
             );
           })}
