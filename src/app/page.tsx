@@ -19,11 +19,13 @@ type Message = {
 
 type ServiceKey =
   | "solarPanelCleaning"
-  | "birdProofing"
+  | "gutterCleaning"
+  | "gutterRepair"
   | "roofWashing"
-  | "gutterCleaningRepair"
-  | "pressureWashing"
-  | "gutterLeakRepair";
+  | "softWashing"
+  | "pressureWashing";
+
+type NavLabel = "New Chat" | "Services" | "Reviews" | "SunPass" | "Contact Us";
 
 type NavLabel = "New Chat" | "Services" | "Reviews" | "SunPass" | "Contact Us";
 
@@ -36,20 +38,20 @@ const getInitialGreeting = (name: string | null): Message => ({
 
 const SERVICE_TO_UCS_KEY: Record<ServiceKey, UcsServiceKey> = {
   solarPanelCleaning: "solar_panel_cleaning",
-  birdProofing: "bird_proofing",
+  gutterCleaning: "gutter_cleaning",
+  gutterRepair: "gutter_repair_install",
   roofWashing: "roof_cleaning",
-  gutterCleaningRepair: "gutter_cleaning",
+  softWashing: "exterior_cleaning",
   pressureWashing: "exterior_cleaning",
-  gutterLeakRepair: "gutter_repair_install",
 };
 
 const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "solarPanelCleaning", label: "Solar Panel Cleaning" },
-  { key: "birdProofing", label: "Bird Proofing" },
-  { key: "roofWashing", label: "Roof Wash" },
+  { key: "gutterCleaning", label: "Gutter Cleaning" },
+  { key: "gutterRepair", label: "Gutter Repair" },
+  { key: "roofWashing", label: "Roof Washing" },
+  { key: "softWashing", label: "Soft Washing" },
   { key: "pressureWashing", label: "Pressure Washing" },
-  { key: "gutterCleaningRepair", label: "Gutter Cleaning" },
-  { key: "gutterLeakRepair", label: "Gutter Leak Repair" },
 ];
 
 const NAV_ITEMS: NavLabel[] = ["New Chat", "Services", "Reviews", "SunPass", "Contact Us"];
