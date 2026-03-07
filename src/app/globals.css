@@ -53,11 +53,15 @@ body {
 }
 
 .hero,
-.chat-shell,
 .beta-footer,
 footer {
   position: relative;
   z-index: 1;
+}
+
+.chat-shell {
+  position: relative;
+  z-index: 0;
 }
 
 /* =========================
