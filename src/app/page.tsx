@@ -133,6 +133,7 @@ const withOptionalName = (followUp: string, knownName: string | null): string =>
 
 export default function Page() {
   const [messages, setMessages] = useState<ChatMessage[]>([getInitialGreeting(null)]);
+  const [hasUserEngaged, setHasUserEngaged] = useState(false);
   const [chatState, setChatState] = useState<Record<string, unknown>>({});
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -191,6 +192,10 @@ export default function Page() {
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
+
+    if (!hasUserEngaged) {
+      setHasUserEngaged(true);
+    }
 
     const userMessage: UserTextMessage = { role: "user", type: "text", content: trimmed };
     const nextMessages = [...messages, userMessage];
@@ -327,16 +332,19 @@ export default function Page() {
 
     const ucsMessage = `${serviceLine}\n\n${followUpWithOptionalName}`;
 
+    const serviceIntroMessage: AssistantTextMessage = {
+      role: "assistant",
+      type: "text",
+      content: ucsMessage,
+      imagePaths: service === "solarPanelCleaning" ? getRandomSolarImages(2) : undefined,
+    };
+
     setActiveService(service);
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        type: "text",
-        content: ucsMessage,
-        imagePaths: service === "solarPanelCleaning" ? getRandomSolarImages(2) : undefined,
-      },
-    ]);
+    if (!hasUserEngaged) {
+      setMessages([serviceIntroMessage]);
+    } else {
+      setMessages((prev) => [...prev, serviceIntroMessage]);
+    }
     logSunny({
       role: "assistant",
       type: "ucs",
@@ -359,9 +367,12 @@ export default function Page() {
     };
 
     if (label === "New Chat") {
-      setMessages([getInitialGreeting(knownName), navMessage]);
+      setMessages([navMessage]);
       setChatState({});
       setActiveService(null);
+      setHasUserEngaged(false);
+    } else if (!hasUserEngaged) {
+      setMessages([navMessage]);
     } else {
       setMessages((prev) => [...prev, navMessage]);
     }
