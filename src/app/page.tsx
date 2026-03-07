@@ -4,6 +4,8 @@ import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ChatImageBubble } from "../components/chat/ChatImageBubble";
 import { Lightbox } from "../components/chat/Lightbox";
+import { ReviewScreenshotsModal } from "../components/reviews/ReviewScreenshotsModal";
+import { reviewDropdownLinks, reviewScreenshotPaths } from "../data/reviewLinks";
 import { solarImagePaths } from "../data/solarImagePaths";
 import { frustrationDelta, shouldOfferHandoff } from "../lib/frustration";
 import { detectHumanRequest, detectLeadReason, extractEmail, extractPhone } from "../lib/leadSignals";
@@ -24,14 +26,7 @@ type AssistantTextMessage = {
   imagePaths?: string[];
 };
 
-type AssistantReviewsMessage = {
-  role: "assistant";
-  type: "reviews";
-  content: string;
-  imagePaths?: string[];
-};
-
-type ChatMessage = UserTextMessage | AssistantTextMessage | AssistantReviewsMessage;
+type ChatMessage = UserTextMessage | AssistantTextMessage;
 
 type ServiceKey =
   | "solarPanelCleaning"
@@ -41,7 +36,7 @@ type ServiceKey =
   | "softWashing"
   | "pressureWashing";
 
-type NavLabel = "New Chat" | "Services" | "Reviews" | "SunPass" | "Contact Us";
+type NavLabel = "New Chat" | "Services" | "SunPass" | "Contact Us";
 
 const getInitialGreeting = (name: string | null): AssistantTextMessage => ({
   role: "assistant",
@@ -69,7 +64,7 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "pressureWashing", label: "Pressure Washing" },
 ];
 
-const NAV_ITEMS: NavLabel[] = ["New Chat", "Services", "Reviews", "SunPass", "Contact Us"];
+const NAV_ITEMS: NavLabel[] = ["New Chat", "Services", "SunPass", "Contact Us"];
 
 const NAV_OPENERS: Record<NavLabel, string[]> = {
   "New Chat": [
@@ -81,11 +76,6 @@ const NAV_OPENERS: Record<NavLabel, string[]> = {
     "Let’s do a quick service rundown 🌞 Which one are you curious about?",
     "Sweet — I can walk you through every service we offer. What do you need?",
     "You got it 💦 Want solar panels, roof, gutters, or full exterior love?",
-  ],
-  Reviews: [
-    "Love that you’re checking reviews ⭐ Want me to share what people usually praise most?",
-    "Totally fair — reviews matter. Want a quick overview of what customers say?",
-    "Smart move 👏 I can highlight the biggest customer wins if you want.",
   ],
   SunPass: [
     "SunPass mode ☀️ Want the quick breakdown of what’s included?",
@@ -146,6 +136,8 @@ export default function Page() {
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [lightboxImagePath, setLightboxImagePath] = useState<string | null>(null);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
+  const [isReviewsDropdownOpen, setIsReviewsDropdownOpen] = useState(false);
+  const [isReviewScreenshotsOpen, setIsReviewScreenshotsOpen] = useState(false);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -471,10 +463,58 @@ export default function Page() {
                   <button type="button" className="service-link" onClick={() => handleNavClick(item)}>
                     {item}
                   </button>
-                )}
+                )
               </Fragment>
             );
           })}
+          <span className="service-divider" aria-hidden="true">
+            |
+          </span>
+          <div
+            className="service-dropdown"
+            onMouseEnter={() => setIsReviewsDropdownOpen(true)}
+            onMouseLeave={() => setIsReviewsDropdownOpen(false)}
+          >
+            <button
+              type="button"
+              className="service-link"
+              onClick={() => setIsReviewsDropdownOpen((prev) => !prev)}
+              onFocus={() => setIsReviewsDropdownOpen(true)}
+              onBlur={() => setTimeout(() => setIsReviewsDropdownOpen(false), 100)}
+              aria-haspopup="menu"
+              aria-expanded={isReviewsDropdownOpen}
+            >
+              Reviews
+            </button>
+            {isReviewsDropdownOpen && (
+              <div className="service-dropdown-menu" role="menu" aria-label="Reviews menu">
+                {reviewDropdownLinks.map((link) => (
+                  <a
+                    key={link.href}
+                    role="menuitem"
+                    className="service-dropdown-item"
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => setIsReviewsDropdownOpen(false)}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="service-dropdown-item"
+                  onClick={() => {
+                    setIsReviewScreenshotsOpen(true);
+                    setIsReviewsDropdownOpen(false);
+                  }}
+                >
+                  Review Screenshots
+                </button>
+              </div>
+            )}
+          </div>
         </nav>
       </section>
 
@@ -596,6 +636,15 @@ export default function Page() {
       )}
 
       <Lightbox imagePath={lightboxImagePath} onClose={() => setLightboxImagePath(null)} />
+      <ReviewScreenshotsModal
+        isOpen={isReviewScreenshotsOpen}
+        imagePaths={reviewScreenshotPaths}
+        onClose={() => setIsReviewScreenshotsOpen(false)}
+        onImageClick={(path) => {
+          setLightboxImagePath(path);
+          setIsReviewScreenshotsOpen(false);
+        }}
+      />
     </main>
   );
 }
