@@ -463,7 +463,7 @@ export default function Page() {
                   <button type="button" className="service-link" onClick={() => handleNavClick(item)}>
                     {item}
                   </button>
-                )
+                )}
               </Fragment>
             );
           })}
