@@ -363,6 +363,16 @@ export default function Page() {
       setChatState({});
       setActiveService(null);
       setHasUserEngaged(false);
+    } else if (label === "SunPass") {
+      if (!hasUserEngaged) {
+        setMessages([navMessage]);
+      } else {
+        setMessages((prev) => [...prev, navMessage]);
+      }
+      setChatState((prev) => ({
+        ...prev,
+        activeConversationState: "sunpass_intro",
+      }));
     } else if (!hasUserEngaged) {
       setMessages([navMessage]);
     } else {

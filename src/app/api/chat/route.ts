@@ -40,6 +40,7 @@ type BookingState = {
   sunpassLeadData?: Record<string, string>;
   sunpassLastAskedField?: string;
   sunpassAwaitingConfirmation?: boolean;
+  activeConversationState?: "sunpass_intro" | "sunpass_followup";
   [key: string]: unknown;
 };
 
@@ -119,6 +120,17 @@ const SUNPASS_DEFAULT_INTENTS = [
   "i need help with solar on a home sale",
 ];
 
+const SUNPASS_INTRO_CONFIRMATIONS = [
+  "yes",
+  "yeah",
+  "sure",
+  "please",
+  "ok",
+  "okay",
+  "sounds good",
+  "tell me more",
+];
+
 const SUNPASS_ROLE_PATTERNS: Record<string, RegExp> = {
   home_buyer: /\b(buying|buyer|purchase|purchasing)\b/i,
   home_seller: /\b(selling|seller|listing)\b/i,
@@ -154,6 +166,17 @@ function detectSunPassTopic(messageLower: string): boolean {
 
 function detectSunPassLeadIntent(messageLower: string, phrases: string[]): boolean {
   return phrases.some((phrase) => messageLower.includes(phrase));
+}
+
+function isSunPassIntroConfirmation(messageLower: string): boolean {
+  const normalized = messageLower.trim();
+  return SUNPASS_INTRO_CONFIRMATIONS.some(
+    (phrase) => normalized === phrase || normalized.startsWith(`${phrase} `)
+  );
+}
+
+function isShortChatReply(messageLower: string): boolean {
+  return messageLower.trim().split(/\s+/).filter(Boolean).length <= 4;
 }
 
 function buildSunPassAboutResponse(sunpass: SunPassData): string {
@@ -396,6 +419,74 @@ export async function POST(request: Request) {
 
     if (!message) {
       return respondWithLoggedReply(SAFE_FAIL_MESSAGE, currentState, 400);
+    }
+
+    if (currentState.activeConversationState === "sunpass_intro") {
+      if (detectSunPassLeadIntent(messageLower, sunpassIntentPhrases)) {
+        const firstField = sunpassLeadFields.find((field) => !isOptionalLeadField(field)) || "full_name";
+        return respondWithLoggedReply(
+          "Absolutely. I can have SunPass reach out by email. Please share your full name to get started.",
+          {
+            ...currentState,
+            sunpassLeadActive: true,
+            sunpassLeadData: {},
+            sunpassLastAskedField: firstField,
+            sunpassAwaitingConfirmation: false,
+            activeConversationState: "sunpass_followup",
+          }
+        );
+      }
+
+      if (isSunPassIntroConfirmation(messageLower)) {
+        const reply = sunpassData
+          ? buildSunPassAboutResponse(sunpassData)
+          : "SunPass helps buyers sellers agents and escrow understand solar details during a home sale. If you want SunPass to reach out tell me and I can collect your details by email.";
+
+        return respondWithLoggedReply(reply, {
+          ...currentState,
+          activeConversationState: "sunpass_followup",
+        });
+      }
+
+      if (sunpassData) {
+        const reply = buildSunPassKnowledgeResponse(sunpassData, messageLower);
+        return respondWithLoggedReply(reply, {
+          ...currentState,
+          activeConversationState: "sunpass_followup",
+        });
+      }
+    }
+
+    if (currentState.activeConversationState === "sunpass_followup") {
+      if (detectSunPassLeadIntent(messageLower, sunpassIntentPhrases)) {
+        const firstField = sunpassLeadFields.find((field) => !isOptionalLeadField(field)) || "full_name";
+        return respondWithLoggedReply(
+          "Absolutely. I can have SunPass reach out by email. Please share your full name to get started.",
+          {
+            ...currentState,
+            sunpassLeadActive: true,
+            sunpassLeadData: {},
+            sunpassLastAskedField: firstField,
+            sunpassAwaitingConfirmation: false,
+          }
+        );
+      }
+
+      if (isShortChatReply(messageLower) && !detectSunPassLeadIntent(messageLower, sunpassIntentPhrases)) {
+        return respondWithLoggedReply(
+          "If you would like I can have SunPass reach out by email. Just say have SunPass contact me and I will collect your details.",
+          currentState
+        );
+      }
+
+      if (sunpassData && detectSunPassTopic(messageLower)) {
+        return respondWithLoggedReply(buildSunPassKnowledgeResponse(sunpassData, messageLower), currentState);
+      }
+
+      currentState = {
+        ...currentState,
+        activeConversationState: undefined,
+      };
     }
 
     if (currentState.sunpassLeadActive) {
