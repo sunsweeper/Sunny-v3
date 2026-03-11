@@ -24,7 +24,12 @@ const getSessionId = (): string => {
 };
 
 export const logSunny = (payload: SunnyLogPayload): void => {
-  if (!LOG_URL || typeof window === "undefined") return;
+  if (typeof window === "undefined") return;
+
+  if (!LOG_URL) {
+    console.warn("[SUNNY-CLIENT-LOG] NEXT_PUBLIC_SUNNY_LOG_URL is not set; skipping client log send.");
+    return;
+  }
 
   try {
     const sessionId = getSessionId();
@@ -32,10 +37,13 @@ export const logSunny = (payload: SunnyLogPayload): void => {
     const knownPhone = window.localStorage.getItem("sunny_known_phone") || "";
     const knownEmail = window.localStorage.getItem("sunny_known_email") || "";
 
+    console.log("[SUNNY-CLIENT-LOG] sending", { role: payload.role, type: payload.type, sessionId });
+
     void fetch(LOG_URL, {
       method: "POST",
       keepalive: true,
       body: JSON.stringify({
+        timestamp: new Date().toISOString(),
         session_id: sessionId,
         known_name: knownName,
         role: payload.role,
@@ -50,8 +58,18 @@ export const logSunny = (payload: SunnyLogPayload): void => {
         url: window.location.href,
         user_agent: navigator.userAgent,
       }),
-    }).catch(() => {});
-  } catch {
-    // fail silently
+    })
+      .then((response) => {
+        if (!response.ok) {
+          console.error("[SUNNY-CLIENT-LOG] request failed", response.status);
+          return;
+        }
+        console.log("[SUNNY-CLIENT-LOG] sent successfully");
+      })
+      .catch((error) => {
+        console.error("[SUNNY-CLIENT-LOG] network error", error);
+      });
+  } catch (error) {
+    console.error("[SUNNY-CLIENT-LOG] unexpected error", error);
   }
 };
