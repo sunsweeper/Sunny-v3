@@ -10,7 +10,7 @@ export type SunnyLogPayload = {
   email?: string;
 };
 
-const LOG_URL = process.env.NEXT_PUBLIC_SUNNY_LOG_URL;
+const LOG_URL = process.env.NEXT_PUBLIC_SUNNY_LOG_URL || "/api/sunny-log";
 
 const getSessionId = (): string => {
   const existing = window.localStorage.getItem("sunny_session_id");
@@ -25,11 +25,6 @@ const getSessionId = (): string => {
 
 export const logSunny = (payload: SunnyLogPayload): void => {
   if (typeof window === "undefined") return;
-
-  if (!LOG_URL) {
-    console.warn("[SUNNY-CLIENT-LOG] NEXT_PUBLIC_SUNNY_LOG_URL is not set; skipping client log send.");
-    return;
-  }
 
   try {
     const sessionId = getSessionId();
