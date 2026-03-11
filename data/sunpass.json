@@ -27,6 +27,23 @@
     "role",
     "notes"
   ],
+  "lead_intent_phrases": [
+    "have someone contact me",
+    "reach out to me",
+    "have sunpass contact me",
+    "i want more info",
+    "i am buying a home with solar",
+    "i am selling a home with solar",
+    "i am an agent",
+    "i need help with solar on a home sale"
+  ],
+  "about_chat_response": {
+    "intro": "SunPass helps people understand solar during a home sale with clear practical guidance from start to close.",
+    "purpose": "Our goal is to remove confusion so buyers sellers agents and escrow teams can move forward with confidence.",
+    "who_it_helps": "SunPass supports homeowners buyers sellers real estate agents and escrow professionals across solar related transactions.",
+    "what_it_includes": "Support can include solar system review ownership transfer guidance warranty transfer support monitoring reconnect guidance and plain language reporting.",
+    "cta": "If you want SunPass to reach out, tell me and I will collect your details here in chat and pass them to the team."
+  },
   "cta_examples": [
     "If you want someone from SunPass to reach out, I can pass your info along.",
     "If you are buying or selling a home with solar, I can have our team contact you.",
