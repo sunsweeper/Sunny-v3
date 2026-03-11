@@ -395,7 +395,7 @@ export default function Page() {
       <section className="hero">
         <div className="hero-content">
           <p className="hero-kicker">SunSweeper Premium Service</p>
-          <h1 className="headline">Santa Maria&apos;s Solar &amp; Roof Cleaning Specialists.</h1>
+          <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
           <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
           <Image src="/logo.png" alt="SunSweeper logo" width={640} height={350} className="hero-logo" priority />
         </div>
