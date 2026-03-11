@@ -383,25 +383,18 @@ export default function Page() {
   return (
     <main className="page-shell">
       <section className="hero">
-        <p className="headline">The solar panel and roof cleaning experts.</p>
-        <Image src="/logo.png" alt="SunSweeper logo" width={640} height={350} className="hero-logo" priority />
+        <div className="hero-content">
+          <p className="hero-kicker">SunSweeper Premium Service</p>
+          <h1 className="headline">Santa Maria&apos;s Solar &amp; Roof Cleaning Specialists.</h1>
+          <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
+          <Image src="/logo.png" alt="SunSweeper logo" width={640} height={350} className="hero-logo" priority />
+        </div>
 
         <div className="contact-wrap">
           <a
             className="phone"
             href="tel:8059381515"
             aria-label="Call SunSweeper at 805-938-1515"
-            style={{
-              fontSize: "1.75rem",
-              fontWeight: "900",
-              lineHeight: "1.1",
-              letterSpacing: "-0.01em",
-              display: "block",
-              textAlign: "center",
-              margin: "1.25rem 0 0.75rem 0",
-              color: "#ffffff",
-              textShadow: "0 1px 6px rgba(0,0,0,0.5)",
-            }}
           >
             805-938-1515
           </a>
