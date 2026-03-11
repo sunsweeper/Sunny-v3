@@ -1,0 +1,35 @@
+{
+  "name": "SunPass",
+  "tagline": "Solar clarity for homeowners",
+  "description": "SunPass helps buyers, sellers, agents, and escrow professionals understand solar systems during real estate transactions. It provides solar inspection and solar ownership transition support so everyone involved knows what the system is and how it benefits the property.",
+  "purpose": "SunPass was created to remove confusion around solar during home sales.",
+  "services": [
+    "Solar system inspection for homes being sold",
+    "Solar system documentation and reporting",
+    "Panel count and equipment identification",
+    "Inverter identification and monitoring guidance",
+    "Net metering status verification when possible",
+    "Guidance for solar ownership transition",
+    "Warranty transfer guidance",
+    "Monitoring reconnection guidance"
+  ],
+  "audience": [
+    "Home buyers",
+    "Home sellers",
+    "Real estate agents",
+    "Escrow officers"
+  ],
+  "lead_capture_fields": [
+    "full_name",
+    "email",
+    "phone_optional",
+    "property_address_optional",
+    "role",
+    "notes"
+  ],
+  "cta_examples": [
+    "If you want someone from SunPass to reach out, I can pass your info along.",
+    "If you are buying or selling a home with solar, I can have our team contact you.",
+    "If you want a SunPass specialist to follow up, I can help with that."
+  ]
+}
