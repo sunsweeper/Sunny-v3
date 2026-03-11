@@ -68,24 +68,24 @@ const NAV_ITEMS: NavLabel[] = ["New Chat", "Services", "SunPass", "Contact Us"];
 
 const NAV_OPENERS: Record<NavLabel, string[]> = {
   "New Chat": [
-    "Fresh chat, fresh sunshine 🌞 What can I help you with today?",
-    "New thread unlocked ✨ Want to talk services, pricing, or booking?",
-    "Hey hey, clean slate 😎 What are we tackling today?",
+    "Welcome back. How can I help you today?",
+    "New conversation started. Need help with services, pricing, or booking?",
+    "How can I help with your property cleaning needs today?",
   ],
   Services: [
-    "Let’s do a quick service rundown 🌞 Which one are you curious about?",
-    "Sweet — I can walk you through every service we offer. What do you need?",
-    "You got it 💦 Want solar panels, roof, gutters, or full exterior love?",
+    "I can walk you through each service. Which one are you considering?",
+    "Happy to help. Which service would you like details on?",
+    "We handle solar panels, roofs, gutters, and exterior cleaning. What do you need?",
   ],
   SunPass: [
-    "SunPass mode ☀️ Want the quick breakdown of what’s included?",
-    "Great pick — SunPass is all about consistent shine and less hassle. Want details?",
-    "Let’s talk SunPass ✨ I can break it down in 20 seconds.",
+    "I can provide a quick SunPass breakdown. Want the details?",
+    "SunPass is designed for consistent maintenance with less hassle. Want details?",
+    "If you'd like, I can summarize SunPass in a few quick points.",
   ],
   "Contact Us": [
-    "Easy — I can help you get connected with the team 📞 What’s the best way to reach you?",
-    "Perfect, let’s get you in touch 🙌 Want to call, text, or leave a message here?",
-    "I got you 💛 If you want, I can collect your info and pass it to a specialist.",
+    "I can help connect you with the team. What’s the best way to reach you?",
+    "Would you prefer a call, text, or to leave a message here?",
+    "If you'd like, I can collect your information and pass it to a specialist.",
   ],
 };
 
@@ -571,7 +571,7 @@ export default function Page() {
           </button>
         </div>
         <p className="helper-text" style={{ marginTop: "0.9rem", fontSize: "0.8rem", textAlign: "center" }}>
-          Not getting what you need from Sunny? Tell him you’d like to speak with a live person — he’ll take a
+          Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a
           message and get it to a specialist.
         </p>
       </section>

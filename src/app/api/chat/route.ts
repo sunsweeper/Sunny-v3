@@ -356,14 +356,10 @@ export async function POST(request: Request) {
 
         const name = state.fullName ? ` ${state.fullName.split(" ")[0]}` : "";
         const templates = [
-          `Alright${name}, let's keep the momentum! What's your ${nextField}? 🌞`,
-          `You're on fire${name}! Hit me with your ${nextField} next 😏`,
-          `Sweet progress${name} — now I need your ${nextField}. Spill it! ✨`,
-          `Almost shining${name}! What's the ${nextField} so we can lock this in?`,
-          `No rush, sunshine${name} — what's your ${nextField}? 🍔`,
-          `Stoked on this${name}! Just need your ${nextField} to make it official 💦`,
-          `Radical${name} — what's your ${nextField}? Panels are waiting!`,
-          `Gotcha${name}! One more piece — your ${nextField}?`,
+          `Thanks${name}. Please share your ${nextField} so I can keep your booking moving.`,
+          `Great${name} — what is your ${nextField}?`,
+          `I have that noted${name}. Please provide your ${nextField}.`,
+          `We're almost done with intake${name}. What is your ${nextField}?`,
         ];
         const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
 
@@ -378,7 +374,7 @@ Here's what I've got for your booking${state.fullName ? `, ${state.fullName}` : 
 - Date & Time: ${state.dateTime || "Not set"}
 - Service: Cleaning ${state.panelCount} solar panels for $${price.toFixed(2)}
 
-All good? Say YES to lock it in, or tell me what to tweak, babe! 🌞`;
+Does everything look correct before I lock this in? Reply YES to confirm, or tell me what to change.`;
         reply = summary.trim();
         state.awaitingConfirmation = true;
         state.lastAskedField = undefined;
@@ -449,18 +445,18 @@ All good? Say YES to lock it in, or tell me what to tweak, babe! 🌞`;
               console.error("Google Sheet append error:", sheetErr);
             }
 
-            reply = `Locked in, ${fullName.split(" ")[0]}! Your booking is set like a perfect wave. Confirmation email headed to ${email}. See you ${dateTime} — those panels are gonna be sparkling! Questions? Holler anytime 🌞✨`;
+            reply = `Great — your booking request is confirmed, ${fullName.split(" ")[0]}. A confirmation email has been sent to ${email}. We have you scheduled for ${dateTime}. If anything needs to be updated, just let me know.`;
             state = { ...state, confirmed: true, awaitingConfirmation: false };
           } else {
-            reply = "Hmm, the confirmation email hit a snag — Aaron will reach out to finalize. Sorry about that! 😅";
+            reply = "I ran into an issue sending the confirmation email. Aaron will reach out to finalize your booking.";
             console.error("Email send failed:", emailResult.error);
           }
         } catch (err) {
-          reply = "Booking ran into a little cloud — Aaron will get in touch to sort it. Hang tight!";
+          reply = "I hit an issue while finalizing the booking. Aaron will follow up to get this completed.";
           console.error("Email trigger error:", err);
         }
       } else {
-        reply = "Quick double-check — does everything look right? Say YES to confirm, or tell me what to change. We're so close! 😏";
+        reply = "Quick confirmation: does everything look correct? Reply YES to confirm, or tell me what to update.";
       }
 
       return respondWithLoggedReply(reply, state);
