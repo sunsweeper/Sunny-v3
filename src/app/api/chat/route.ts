@@ -57,18 +57,70 @@ const getDefaultSessionState = (): SessionState => ({
   handoffCollecting: null,
 });
 
-const HANDOFF_LOG_PATH = path.join(process.cwd(), "logs", "handoff-requests.jsonl");
+type ConversationLogEntry = {
+  timestamp: string;
+  session_id: string;
+  role: "user" | "assistant";
+  message: string;
+};
+
+const SERVER_LOG_WEBHOOK_URL = process.env.SUNNY_LOG_WEBHOOK_URL;
+
+async function writeConversationLog(entry: ConversationLogEntry) {
+  console.log("[SUNNY-LOG]", JSON.stringify(entry));
+
+  if (!SERVER_LOG_WEBHOOK_URL) {
+    console.warn("[SUNNY-LOG] SUNNY_LOG_WEBHOOK_URL not set. Logging to console only.");
+    return;
+  }
+
+  try {
+    const response = await fetch(SERVER_LOG_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entry),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error("[SUNNY-LOG] webhook failed:", response.status, body.slice(0, 500));
+    }
+  } catch (error) {
+    console.error("[SUNNY-LOG] webhook error:", error);
+  }
+}
+
+async function logConversationTurn(payload: {
+  sessionId: string;
+  userMessage: string;
+  assistantMessage: string;
+}) {
+  const timestamp = new Date().toISOString();
+  console.log("[SUNNY-LOG] logging conversation turn for session", payload.sessionId);
+
+  await writeConversationLog({
+    timestamp,
+    session_id: payload.sessionId,
+    role: "user",
+    message: payload.userMessage,
+  });
+
+  await writeConversationLog({
+    timestamp,
+    session_id: payload.sessionId,
+    role: "assistant",
+    message: payload.assistantMessage,
+  });
+}
 
 function logHandoffRequest(payload: {
   sessionId: string;
   contact: string;
   message: string;
 }) {
-  fs.mkdirSync(path.dirname(HANDOFF_LOG_PATH), { recursive: true });
-  fs.appendFileSync(
-    HANDOFF_LOG_PATH,
-    `${JSON.stringify({ timestamp: new Date().toISOString(), ...payload })}\n`,
-    "utf8"
+  console.log(
+    "[SUNNY-HANDOFF]",
+    JSON.stringify({ timestamp: new Date().toISOString(), ...payload })
   );
 }
 
@@ -89,6 +141,16 @@ export async function POST(request: Request) {
     const messageLower = message.toLowerCase();
     let currentState = body.state ?? {};
     const sessionId = (body.sessionId || "anonymous").trim() || "anonymous";
+
+    const respondWithLoggedReply = async (reply: string, state: BookingState, status = 200) => {
+      await logConversationTurn({
+        sessionId,
+        userMessage: message || "[empty-message]",
+        assistantMessage: reply,
+      });
+      return NextResponse.json({ reply, state }, { status });
+    };
+
     const now = Date.now();
     const priorSessionState = sessionStateMap.get(sessionId) ?? getDefaultSessionState();
     let sessionState: SessionState = {
@@ -117,11 +179,10 @@ export async function POST(request: Request) {
       sessionState.handoffActive = true;
       sessionState.handoffCollecting = "contact";
       sessionStateMap.set(sessionId, sessionState);
-      return NextResponse.json({
-        reply:
-          "Perfect — I can hand this to a live specialist. What’s the best phone number or email for them to reach you? 🌞",
-        state: currentState,
-      });
+      return respondWithLoggedReply(
+        "Perfect — I can hand this to a live specialist. What’s the best phone number or email for them to reach you? 🌞",
+        currentState
+      );
     }
 
     if (sessionState.handoffActive) {
@@ -129,10 +190,10 @@ export async function POST(request: Request) {
         sessionState.handoffContact = message;
         sessionState.handoffCollecting = "message";
         sessionStateMap.set(sessionId, sessionState);
-        return NextResponse.json({
-          reply: "Got it. Give me a short message about what you need help with, and I’ll pass it along.",
-          state: currentState,
-        });
+        return respondWithLoggedReply(
+          "Got it. Give me a short message about what you need help with, and I’ll pass it along.",
+          currentState
+        );
       }
 
       if (sessionState.handoffCollecting === "message") {
@@ -154,11 +215,10 @@ export async function POST(request: Request) {
         };
         sessionStateMap.set(sessionId, sessionState);
 
-        return NextResponse.json({
-          reply:
-            "Done — I’ve sent your message to a live specialist. Someone from our team will follow up using your contact info soon. ✨",
-          state: currentState,
-        });
+        return respondWithLoggedReply(
+          "Done — I’ve sent your message to a live specialist. Someone from our team will follow up using your contact info soon. ✨",
+          currentState
+        );
       }
     }
 
@@ -171,10 +231,7 @@ export async function POST(request: Request) {
     );
 
     if (!message) {
-      return NextResponse.json(
-        { reply: SAFE_FAIL_MESSAGE, state: currentState },
-        { status: 400 }
-      );
+      return respondWithLoggedReply(SAFE_FAIL_MESSAGE, currentState, 400);
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -210,7 +267,7 @@ export async function POST(request: Request) {
               lastAskedField: undefined,
             };
 
-            return NextResponse.json({ reply, state: currentState });
+            return respondWithLoggedReply(reply, currentState);
           }
         } catch (err) {
           console.error("Pricing load error:", err);
@@ -406,7 +463,7 @@ All good? Say YES to lock it in, or tell me what to tweak, babe! 🌞`;
         reply = "Quick double-check — does everything look right? Say YES to confirm, or tell me what to change. We're so close! 😏";
       }
 
-      return NextResponse.json({ reply, state });
+      return respondWithLoggedReply(reply, state);
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -444,7 +501,7 @@ All good? Say YES to lock it in, or tell me what to tweak, babe! 🌞`;
       state = { confirmed: true };
     }
 
-    return NextResponse.json({ reply, state });
+    return respondWithLoggedReply(reply, state);
   } catch (error: unknown) {
     console.error("Chat API error:", error);
     return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: {} });
