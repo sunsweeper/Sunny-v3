@@ -1,0 +1,157 @@
+{
+  "domain": "solar_knowledge",
+  "last_updated": "2026-03-13",
+  "description": "Practical knowledge about solar panel cleaning, panel soiling, and environmental conditions affecting solar systems. Includes residential, commercial, industrial, and agricultural environments common on the California Central Coast.",
+
+  "general_solar_cleaning_facts": {
+
+    "why_panels_get_dirty": {
+      "summary": "Solar panels accumulate dust, pollen, bird droppings, and airborne particles that reduce system efficiency.",
+      "common_sources": [
+        "agricultural dust",
+        "pollen",
+        "bird droppings",
+        "airborne dirt",
+        "construction dust",
+        "marine layer residue"
+      ]
+    },
+
+    "rain_myth": {
+      "summary": "Rain does not clean solar panels.",
+      "key_points": [
+        "Rain rinses loose dust but does not remove the dirt film bonded to solar glass.",
+        "Bird droppings, pollen, and sticky residues remain on the panels after rain.",
+        "As rainwater dries it often leaves behind mineral residue patterns."
+      ],
+      "approved_customer_answer": "Rain does not clean solar panels. It rinses loose dust but leaves behind the dirt film, pollen, and bird droppings that reduce system efficiency."
+    },
+
+    "soiling_effects": {
+      "summary": "Soiling reduces solar production and causes a measurable drop in system efficiency.",
+      "key_points": [
+        "Dust buildup blocks sunlight from reaching the solar cells.",
+        "Bird droppings create shaded areas that limit panel output.",
+        "Uneven dirt patterns cause sections of the array to produce less power."
+      ]
+    },
+
+    "recommended_cleaning_frequency": {
+      "general_guidance": [
+        "Most residential systems benefit from cleaning every 6 to 12 months.",
+        "Dust heavy environments require more frequent cleaning.",
+        "Large commercial arrays benefit from scheduled maintenance programs."
+      ]
+    }
+
+  },
+
+  "central_coast_environment": {
+    "summary": "The Central Coast produces strong solar panel soiling conditions due to agriculture and coastal weather patterns.",
+    "factors": [
+      "agricultural soil dust from surrounding fields",
+      "seasonal pollen from crops and trees",
+      "marine layer residue that dries onto solar glass",
+      "wind carrying fine soil particles across rooftops"
+    ],
+    "impact_statement": "Solar systems located in agricultural regions accumulate dust faster than typical suburban installations."
+  },
+
+  "commercial_and_industrial_solar": {
+
+    "summary": "Commercial solar installations operate on a much larger scale than residential systems and require structured maintenance to maintain production.",
+
+    "common_installations": [
+      "warehouse rooftops",
+      "industrial buildings",
+      "shopping centers",
+      "schools",
+      "manufacturing facilities",
+      "solar carport structures"
+    ],
+
+    "system_scale": [
+      "Commercial arrays often contain hundreds or thousands of panels.",
+      "Energy production from these systems offsets large operational electricity costs."
+    ],
+
+    "soiling_characteristics": [
+      "Large flat rooftops collect dust and debris quickly.",
+      "Industrial activity releases airborne particulates that settle on panels.",
+      "Bird activity increases around large rooftop structures."
+    ],
+
+    "maintenance_value": [
+      "Cleaning restores solar production across large arrays.",
+      "Even small efficiency losses across hundreds of panels result in significant energy loss.",
+      "Routine maintenance protects long term system performance."
+    ]
+
+  },
+
+  "agricultural_commercial_solar": {
+
+    "summary": "Solar systems located in agricultural environments accumulate dust faster than almost any other type of installation.",
+
+    "typical_locations": [
+      "produce cooling facilities",
+      "packing houses",
+      "cold storage warehouses",
+      "agricultural processing facilities"
+    ],
+
+    "environmental_conditions": [
+      "constant airborne soil dust from surrounding farm fields",
+      "tractor and equipment movement stirring up soil particles",
+      "wind carrying fine agricultural dust onto rooftops",
+      "harvest activity dramatically increasing dust levels"
+    ],
+
+    "panel_soiling_behavior": [
+      "fine soil dust forms a uniform film across the solar glass",
+      "dust accumulation increases rapidly during planting and harvest seasons",
+      "large exposed arrays collect dust from every direction"
+    ],
+
+    "central_coast_ag_example": {
+      "description": "Produce cooling and packing facilities commonly sit in the middle of active agricultural fields and typically install large rooftop solar systems.",
+      "key_points": [
+        "Cooling facilities operate refrigeration systems with heavy electrical demand.",
+        "Solar arrays offset a large portion of that electricity consumption.",
+        "Dust from surrounding farmland settles continuously onto the solar panels."
+      ]
+    },
+
+    "maintenance_importance": [
+      "Dust buildup directly reduces energy production across large arrays.",
+      "Agricultural facilities benefit from more frequent solar panel cleaning.",
+      "Routine cleaning supports consistent production during peak harvest operations."
+    ]
+
+  },
+
+  "safe_cleaning_principles": {
+    "summary": "Solar panels require cleaning methods designed specifically for solar glass and electrical equipment.",
+    "best_practices": [
+      "Use non abrasive cleaning tools.",
+      "Use purified water where spotting is a concern.",
+      "Avoid harsh chemicals unless appropriate.",
+      "Avoid direct high pressure spraying on solar panels."
+    ]
+  },
+
+  "customer_education_snippets": [
+    {
+      "topic": "rain_vs_cleaning",
+      "text": "Rain rinses loose dust but it does not remove the dirt film, pollen, and bird droppings that reduce solar production."
+    },
+    {
+      "topic": "agriculture_dust",
+      "text": "Solar panels located near agricultural fields collect fine soil dust that forms a film across the glass surface."
+    },
+    {
+      "topic": "commercial_arrays",
+      "text": "Large commercial solar systems contain hundreds or thousands of panels, so even small efficiency losses add up quickly."
+    }
+  ]
+}
