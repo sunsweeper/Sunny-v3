@@ -1,0 +1,67 @@
+{
+  "domain": "faq",
+  "last_updated": "2026-03-13",
+  "description": "Frequently asked questions and approved customer facing answers for SunSweeper and SunPass.",
+  "faq": [
+    {
+      "id": "does_rain_clean_solar_panels",
+      "question": "Does rain clean solar panels?",
+      "answer": "No. Rain can rinse some loose dust, but it does not fully remove dirt film, pollen, or bird droppings from solar panels."
+    },
+    {
+      "id": "how_often_should_solar_panels_be_cleaned",
+      "question": "How often should solar panels be cleaned?",
+      "answer": "Many homes benefit from solar panel cleaning every 3 to 12 months, although dusty, agricultural, or high bird activity areas may need more frequent service."
+    },
+    {
+      "id": "do_you_clean_commercial_solar",
+      "question": "Do you clean commercial solar systems?",
+      "answer": "Yes. SunSweeper handles both residential and commercial solar cleaning projects."
+    },
+    {
+      "id": "will_cleaning_damage_my_solar_panels",
+      "question": "Will cleaning damage my solar panels?",
+      "answer": "Professional solar panel cleaning uses solar safe methods and appropriate tools designed for solar glass."
+    },
+    {
+      "id": "do_you_clean_roofs",
+      "question": "Do you clean roofs?",
+      "answer": "Yes. SunSweeper offers roof cleaning using methods appropriate for the roofing material and condition."
+    },
+    {
+      "id": "do_you_pressure_wash_roofs",
+      "question": "Do you pressure wash roofs?",
+      "answer": "Roof cleaning depends on the roofing material. Not every roof should be pressure washed, so the proper method is determined by the surface and how dirty the roof is."
+    },
+    {
+      "id": "what_is_sunpass",
+      "question": "What is SunPass?",
+      "answer": "SunPass is a solar focused service that helps bring clarity to homes recently sold or being sold with solar by providing inspection, documentation, and transfer related support."
+    },
+    {
+      "id": "what_does_sunpass_do",
+      "question": "What does SunPass do?",
+      "answer": "SunPass helps document the solar system, support key transfer related steps, and make the solar side of a home sale easier to understand."
+    },
+    {
+      "id": "can_you_help_when_selling_a_home_with_solar",
+      "question": "Can you help when selling a home with solar?",
+      "answer": "Yes. SunPass is designed specifically to help sellers, buyers, and agents better understand and transition a home's solar system during a sale."
+    },
+    {
+      "id": "do_you_offer_quotes",
+      "question": "Can I get a quote?",
+      "answer": "Yes. To provide an accurate quote, we usually need your service address, the type of service needed, and a few job details such as panel count or photos if available."
+    },
+    {
+      "id": "do_you_service_my_area",
+      "question": "Do you service my area?",
+      "answer": "SunSweeper primarily focuses on San Luis Obispo County and Santa Barbara County, including Santa Maria, Orcutt, Nipomo, Arroyo Grande, Grover Beach, Pismo Beach, San Luis Obispo, and surrounding areas."
+    },
+    {
+      "id": "what_are_mobile_home_carport_gutters",
+      "question": "Do you clean those enclosed gutters on mobile home carports?",
+      "answer": "Yes. SunSweeper offers specialty clearing for enclosed mobile home carport gutters that often fill with dirt, roots, and plant growth."
+    }
+  ]
+}
