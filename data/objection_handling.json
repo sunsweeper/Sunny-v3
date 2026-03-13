@@ -1,0 +1,115 @@
+{
+  "domain": "objection_handling",
+  "last_updated": "2026-03-13",
+  "description": "Guidelines and responses for handling common customer objections related to solar cleaning, roof cleaning, SunPass services, and exterior cleaning.",
+
+  "response_principles": {
+    "tone": [
+      "calm",
+      "confident",
+      "helpful",
+      "experienced contractor"
+    ],
+    "rules": [
+      "Always acknowledge the customer's concern first.",
+      "Explain the reality in simple language.",
+      "Avoid sounding argumentative or defensive.",
+      "Offer helpful information rather than pressure."
+    ]
+  },
+
+  "objections": [
+
+    {
+      "id": "rain_will_clean_panels",
+      "customer_statement_examples": [
+        "Rain cleans my panels.",
+        "I don't need cleaning because it rains.",
+        "The installer said rain would clean them."
+      ],
+      "response": "Does the rain clean the windshield on your car? Rain rinses loose dust, but it does not remove the dirt film, pollen, or bird droppings that stick to the glass. Over time that buildup blocks sunlight and reduces your system's efficiency."
+    },
+
+    {
+      "id": "panels_do_not_look_dirty",
+      "customer_statement_examples": [
+        "My panels look clean.",
+        "They don't look that dirty."
+      ],
+      "response": "Most solar panels collect a thin dust film that is hard to see from the ground. Once you get on the roof and see them up close, it is obvious that most panels are very dirty. That layer of dust still blocks sunlight and reduces production."
+    },
+
+    {
+      "id": "trying_to_save_money",
+      "customer_statement_examples": [
+        "I'm trying to save money right now.",
+        "I can't spend money on that."
+      ],
+      "response": "That makes total sense and that's probably why you went solar in the first place. The thing is, dirty panels mean your system is producing less than it should, which means your electric bill is higher than it needs to be. A cleaning pays for itself in recovered production. You're not spending money  you're protecting the savings you're already supposed to be getting.."
+    },
+
+    {
+      "id": "ill_wait_until_next_year",
+      "customer_statement_examples": [
+        "I'll wait until next year.",
+        "I'll get it done later."
+      ],
+      "response": "Totally up to you, there's no rush. Just keep in mind that every month you wait is another month your system is underperforming and your electric bill is higher than it needs to be. Whenever you're ready, we're here."
+    },
+
+    {
+      "id": "roof_damage_concern",
+      "customer_statement_examples": [
+        "I'm worried about roof damage.",
+        "I don't want anyone walking on my roof."
+      ],
+      "response": "That is a common concern. Roof work should always be done carefully and with the right approach for the roofing material. Our employees are trained to walk safely on all roof types.  Additionally, we carry a $2,000,000 general liability policy to give you that piece of mind in the event an accident does happen."
+    },
+
+    {
+      "id": "pressure_washing_concern",
+      "customer_statement_examples": [
+        "Pressure washing will damage my roof.",
+        "I heard pressure washing roofs is bad."
+      ],
+      "response": "The cleaning methodology we use depends on the roofing material and the condition of the roof. Asphalt shingle roofs are handled differently than a concrete roof which is also handled differently than a clay tile roof.  But, in the end, most roof types are able to be safely cleaned by a knowledgeable SunSweeper using a pressure washer."
+    },
+
+    {
+      "id": "dont_understand_sunpass",
+      "customer_statement_examples": [
+        "Why would I need SunPass?",
+        "What does SunPass actually do?"
+      ],
+      "response": "SunPass documents solar systems. Many homeowners do not have clear records of their solar equipment. SunPass identifies and documents the system so homeowners, buyers, and real estate professionals understand what is installed, how much warranty is left, and is the system operational."
+    },
+
+    {
+      "id": "home_sale_solar_confusion",
+      "customer_statement_examples": [
+        "I don't know how my solar system transfers when I sell my home.",
+        "What happens to the solar when the house sells?"
+      ],
+      "response": "Solar transfers can get complicated fast. If the system is leased or under a PPA, the new buyer has to qualify to assume that contract — and if they can't, it can stall or kill the deal. Even owned systems often have incomplete paperwork, which creates doubt for buyers. SunPass documents exactly what's installed, what warranty remains, and whether the system is operational — so there are no surprises in escrow.."
+    },
+
+    {
+      "id": "commercial_solar_question",
+      "customer_statement_examples": [
+        "Our building has a large solar system.",
+        "This is a commercial site."
+      ],
+      "response": "Commercial solar systems are common on large rooftops. Those projects usually require a quick review of the site so the cleaning plan, access, water availability and overall scope can be evaluated properly."
+    },
+
+    {
+      "id": "agriculture_dust_objection",
+      "customer_statement_examples": [
+        "Our facility is in the middle of farm fields.",
+        "Dust is just part of being out here."
+      ],
+      "response": "That is true. Agricultural businesses are by nature usually located around lots of dirt and that's great for plants and animals but not so great for photovoltaic cells requiring unobstructed access to sunlight. That dust settles across solar panels and creates a film that majorly reduces system efficiency, which is why if agricultural facilities are not cleaning their panels regularly are leaving money on the table."
+    }
+
+  ]
+}
