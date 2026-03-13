@@ -1,52 +1,143 @@
 {
-  "name": "SunPass",
-  "tagline": "Solar clarity for homeowners",
-  "description": "SunPass helps buyers, sellers, agents, and escrow professionals understand solar systems during real estate transactions. It provides solar inspection and solar ownership transition support so everyone involved knows what the system is and how it benefits the property.",
-  "purpose": "SunPass was created to remove confusion around solar during home sales.",
-  "services": [
-    "Solar system inspection for homes being sold",
-    "Solar system documentation and reporting",
-    "Panel count and equipment identification",
-    "Inverter identification and monitoring guidance",
-    "Net metering status verification when possible",
-    "Guidance for solar ownership transition",
-    "Warranty transfer guidance",
-    "Monitoring reconnection guidance"
-  ],
-  "audience": [
-    "Home buyers",
-    "Home sellers",
-    "Real estate agents",
-    "Escrow officers"
-  ],
-  "lead_capture_fields": [
-    "full_name",
-    "email",
-    "phone_optional",
-    "property_address_optional",
-    "role",
-    "notes"
-  ],
-  "lead_intent_phrases": [
-    "have someone contact me",
-    "reach out to me",
-    "have sunpass contact me",
-    "i want more info",
-    "i am buying a home with solar",
-    "i am selling a home with solar",
-    "i am an agent",
-    "i need help with solar on a home sale"
-  ],
-  "about_chat_response": {
-    "intro": "SunPass helps people understand solar during a home sale with clear practical guidance from start to close.",
-    "purpose": "Our goal is to remove confusion so buyers sellers agents and escrow teams can move forward with confidence.",
-    "who_it_helps": "SunPass supports homeowners buyers sellers real estate agents and escrow professionals across solar related transactions.",
-    "what_it_includes": "Support can include solar system review ownership transfer guidance warranty transfer support monitoring reconnect guidance and plain language reporting.",
-    "cta": "If you want SunPass to reach out, tell me and I will collect your details here in chat and pass them to the team."
+  "domain": "sunpass",
+  "last_updated": "2026-03-13",
+  "description": "SunPass services focus on documenting solar systems, helping homeowners understand their solar equipment, and supporting solar system transitions during real estate transactions.",
+
+  "brand": {
+    "name": "SunPass",
+    "tagline": "Documenting Solar Systems",
+    "short_description": "SunPass provides professional solar system documentation, inspection, and homeowner support services.",
+    "core_idea": "Most solar systems lack clear documentation and understanding. SunPass exists to document solar systems and help people understand what they have."
   },
-  "cta_examples": [
-    "If you want someone from SunPass to reach out, I can pass your info along.",
-    "If you are buying or selling a home with solar, I can have our team contact you.",
-    "If you want a SunPass specialist to follow up, I can help with that."
-  ]
+
+  "who_sunpass_serves": {
+    "primary_audiences": [
+      "Homeowners selling homes with solar",
+      "Home buyers purchasing homes with solar",
+      "Real estate agents",
+      "Escrow professionals",
+      "Existing homeowners with solar questions"
+    ]
+  },
+
+  "core_services": [
+
+    {
+      "service_id": "solar_system_documentation",
+      "name": "Solar System Documentation",
+      "description": "SunPass documents the components and configuration of an installed solar system so homeowners and buyers clearly understand the system.",
+      "includes": [
+        "panel brand identification when possible",
+        "panel count",
+        "inverter identification",
+        "battery identification if present",
+        "system size estimation when possible",
+        "basic condition observations"
+      ],
+      "value": [
+        "Creates a clear record of the solar system",
+        "Helps homeowners understand what equipment they have",
+        "Provides useful documentation during real estate transactions"
+      ]
+    },
+
+    {
+      "service_id": "pre_sale_solar_inspection",
+      "name": "Pre Sale Solar Inspection",
+      "description": "A solar focused inspection designed for homes preparing to go on the market.",
+      "includes": [
+        "panel count verification",
+        "equipment identification",
+        "visual condition observations",
+        "documentation report for agents and buyers"
+      ],
+      "value": [
+        "Reduces uncertainty during the home sale process",
+        "Provides solar information early in the transaction",
+        "Helps agents answer buyer questions"
+      ]
+    },
+
+    {
+      "service_id": "solar_transfer_support",
+      "name": "Solar Transfer Support",
+      "description": "Assistance with the transition of a solar system from seller to buyer during a home sale.",
+      "includes": [
+        "documentation of system equipment",
+        "guidance on warranty transfer steps when applicable",
+        "guidance on monitoring setup for the new homeowner"
+      ],
+      "value": [
+        "Makes solar easier to transfer during escrow",
+        "Helps buyers understand what system they are inheriting",
+        "Reduces confusion during closing"
+      ]
+    },
+
+    {
+      "service_id": "inverter_reconnection_help",
+      "name": "Inverter Monitoring Reconnection",
+      "description": "After a home sale, SunPass can help reconnect the solar monitoring system to the new homeowner's internet.",
+      "includes": [
+        "inverter wifi reconnection",
+        "monitoring setup assistance",
+        "basic homeowner orientation"
+      ],
+      "value": [
+        "Restores solar monitoring visibility",
+        "Helps new homeowners confirm their system is operating"
+      ]
+    }
+
+  ],
+
+  "existing_homeowner_services": {
+
+    "description": "SunPass also supports homeowners who already have solar but want help understanding their system.",
+
+    "common_homeowner_questions": [
+      "How many panels do I have?",
+      "What brand of panels are installed?",
+      "What inverter do I have?",
+      "How big is my solar system?",
+      "Why is my system producing less power?",
+      "Is my system operating normally?"
+    ],
+
+    "services_for_homeowners": [
+      "solar system documentation",
+      "basic system walkthrough",
+      "equipment identification",
+      "monitoring reconnection help",
+      "solar panel cleaning through SunSweeper"
+    ],
+
+    "customer_friendly_explanation": "Many homeowners inherit solar systems with very little documentation. SunPass helps identify and document the system so the homeowner understands what equipment they have."
+  },
+
+  "relationship_to_sunsweeper": {
+
+    "description": "SunPass and SunSweeper work together but serve different roles.",
+
+    "sunsweeper_role": "SunSweeper performs the physical cleaning and maintenance services such as solar panel cleaning and roof cleaning.",
+
+    "sunpass_role": "SunPass focuses on documenting solar systems and helping people understand their solar equipment."
+  },
+
+  "realtor_value": {
+    "key_points": [
+      "Provides clear solar system documentation for listings",
+      "Helps real estate agents answer buyer questions about solar",
+      "Reduces confusion around solar equipment during escrow"
+    ]
+  },
+
+  "customer_interaction_rules": {
+    "tone": "clear, knowledgeable, and helpful",
+    "important_notes": [
+      "SunPass does not install solar systems.",
+      "SunPass does not sell solar systems.",
+      "SunPass documents and helps explain existing solar systems."
+    ]
+  }
 }
