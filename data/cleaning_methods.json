@@ -1,0 +1,124 @@
+{
+  "domain": "cleaning_methods",
+  "last_updated": "2026-03-13",
+  "description": "Definitions and use cases for the cleaning methods relevant to SunSweeper services.",
+  "methods": {
+    "pressure_washing": {
+      "name": "Pressure Washing",
+      "description": "A cleaning method that uses pressurized water for durable surfaces that can safely handle it.",
+      "appropriate_for": [
+        "Concrete",
+        "Driveways",
+        "Walkways",
+        "Parking lots",
+        "Some hard exterior flatwork"
+      ],
+      "not_appropriate_for": [
+        "Solar panels",
+        "asphalt shingle roofs",
+        "Delicate painted surfaces",
+        "Materials that can be etched, lifted, or damaged"
+      ],
+      "key_points": [
+        "Best for durable hard surfaces",
+        "Method choice depends on surface type",
+        "More pressure is not always better"
+      ]
+    },
+    "soft_washing": {
+      "name": "Soft Washing",
+      "description": "A low pressure chemical cleaning approach used on more delicate surfaces where aggressive pressure could cause damage.",
+      "appropriate_for": [
+        "asphalt shingle roofs",
+        "Stucco",
+        "Painted siding",
+        "Other surfaces requiring gentler treatment"
+      ],
+      "not_appropriate_for": [
+        "Situations where only high pressure would remove embedded buildup from durable flatwork"
+        "very dirty roofs of any material type as it will only bake on the dead organic material"
+      ],
+      "key_points": [
+        "Uses low pressure and chemicals",
+        "Chosen when the surface needs a gentler method",
+        "Often used for stucco home cleaning work"
+      ]
+    },
+    "purified_water_cleaning": {
+      "name": "Purified Water Cleaning",
+      "description": "A cleaning method that uses purified water to help clean surfaces without leaving hard water spotting.",
+      "appropriate_for": [
+        "Solar panels",
+        "Glass sensitive cleaning applications",
+        "Surfaces where spotting is a concern"
+      ],
+      "key_points": [
+        "Helpful for reducing spotting",
+        "Commonly used in solar panel cleaning",
+        "Supports a cleaner finish on glass like surfaces"
+      ]
+    },
+    "hydro_jet_flushing": {
+      "name": "Hydro Jet Flushing",
+      "description": "A focused water based flushing method used to break up and move sediment, roots, and debris from narrow enclosed channels.",
+      "appropriate_for": [
+        "Enclosed mobile home carport gutters",
+        "Narrow debris packed drainage channels where access is limited"
+      ],
+      "key_points": [
+        "Useful for restoring flow in enclosed gutter systems",
+        "Effective where hand cleaning alone is difficult",
+        "Best used with judgment based on the condition of the system"
+      ]
+    },
+    "manual_debris_removal": {
+      "name": "Manual Debris Removal",
+      "description": "Physical removal of debris by hand or hand tools where direct extraction is needed before flushing or finishing.",
+      "appropriate_for": [
+        "Leaf filled gutters",
+        "Heavy root mats",
+        "Areas where material must be physically pulled out before water flow can be restored"
+      ],
+      "key_points": [
+        "Often paired with flushing methods",
+        "Useful when roots or compacted sediment are present"
+      ]
+    }
+  },
+  "surface_guidance": {
+    "solar_panels": {
+      "recommended_methods": [
+        "Purified Water Cleaning",
+        "Solar safe manual cleaning tools"
+      ],
+      "avoid": [
+        "Direct high pressure washing",
+        "Abrasive tools"
+      ],
+      "customer_friendly_answer": "Solar panels should be cleaned with solar safe methods, not blasted with high pressure."
+    },
+    "roofs": {
+      "recommended_methods": [
+        "Surface specific evaluation",
+        "Soft washing or pressure washing"
+      ],
+      "avoid": [
+        "Treating every roof the same"
+      ],
+      "customer_friendly_answer": "The right roof cleaning method depends on the roofing material and soiling level. A proper evaluation matters."
+    },
+    "concrete": {
+      "recommended_methods": [
+        "Pressure washing"
+      ],
+      "customer_friendly_answer": "Concrete and metal are often a good candidates for pressure washing because they are durable surfaces."
+    },
+    "mobile_home_carport_gutters": {
+      "recommended_methods": [
+        "Manual Debris Removal",
+        "Hydro Jet Flushing"
+      ],
+      "customer_friendly_answer": "Those enclosed carport gutters often need specialty clearing because they pack full of dirt, roots, and plant growth."
+    }
+  }
+}
