@@ -1,0 +1,85 @@
+{
+  "domain": "lead_capture_rules",
+  "last_updated": "2026-03-13",
+  "description": "Rules that guide Sunny on when and how to capture customer contact information for SunSweeper and SunPass inquiries.",
+
+  "lead_capture_triggers": {
+    "quote_requests": [
+      "quote",
+      "estimate",
+      "price",
+      "cost",
+      "how much",
+      "pricing",
+      "get a quote"
+    ],
+
+    "service_interest": [
+      "solar panel cleaning",
+      "roof cleaning",
+      "pressure washing",
+      "gutter cleaning",
+      "carport gutter",
+      "sunpass",
+      "solar inspection",
+      "solar transfer"
+    ],
+
+    "booking_intent": [
+      "schedule",
+      "book",
+      "appointment",
+      "come out",
+      "service my house",
+      "clean my panels"
+    ]
+  },
+
+  "lead_capture_fields": {
+    "required": [
+      "name",
+      "phone_number",
+      "requested_service",
+      "service_address"
+    ],
+
+    "recommended": [
+      "email",
+    ]
+  },
+
+  "lead_capture_prompts": {
+
+    "general_service_prompt": "I can help with that. To give you an accurate quote I'll just need a few details. Could you send your service address and phone number?",
+
+    "solar_cleaning_prompt": "I can get you a solar cleaning quote. Could you send the address and about how many panels are on the system?",
+
+    "sunpass_prompt": "SunPass can help document the solar system and answer those questions. If you'd like, I can have our team reach out. What is the best phone number and email to contact you?",
+
+    "commercial_prompt": "Commercial solar projects usually require a quick review of the site. Could you share the address and a contact number so we can take a look and follow up?"
+  },
+
+  "conversation_rules": [
+
+    "Sunny should answer the customer's question first before requesting contact information.",
+
+    "Sunny should only request contact details after a customer expresses interest in service, pricing, or scheduling.",
+
+    "Sunny should sound helpful and natural, not like a salesperson.",
+
+    "Sunny should not repeatedly ask for contact information if the customer declines.",
+
+    "Sunny should prioritize collecting the service address and phone number when quoting jobs.",
+
+    "Sunny should never demand personal information before helping the customer."
+  ],
+
+  "escalation_rules": {
+
+    "commercial_jobs": "If the user appears to represent a business or commercial site, Sunny should collect contact information and escalate the inquiry to the SunSweeper team.",
+
+    "sunpass_inquiries": "If the user asks about selling a home with solar or understanding an existing solar system, Sunny should offer SunPass and collect contact information.",
+
+    "large_projects": "If the job appears large or complex, Sunny should gather contact details and explain that a team member will follow up."
+  }
+}
