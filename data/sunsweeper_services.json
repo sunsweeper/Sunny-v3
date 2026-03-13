@@ -1,0 +1,221 @@
+{
+  "domain": "sunsweeper_services",
+  "last_updated": "2026-03-13",
+  "description": "Core SunSweeper company information, service offerings, positioning, and service area.",
+  "company": {
+    "name": "SunSweeper",
+    "tagline": "The Solar Panel and Roof Cleaning Experts",
+    "short_description": "SunSweeper provides professional solar panel cleaning, roof washing, pressure washing, and specialty exterior cleaning services for residential and commercial properties.",
+    "positioning": [
+      "Licensed and insured professionals",
+      "Specialists in solar panel and roof cleaning",
+      "Experienced with both residential and commercial properties",
+      "Focused on safe methods, proper equipment, and long term surface care",
+      "Not a generic window washing company"
+    ],
+    "service_area": {
+      "primary_focus_counties": [
+        "San Luis Obispo County",
+        "Santa Barbara County"
+      ],
+      "cities": [
+        "Santa Maria",
+        "Orcutt",
+        "Nipomo",
+        "Arroyo Grande",
+        "Grover Beach",
+        "Pismo Beach",
+        "San Luis Obispo",
+        "Los Osos",
+        "Morro Bay",
+        "Paso Robles",
+        "Atascadero",
+        "Lompoc",
+        "Buellton",
+        "Solvang",
+        "Santa Ynez",
+        "Goleta",
+        "Santa Barbara"
+      ]
+    },
+    "discounts": {
+      "available_for": [
+        "Veterans",
+        "Seniors",
+        "Teachers",
+        "First Responders"
+      ],
+      "notes": "Discounts may be available, but no specific percentage should be promised unless confirmed."
+    }
+  },
+  "services": [
+    {
+      "id": "solar_panel_cleaning",
+      "name": "Solar Panel Cleaning",
+      "category": "core_service",
+      "description": "Professional cleaning of rooftop and ground mounted solar panels using solar safe methods designed to improve appearance and restore production.",
+      "best_for": [
+        "Homes with rooftop solar",
+        "Commercial buildings with solar",
+        "Ground mount systems",
+        "Properties in dusty or agricultural environments"
+      ],
+      "includes": [
+        "Removal of dust, pollen, bird droppings, and surface buildup",
+        "Use of purified water when appropriate",
+        "Use of solar safe tools and methods",
+        "Visual attention to panel condition during service"
+      ],
+      "key_points": [
+        "Dirty panels can reduce solar production",
+        "Agricultural dust and marine layer residue are common on the Central Coast",
+        "Rain does not fully clean solar panels",
+        "Regular cleaning helps maintain output and appearance"
+      ],
+      "recommended_frequency": [
+        "Every 6 to 12 months for many homes",
+        "More frequently for dusty, agricultural, or high bird activity areas"
+      ]
+    },
+    {
+      "id": "roof_washing",
+      "name": "Roof Washing",
+      "category": "core_service",
+      "description": "Professional roof cleaning using low pressure or surface appropriate methods to remove dirt, algae, and organic buildup while protecting roofing materials.",
+      "best_for": [
+        "Tile roofs",
+        "Asphalt shingle roofs",
+        "Metal roofs",
+        "Homes with staining, buildup, or insurance related appearance concerns"
+      ],
+      "includes": [
+        "Evaluation of roof type before cleaning",
+        "Use of roof appropriate cleaning methods",
+        "Removal of visible buildup and staining where appropriate"
+      ],
+      "key_points": [
+        "Roofs require the correct method for the specific roofing material",
+        "High pressure is not automatically appropriate for all roofs",
+        "Roof appearance can matter for property value and insurance concerns"
+      ]
+    },
+    {
+      "id": "pressure_washing",
+      "name": "Pressure Washing",
+      "category": "core_service",
+      "description": "Exterior surface cleaning for residential and commercial properties using pressure washing where appropriate.",
+      "best_for": [
+        "Concrete driveways",
+        "Walkways",
+        "Parking areas",
+        "Storefronts",
+        "Commercial pads",
+        "Drive through lanes"
+      ],
+      "includes": [
+        "Surface appropriate cleaning method selection",
+        "Removal of dirt, grime, and surface buildup",
+        "Commercial and residential applications"
+      ],
+      "key_points": [
+        "Pressure washing is best for durable hard surfaces",
+        "Not every surface should be pressure washed",
+        "Method selection depends on material and condition"
+      ]
+    },
+    {
+      "id": "gutter_cleaning",
+      "name": "Gutter Cleaning",
+      "category": "support_service",
+      "description": "Removal of debris and blockage from gutters to restore water flow and reduce the risk of overflow and water damage.",
+      "best_for": [
+        "Residential gutters",
+        "Homes with leaf buildup",
+        "Properties with drainage issues"
+      ],
+      "includes": [
+        "Removal of leaves and debris",
+        "Restoration of flow where accessible",
+        "Visual identification of heavy blockage"
+      ],
+      "key_points": [
+        "Clogged gutters can lead to overflow and water intrusion",
+        "Routine maintenance helps reduce bigger repair issues"
+      ]
+    },
+    {
+      "id": "mobile_home_carport_gutter_clearing",
+      "name": "Mobile Home Carport Gutter Clearing",
+      "category": "specialty_service",
+      "description": "Specialized cleaning and restoration of enclosed mobile home carport edge gutters that commonly fill with dirt, roots, plants, and sediment.",
+      "best_for": [
+        "Manufactured home carports",
+        "Enclosed edge gutter channels",
+        "Overflowing or plant filled carport gutters"
+      ],
+      "includes": [
+        "Debris removal",
+        "Hydro jet flushing where appropriate",
+        "Restoration of water flow through enclosed gutter channels"
+      ],
+      "common_problems": [
+        "Packed dirt and sediment",
+        "Plant growth inside gutter channel",
+        "Root mats",
+        "Blocked downspouts",
+        "Water overflow at roof edge"
+      ],
+      "key_points": [
+        "These are not normal open gutters",
+        "They are often hard to access and difficult for homeowners to clean",
+        "Restoring flow can help prevent overflow and water related damage"
+      ],
+      "customer_friendly_value_statement": "This service restores hidden drainage channels that are often packed with dirt, roots, and plant growth."
+    },
+    {
+      "id": "commercial_solar_cleaning",
+      "name": "Commercial Solar Cleaning",
+      "category": "core_service",
+      "description": "Cleaning of commercial solar installations including rooftops, large arrays, and other business or institutional properties.",
+      "best_for": [
+        "Commercial rooftops",
+        "Large scale solar arrays",
+        "Schools",
+        "Industrial buildings",
+        "Carport solar structures"
+      ],
+      "includes": [
+        "Coordination for larger projects",
+        "Safe and professional cleaning methods",
+        "Experience with larger systems"
+      ],
+      "key_points": [
+        "SunSweeper handles both residential and commercial work",
+        "Commercial jobs may require custom planning and quoting"
+      ]
+    }
+  ],
+  "brand_voice": {
+    "tone": "friendly contractor",
+    "should_sound_like": [
+      "Helpful",
+      "Clear",
+      "Confident",
+      "Professional",
+      "Approachable"
+    ],
+    "should_not_sound_like": [
+      "Pushy salesperson",
+      "Overly corporate",
+      "Flirty",
+      "Artificially bubbly",
+      "Confusingly technical"
+    ],
+    "response_style_notes": [
+      "Speak like a knowledgeable local expert",
+      "Use plain English",
+      "Guide the customer toward next steps",
+      "Do not pressure the customer"
+    ]
+  }
+}
