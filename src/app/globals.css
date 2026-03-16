@@ -195,11 +195,12 @@ footer {
 
 .service-dropdown-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: 100%;
   left: 50%;
   transform: translateX(-50%);
   min-width: 230px;
   padding: 8px;
+  margin-top: 0;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(17, 32, 53, 0.96);
@@ -208,6 +209,15 @@ footer {
   display: grid;
   gap: 4px;
   z-index: 20;
+}
+
+.service-dropdown-menu::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
 }
 
 .service-dropdown-item {
