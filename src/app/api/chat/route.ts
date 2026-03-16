@@ -462,14 +462,31 @@ function parseStorey(message: string): "1" | "2" | null {
 }
 
 function parseLastCleaned(message: string): "never" | "lt2" | "gt2" | null {
-  if (/never|not.*clean|first.*time|brand.?new/i.test(message)) return "never";
-  if (/\b(within|less|under|recent)\s*(the\s*)?(last\s*)?(1|2|one|two)\s*year/i.test(message))
-    return "lt2";
-  if (/\blast\s*year\b/i.test(message)) return "lt2";
-  if (/\b[3-9]\s*year|\b[1-9]\d+\s*year/i.test(message)) return "gt2";
-  if (/\b(over|more than|greater than|beyond)\s*(2|two)\s*year/i.test(message)) return "gt2";
-  if (/\b2\s*year/i.test(message)) return "gt2";
-  if (/\b(few|couple|several|some)\s*year/i.test(message)) return "gt2";
+  const m = message.toLowerCase();
+
+  // Never cleaned
+  if (/never|not.*clean|first.*time|brand.?new/i.test(m)) return "never";
+
+  // Explicit "more than 2 years" phrasing
+  if (/\b(over|more than|greater than|beyond)\s*(2|two)\s*year/i.test(m)) return "gt2";
+
+  // 3+ years ago = gt2
+  if (/\b[3-9]\s*year|\b[1-9]\d+\s*year/i.test(m)) return "gt2";
+  if (/\b(few|couple|several|some)\s*year/i.test(m)) return "gt2";
+
+  // Specific short timeframes = lt2
+  if (/\b\d+\s*(day|days|week|weeks|month|months)\s*(ago)?/i.test(m)) return "lt2";
+
+  // "1 year ago", "last year", "a year ago" = lt2
+  if (/\b(1|one|a)\s*year\s*(ago)?/i.test(m)) return "lt2";
+  if (/\blast\s*year\b/i.test(m)) return "lt2";
+
+  // "2 years ago" = gt2 (borderline, erring on surcharge side)
+  if (/\b2\s*year/i.test(m)) return "gt2";
+
+  // Generic "within/less than 2 years"
+  if (/\b(within|less|under|recent)\s*(the\s*)?(last\s*)?(1|2|one|two)\s*year/i.test(m)) return "lt2";
+
   return null;
 }
 
