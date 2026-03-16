@@ -83,7 +83,7 @@ const NAV_OPENERS: Record<NavLabel, string[]> = {
     "If you'd like, I can summarize SunPass in a few quick points.",
   ],
   "Contact Us": [
-    "I can help connect you with the team. What’s the best way to reach you?",
+    "I can help connect you with the team. What's the best way to reach you?",
     "Would you prefer a call, text, or to leave a message here?",
     "If you'd like, I can collect your information and pass it to a specialist.",
   ],
@@ -111,7 +111,6 @@ const sanitizeKnownName = (value: string | null): string | null => {
   const firstToken = value.trim().split(/\s+/)[0] ?? "";
   const lettersOnly = firstToken.replace(/[^A-Za-z]/g, "");
   if (lettersOnly.length < 2 || lettersOnly.length > 20) return null;
-
   const normalized = lettersOnly.toLowerCase();
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
@@ -120,6 +119,185 @@ const withOptionalName = (followUp: string, knownName: string | null): string =>
   if (!knownName) return followUp;
   return followUp.replace(/\?$/, `, ${knownName}?`);
 };
+
+// ─────────────────────────────────────────────
+// DATE/TIME PICKER MODAL
+// ─────────────────────────────────────────────
+
+function formatTime(time: string): string {
+  if (!time) return "";
+  const [hourStr, minuteStr] = time.split(":");
+  const hour = parseInt(hourStr ?? "0", 10);
+  const minute = minuteStr ?? "00";
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12}:${minute} ${period}`;
+}
+
+function formatDate(date: string): string {
+  if (!date) return "";
+  const [year, month, day] = date.split("-");
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const monthName = months[parseInt(month ?? "1", 10) - 1] ?? "";
+  return `${monthName} ${parseInt(day ?? "1", 10)}, ${year}`;
+}
+
+function getTodayString(): string {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+type DateTimeModalProps = {
+  onConfirm: (dateTimeString: string) => void;
+  onDismiss: () => void;
+};
+
+function DateTimeModal({ onConfirm, onDismiss }: DateTimeModalProps) {
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("09:00");
+
+  const handleConfirm = () => {
+    if (!selectedDate) return;
+    const formatted = `${formatDate(selectedDate)} at ${formatTime(selectedTime)}`;
+    onConfirm(formatted);
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.6)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        padding: "16px",
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onDismiss(); }}
+    >
+      <div
+        style={{
+          background: "#0f172a",
+          border: "1px solid #1e293b",
+          borderRadius: "16px",
+          padding: "32px 28px",
+          width: "100%",
+          maxWidth: "380px",
+          boxShadow: "0 25px 60px rgba(0,0,0,0.5)",
+        }}
+      >
+        <h2
+          style={{
+            color: "#f8fafc",
+            fontSize: "1.2rem",
+            fontWeight: 700,
+            marginBottom: "6px",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          Pick a date and time
+        </h2>
+        <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "24px" }}>
+          Choose your preferred appointment window.
+        </p>
+
+        <label
+          style={{ display: "block", color: "#cbd5e1", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", letterSpacing: "0.05em", textTransform: "uppercase" }}
+        >
+          Date
+        </label>
+        <input
+          type="date"
+          min={getTodayString()}
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px 14px",
+            borderRadius: "10px",
+            border: "1px solid #334155",
+            background: "#1e293b",
+            color: "#f1f5f9",
+            fontSize: "1rem",
+            marginBottom: "20px",
+            boxSizing: "border-box",
+            outline: "none",
+          }}
+        />
+
+        <label
+          style={{ display: "block", color: "#cbd5e1", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", letterSpacing: "0.05em", textTransform: "uppercase" }}
+        >
+          Preferred Time
+        </label>
+        <input
+          type="time"
+          value={selectedTime}
+          onChange={(e) => setSelectedTime(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px 14px",
+            borderRadius: "10px",
+            border: "1px solid #334155",
+            background: "#1e293b",
+            color: "#f1f5f9",
+            fontSize: "1rem",
+            marginBottom: "28px",
+            boxSizing: "border-box",
+            outline: "none",
+          }}
+        />
+
+        <div style={{ display: "flex", gap: "12px" }}>
+          <button
+            type="button"
+            onClick={onDismiss}
+            style={{
+              flex: 1,
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #334155",
+              background: "transparent",
+              color: "#94a3b8",
+              fontSize: "0.95rem",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={!selectedDate}
+            style={{
+              flex: 2,
+              padding: "12px",
+              borderRadius: "10px",
+              border: "none",
+              background: selectedDate ? "#f59e0b" : "#334155",
+              color: selectedDate ? "#0f172a" : "#64748b",
+              fontSize: "0.95rem",
+              fontWeight: 700,
+              cursor: selectedDate ? "pointer" : "not-allowed",
+              transition: "background 0.2s",
+            }}
+          >
+            Confirm Appointment
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// MAIN PAGE
+// ─────────────────────────────────────────────
 
 export default function Page() {
   const [messages, setMessages] = useState<ChatMessage[]>([getInitialGreeting(null)]);
@@ -134,14 +312,13 @@ export default function Page() {
   const [lastClientHandoffOfferedAt, setLastClientHandoffOfferedAt] = useState<number | null>(null);
   const [clientHandoffActive] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [showDateTimeModal, setShowDateTimeModal] = useState(false);
   const [lightboxImagePath, setLightboxImagePath] = useState<string | null>(null);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const [isReviewsDropdownOpen, setIsReviewsDropdownOpen] = useState(false);
   const [isReviewScreenshotsOpen, setIsReviewScreenshotsOpen] = useState(false);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
-
-
 
   useEffect(() => {
     const existing = window.localStorage.getItem("sunny_session_id");
@@ -166,6 +343,13 @@ export default function Page() {
     });
   }, []);
 
+  // Show date/time modal when Sunny asks for it
+  useEffect(() => {
+    if (chatState.lastAskedField === "preferred date and time" && !isLoading) {
+      setShowDateTimeModal(true);
+    }
+  }, [chatState.lastAskedField, isLoading]);
+
   const handleStartChat = () => {
     window.localStorage.setItem("sunny_has_visited", "true");
     setShowOnboardingModal(false);
@@ -174,48 +358,38 @@ export default function Page() {
   useEffect(() => {
     const messagesElement = messagesRef.current;
     if (!messagesElement) return;
-
     messagesElement.scrollTo({
       top: messagesElement.scrollHeight,
       behavior: "smooth",
     });
   }, [messages, isLoading]);
 
-  const handleSend = async () => {
-    const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
 
-    if (!hasUserEngaged) {
-      setHasUserEngaged(true);
-    }
+    if (!hasUserEngaged) setHasUserEngaged(true);
 
-    const userMessage: UserTextMessage = { role: "user", type: "text", content: trimmed };
+    const userMessage: UserTextMessage = { role: "user", type: "text", content: text.trim() };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
 
-    const extractedEmail = extractEmail(trimmed);
-    const extractedPhone = extractPhone(trimmed);
-    const extractedName = extractFirstName(trimmed);
+    const extractedEmail = extractEmail(text);
+    const extractedPhone = extractPhone(text);
+    const extractedName = extractFirstName(text);
 
     if (extractedName) {
       window.localStorage.setItem("sunny_known_name", extractedName);
       setKnownName(extractedName);
     }
-
-    if (extractedEmail) {
-      window.localStorage.setItem("sunny_known_email", extractedEmail);
-    }
-
-    if (extractedPhone) {
-      window.localStorage.setItem("sunny_known_phone", extractedPhone);
-    }
+    if (extractedEmail) window.localStorage.setItem("sunny_known_email", extractedEmail);
+    if (extractedPhone) window.localStorage.setItem("sunny_known_phone", extractedPhone);
 
     const email = window.localStorage.getItem("sunny_known_email") || "";
     const phone = window.localStorage.getItem("sunny_known_phone") || "";
-    const { lead_detected, lead_reason } = detectLeadReason(trimmed);
+    const { lead_detected, lead_reason } = detectLeadReason(text);
 
     const now = Date.now();
-    const nextFrustrationScore = Math.max(0, clientFrustrationScore - 1) + frustrationDelta(trimmed);
+    const nextFrustrationScore = Math.max(0, clientFrustrationScore - 1) + frustrationDelta(text);
     const frustrationTriggered = shouldOfferHandoff({
       frustrationScore: nextFrustrationScore,
       handoffActive: clientHandoffActive,
@@ -224,19 +398,17 @@ export default function Page() {
     });
 
     setClientFrustrationScore(nextFrustrationScore);
-    if (frustrationTriggered) {
-      setLastClientHandoffOfferedAt(now);
-    }
+    if (frustrationTriggered) setLastClientHandoffOfferedAt(now);
 
     logSunny({
       role: "user",
       type: "message",
-      text: trimmed,
+      text: text.trim(),
       lead_detected,
       lead_reason,
       phone,
       email,
-      handoff_requested: frustrationTriggered || detectHumanRequest(trimmed) || lead_detected,
+      handoff_requested: frustrationTriggered || detectHumanRequest(text) || lead_detected,
     });
 
     setInput("");
@@ -247,7 +419,7 @@ export default function Page() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: trimmed,
+          message: text.trim(),
           state: chatState,
           messages: nextMessages,
           sessionId,
@@ -259,13 +431,13 @@ export default function Page() {
         state?: Record<string, unknown>;
       };
 
-      const reply = data.reply?.trim() || "I’m sorry—something went wrong while responding.";
+      const reply = data.reply?.trim() || "I'm sorry—something went wrong while responding.";
 
       const nextAssistantMessage: AssistantTextMessage = {
         role: "assistant",
         type: "text",
         content: reply,
-        imagePaths: isSolarCleaningQuestion(trimmed) ? getRandomSolarImages(2) : undefined,
+        imagePaths: isSolarCleaningQuestion(text) ? getRandomSolarImages(2) : undefined,
       };
 
       setMessages((prev) => [...prev, nextAssistantMessage]);
@@ -280,7 +452,7 @@ export default function Page() {
       if (data.state) setChatState(data.state);
     } catch (error) {
       console.error("Chat fetch error:", error);
-      const fallbackReply = "I’m having trouble right now. Please try again in a moment.";
+      const fallbackReply = "I'm having trouble right now. Please try again in a moment.";
       setMessages((prev) => [
         ...prev,
         { role: "assistant", type: "text", content: fallbackReply },
@@ -296,6 +468,15 @@ export default function Page() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = async () => {
+    await sendMessage(input);
+  };
+
+  const handleDateTimeConfirm = async (dateTimeString: string) => {
+    setShowDateTimeModal(false);
+    await sendMessage(dateTimeString);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -321,7 +502,6 @@ export default function Page() {
     }
 
     const followUpWithOptionalName = withOptionalName(universalFollowUp, knownName);
-
     const ucsMessage = `${serviceLine}\n\n${followUpWithOptionalName}`;
 
     const serviceIntroMessage: AssistantTextMessage = {
@@ -401,11 +581,7 @@ export default function Page() {
         </div>
 
         <div className="contact-wrap">
-          <a
-            className="phone"
-            href="tel:8059381515"
-            aria-label="Call SunSweeper at 805-938-1515"
-          >
+          <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">
             805-938-1515
           </a>
           <p className="contact-line">
@@ -419,9 +595,7 @@ export default function Page() {
             return (
               <Fragment key={item}>
                 {index > 0 && (
-                  <span className="service-divider" aria-hidden="true">
-                    |
-                  </span>
+                  <span className="service-divider" aria-hidden="true">|</span>
                 )}
                 {isServices ? (
                   <div
@@ -470,9 +644,7 @@ export default function Page() {
               </Fragment>
             );
           })}
-          <span className="service-divider" aria-hidden="true">
-            |
-          </span>
+          <span className="service-divider" aria-hidden="true">|</span>
           <div
             className="service-dropdown"
             onMouseEnter={() => setIsReviewsDropdownOpen(true)}
@@ -598,7 +770,7 @@ export default function Page() {
             <p>
               Welcome to SunSweeper.com.
               <br />
-              We’re the solar panel and roof cleaning experts.
+              We're the solar panel and roof cleaning experts.
               <br />
               <br />
               If this is your first time here, this site works differently than most.
@@ -607,7 +779,7 @@ export default function Page() {
               The entire site runs through our Customer Service Lead, Sunny.
               <br />
               <br />
-              Sunny is a wicked fast typist, available 24/7, doesn’t need coffee, and has an unhealthy obsession with
+              Sunny is a wicked fast typist, available 24/7, doesn't need coffee, and has an unhealthy obsession with
               clean panels and straight answers.
               <br />
               <br />
@@ -621,21 +793,23 @@ export default function Page() {
               <br />
               Ready to give Sunny a try?
             </p>
-
             <div className="sunny-onboarding-actions">
               <button type="button" className="sunny-onboarding-btn sunny-onboarding-btn-gold" onClick={handleStartChat}>
                 Yes
               </button>
-              <button
-                type="button"
-                className="sunny-onboarding-btn sunny-onboarding-btn-dark"
-                onClick={handleStartChat}
-              >
+              <button type="button" className="sunny-onboarding-btn sunny-onboarding-btn-dark" onClick={handleStartChat}>
                 Yes
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {showDateTimeModal && (
+        <DateTimeModal
+          onConfirm={(dateTimeString) => { void handleDateTimeConfirm(dateTimeString); }}
+          onDismiss={() => setShowDateTimeModal(false)}
+        />
       )}
 
       <Lightbox imagePath={lightboxImagePath} onClose={() => setLightboxImagePath(null)} />
