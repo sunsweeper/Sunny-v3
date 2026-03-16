@@ -850,7 +850,7 @@ export async function POST(request: Request) {
     const quoteNotYetReady = !currentState.quoteReady && !currentState.confirmed;
 
     if ((solarQuoteInProgress || solarMentioned) && quoteNotYetReady) {
-      let state: BookingState = { ...currentState, intent: "solar_cleaning" };
+      const state: BookingState = { ...currentState, intent: "solar_cleaning" };
       const lastAsked = state.lastAskedField as QuoteField | undefined;
 
       if (lastAsked === "quoteAddress" && message.length > 5) {
@@ -1143,12 +1143,9 @@ Does everything look correct before I lock this in? Reply YES to confirm, or tel
       completion.choices[0]?.message?.content?.trim() ||
       "I ran into an issue processing that — please try again.";
 
-    let state = { ...currentState };
-    if (state.confirmed) {
-      state = { confirmed: true };
-    }
+    const state = { ...currentState };
 
-    return respondWithLoggedReply(reply, state);
+return respondWithLoggedReply(reply, state.confirmed ? { confirmed: true } : state);
   } catch (error: unknown) {
     console.error("Chat API error:", error);
     return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: {} });
