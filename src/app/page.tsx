@@ -80,12 +80,12 @@ const NAV_OPENERS: Record<NavLabel, string[]> = {
   SunPass: [
     "I can provide a quick SunPass breakdown. Want the details?",
     "SunPass is designed for consistent maintenance with less hassle. Want details?",
-    "If you'd like, I can summarize SunPass in a few quick points.",
+    "If you&apos;d like, I can summarize SunPass in a few quick points.",
   ],
   "Contact Us": [
-    "I can help connect you with the team. What's the best way to reach you?",
+    "I can help connect you with the team. What&apos;s the best way to reach you?",
     "Would you prefer a call, text, or to leave a message here?",
-    "If you'd like, I can collect your information and pass it to a specialist.",
+    "If you&apos;d like, I can collect your information and pass it to a specialist.",
   ],
 };
 
@@ -168,46 +168,24 @@ function DateTimeModal({ onConfirm, onDismiss }: DateTimeModalProps) {
   return (
     <div
       style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.6)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        padding: "16px",
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: 1000, padding: "16px",
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onDismiss(); }}
     >
-      <div
-        style={{
-          background: "#0f172a",
-          border: "1px solid #1e293b",
-          borderRadius: "16px",
-          padding: "32px 28px",
-          width: "100%",
-          maxWidth: "380px",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.5)",
-        }}
-      >
-        <h2
-          style={{
-            color: "#f8fafc",
-            fontSize: "1.2rem",
-            fontWeight: 700,
-            marginBottom: "6px",
-            letterSpacing: "-0.01em",
-          }}
-        >
+      <div style={{
+        background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px",
+        padding: "32px 28px", width: "100%", maxWidth: "380px",
+        boxShadow: "0 25px 60px rgba(0,0,0,0.5)",
+      }}>
+        <h2 style={{ color: "#f8fafc", fontSize: "1.2rem", fontWeight: 700, marginBottom: "6px", letterSpacing: "-0.01em" }}>
           Pick a date and time
         </h2>
         <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "24px" }}>
           Choose your preferred appointment window.
         </p>
-
-        <label
-          style={{ display: "block", color: "#cbd5e1", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", letterSpacing: "0.05em", textTransform: "uppercase" }}
-        >
+        <label style={{ display: "block", color: "#cbd5e1", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
           Date
         </label>
         <input
@@ -216,22 +194,12 @@ function DateTimeModal({ onConfirm, onDismiss }: DateTimeModalProps) {
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
           style={{
-            width: "100%",
-            padding: "12px 14px",
-            borderRadius: "10px",
-            border: "1px solid #334155",
-            background: "#1e293b",
-            color: "#f1f5f9",
-            fontSize: "1rem",
-            marginBottom: "20px",
-            boxSizing: "border-box",
-            outline: "none",
+            width: "100%", padding: "12px 14px", borderRadius: "10px",
+            border: "1px solid #334155", background: "#1e293b", color: "#f1f5f9",
+            fontSize: "1rem", marginBottom: "20px", boxSizing: "border-box", outline: "none",
           }}
         />
-
-        <label
-          style={{ display: "block", color: "#cbd5e1", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", letterSpacing: "0.05em", textTransform: "uppercase" }}
-        >
+        <label style={{ display: "block", color: "#cbd5e1", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
           Preferred Time
         </label>
         <input
@@ -239,33 +207,19 @@ function DateTimeModal({ onConfirm, onDismiss }: DateTimeModalProps) {
           value={selectedTime}
           onChange={(e) => setSelectedTime(e.target.value)}
           style={{
-            width: "100%",
-            padding: "12px 14px",
-            borderRadius: "10px",
-            border: "1px solid #334155",
-            background: "#1e293b",
-            color: "#f1f5f9",
-            fontSize: "1rem",
-            marginBottom: "28px",
-            boxSizing: "border-box",
-            outline: "none",
+            width: "100%", padding: "12px 14px", borderRadius: "10px",
+            border: "1px solid #334155", background: "#1e293b", color: "#f1f5f9",
+            fontSize: "1rem", marginBottom: "28px", boxSizing: "border-box", outline: "none",
           }}
         />
-
         <div style={{ display: "flex", gap: "12px" }}>
           <button
             type="button"
             onClick={onDismiss}
             style={{
-              flex: 1,
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #334155",
-              background: "transparent",
-              color: "#94a3b8",
-              fontSize: "0.95rem",
-              fontWeight: 600,
-              cursor: "pointer",
+              flex: 1, padding: "12px", borderRadius: "10px",
+              border: "1px solid #334155", background: "transparent",
+              color: "#94a3b8", fontSize: "0.95rem", fontWeight: 600, cursor: "pointer",
             }}
           >
             Cancel
@@ -275,19 +229,106 @@ function DateTimeModal({ onConfirm, onDismiss }: DateTimeModalProps) {
             onClick={handleConfirm}
             disabled={!selectedDate}
             style={{
-              flex: 2,
-              padding: "12px",
-              borderRadius: "10px",
-              border: "none",
+              flex: 2, padding: "12px", borderRadius: "10px", border: "none",
               background: selectedDate ? "#f59e0b" : "#334155",
               color: selectedDate ? "#0f172a" : "#64748b",
-              fontSize: "0.95rem",
-              fontWeight: 700,
+              fontSize: "0.95rem", fontWeight: 700,
               cursor: selectedDate ? "pointer" : "not-allowed",
               transition: "background 0.2s",
             }}
           >
             Confirm Appointment
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// STREET VIEW MODAL
+// ─────────────────────────────────────────────
+
+const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+
+async function checkStreetViewAvailable(address: string): Promise<boolean> {
+  if (!MAPS_API_KEY) return false;
+  const encoded = encodeURIComponent(address);
+  const metaUrl = `https://maps.googleapis.com/maps/api/streetview/metadata?location=${encoded}&key=${MAPS_API_KEY}`;
+  try {
+    const res = await fetch(metaUrl);
+    const data = await res.json() as { status: string };
+    return data.status === "OK";
+  } catch {
+    return false;
+  }
+}
+
+function buildStreetViewUrl(address: string): string {
+  const encoded = encodeURIComponent(address);
+  return `https://maps.googleapis.com/maps/api/streetview?size=600x340&location=${encoded}&fov=90&pitch=0&key=${MAPS_API_KEY}`;
+}
+
+type StreetViewModalProps = {
+  address: string;
+  onConfirm: () => void;
+  onReenter: () => void;
+};
+
+function StreetViewModal({ address, onConfirm, onReenter }: StreetViewModalProps) {
+  const imageUrl = buildStreetViewUrl(address);
+
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: 1000, padding: "16px",
+      }}
+    >
+      <div style={{
+        background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px",
+        padding: "28px", width: "100%", maxWidth: "640px",
+        boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
+      }}>
+        <h2 style={{ color: "#f8fafc", fontSize: "1.15rem", fontWeight: 700, marginBottom: "4px", letterSpacing: "-0.01em" }}>
+          Does this look like your property?
+        </h2>
+        <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "16px" }}>
+          {address}
+        </p>
+        <div style={{
+          borderRadius: "10px", overflow: "hidden", border: "1px solid #1e293b",
+          marginBottom: "20px", lineHeight: 0,
+        }}>
+          <img
+            src={imageUrl}
+            alt="Street view of service address"
+            style={{ width: "100%", height: "auto", display: "block" }}
+          />
+        </div>
+        <div style={{ display: "flex", gap: "12px" }}>
+          <button
+            type="button"
+            onClick={onReenter}
+            style={{
+              flex: 1, padding: "12px", borderRadius: "10px",
+              border: "1px solid #334155", background: "transparent",
+              color: "#94a3b8", fontSize: "0.95rem", fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            Re-enter address
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            style={{
+              flex: 2, padding: "12px", borderRadius: "10px", border: "none",
+              background: "#f59e0b", color: "#0f172a",
+              fontSize: "0.95rem", fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            Yes, that&apos;s it
           </button>
         </div>
       </div>
@@ -313,6 +354,8 @@ export default function Page() {
   const [clientHandoffActive] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
+  const [streetViewAddress, setStreetViewAddress] = useState<string | null>(null);
+  const [pendingAddress, setPendingAddress] = useState<string | null>(null);
   const [lightboxImagePath, setLightboxImagePath] = useState<string | null>(null);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const [isReviewsDropdownOpen, setIsReviewsDropdownOpen] = useState(false);
@@ -350,6 +393,17 @@ export default function Page() {
     }
   }, [chatState.lastAskedField, isLoading]);
 
+  // Show Street View modal when address is collected
+  useEffect(() => {
+    const address = chatState.quoteAddress as string | undefined;
+    if (address && address !== pendingAddress && !isLoading && MAPS_API_KEY) {
+      setPendingAddress(address);
+      void checkStreetViewAvailable(address).then((available) => {
+        if (available) setStreetViewAddress(address);
+      });
+    }
+  }, [chatState.quoteAddress, isLoading, pendingAddress]);
+
   const handleStartChat = () => {
     window.localStorage.setItem("sunny_has_visited", "true");
     setShowOnboardingModal(false);
@@ -358,10 +412,7 @@ export default function Page() {
   useEffect(() => {
     const messagesElement = messagesRef.current;
     if (!messagesElement) return;
-    messagesElement.scrollTo({
-      top: messagesElement.scrollHeight,
-      behavior: "smooth",
-    });
+    messagesElement.scrollTo({ top: messagesElement.scrollHeight, behavior: "smooth" });
   }, [messages, isLoading]);
 
   const sendMessage = async (text: string) => {
@@ -431,7 +482,7 @@ export default function Page() {
         state?: Record<string, unknown>;
       };
 
-      const reply = data.reply?.trim() || "I'm sorry—something went wrong while responding.";
+      const reply = data.reply?.trim() || "I&apos;m sorry—something went wrong while responding.";
 
       const nextAssistantMessage: AssistantTextMessage = {
         role: "assistant",
@@ -452,7 +503,7 @@ export default function Page() {
       if (data.state) setChatState(data.state);
     } catch (error) {
       console.error("Chat fetch error:", error);
-      const fallbackReply = "I'm having trouble right now. Please try again in a moment.";
+      const fallbackReply = "I&apos;m having trouble right now. Please try again in a moment.";
       setMessages((prev) => [
         ...prev,
         { role: "assistant", type: "text", content: fallbackReply },
@@ -477,6 +528,19 @@ export default function Page() {
   const handleDateTimeConfirm = async (dateTimeString: string) => {
     setShowDateTimeModal(false);
     await sendMessage(dateTimeString);
+  };
+
+  const handleStreetViewConfirm = () => {
+    setStreetViewAddress(null);
+    // Address already in state — booking flow continues normally
+  };
+
+  const handleStreetViewReenter = () => {
+    setStreetViewAddress(null);
+    setPendingAddress(null);
+    // Clear the address from chatState so Sunny asks again
+    setChatState((prev) => ({ ...prev, quoteAddress: undefined, address: undefined, lastAskedField: "quoteAddress" }));
+    void sendMessage("I need to correct my address");
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -543,16 +607,15 @@ export default function Page() {
       setChatState({});
       setActiveService(null);
       setHasUserEngaged(false);
+      setStreetViewAddress(null);
+      setPendingAddress(null);
     } else if (label === "SunPass") {
       if (!hasUserEngaged) {
         setMessages([navMessage]);
       } else {
         setMessages((prev) => [...prev, navMessage]);
       }
-      setChatState((prev) => ({
-        ...prev,
-        activeConversationState: "sunpass_intro",
-      }));
+      setChatState((prev) => ({ ...prev, activeConversationState: "sunpass_intro" }));
     } else if (!hasUserEngaged) {
       setMessages([navMessage]);
     } else {
@@ -809,6 +872,14 @@ export default function Page() {
         <DateTimeModal
           onConfirm={(dateTimeString) => { void handleDateTimeConfirm(dateTimeString); }}
           onDismiss={() => setShowDateTimeModal(false)}
+        />
+      )}
+
+      {streetViewAddress && (
+        <StreetViewModal
+          address={streetViewAddress}
+          onConfirm={handleStreetViewConfirm}
+          onReenter={() => { void handleStreetViewReenter(); }}
         />
       )}
 
