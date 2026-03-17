@@ -47,7 +47,7 @@ async function sendToGoogleSheet(log: Required<SunnyInboundLog>) {
   const response = await fetch(SHEET_LOG_WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ row }),
+    body: JSON.stringify(row),
   });
 
   if (!response.ok) {
