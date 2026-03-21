@@ -434,6 +434,7 @@ function buildFinalQuote(state: BookingState): {
 
 // ─────────────────────────────────────────────────────────────────
 // SOLAR QUOTING STATE MACHINE
+// Panel count is a HARD GATE — no quote without it
 // ─────────────────────────────────────────────────────────────────
 
 type QuoteField = "quoteAddress" | "panelCount" | "quoteStorey" | "quoteLastCleaned";
@@ -461,6 +462,12 @@ function parseStorey(message: string): "1" | "2" | null {
   return null;
 }
 
+// ─────────────────────────────────────────────────────────────────
+// UPDATED: parseLastCleaned
+// Accepts loose natural language. Vague or unclear answers default
+// to "gt2" (more than 2 years), which applies the higher price.
+// This is the safer business default.
+// ─────────────────────────────────────────────────────────────────
 function parseLastCleaned(message: string): "never" | "lt2" | "gt2" | null {
   const m = message.toLowerCase();
 
@@ -486,6 +493,12 @@ function parseLastCleaned(message: string): "never" | "lt2" | "gt2" | null {
 
   // Generic "within/less than 2 years"
   if (/\b(within|less|under|recent)\s*(the\s*)?(last\s*)?(1|2|one|two)\s*year/i.test(m)) return "lt2";
+
+  // Vague uncertainty — default to gt2 (higher price)
+  if (/\b(not sure|don.?t know|unsure|no idea|a while|long time|ages|been a while|awhile|can.?t remember|forget|forgot|unknown|not certain)\b/i.test(m)) return "gt2";
+
+  // Any non-empty answer that didn't match above — default to gt2
+  if (m.trim().length > 0) return "gt2";
 
   return null;
 }
@@ -555,8 +568,8 @@ export async function POST(request: Request) {
 
     const offerHandoff = shouldOfferHandoff({
       frustrationScore: sessionState.frustrationScore,
-      handoffActive: sessionState.handoffActive,
       lastHandoffOfferedAt: sessionState.lastHandoffOfferedAt,
+      handoffActive: sessionState.handoffActive,
       now,
     });
 
@@ -1162,7 +1175,7 @@ Does everything look correct before I lock this in? Reply YES to confirm, or tel
 
     const state = { ...currentState };
 
-return respondWithLoggedReply(reply, state.confirmed ? { confirmed: true } : state);
+    return respondWithLoggedReply(reply, state.confirmed ? { confirmed: true } : state);
   } catch (error: unknown) {
     console.error("Chat API error:", error);
     return NextResponse.json({ reply: SAFE_FAIL_MESSAGE, state: {} });
