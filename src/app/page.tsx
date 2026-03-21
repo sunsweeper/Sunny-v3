@@ -13,46 +13,22 @@ import { extractFirstName } from "../lib/nameExtract";
 import { ucsContent, universalFollowUps, type UcsServiceKey } from "../lib/ucsContent";
 import { logSunny } from "../lib/sunnyLogger";
 
-type UserTextMessage = {
-  role: "user";
-  type: "text";
-  content: string;
-};
-
-type AssistantTextMessage = {
-  role: "assistant";
-  type: "text";
-  content: string;
-  imagePaths?: string[];
-};
-
+type UserTextMessage = { role: "user"; type: "text"; content: string; };
+type AssistantTextMessage = { role: "assistant"; type: "text"; content: string; imagePaths?: string[]; };
 type ChatMessage = UserTextMessage | AssistantTextMessage;
 
-type ServiceKey =
-  | "solarPanelCleaning"
-  | "gutterCleaning"
-  | "gutterRepair"
-  | "roofWashing"
-  | "softWashing"
-  | "pressureWashing";
-
+type ServiceKey = "solarPanelCleaning" | "gutterCleaning" | "gutterRepair" | "roofWashing" | "softWashing" | "pressureWashing";
 type NavLabel = "New Chat" | "Services" | "SunPass" | "Contact Us";
 
 const getInitialGreeting = (name: string | null): AssistantTextMessage => ({
-  role: "assistant",
-  type: "text",
-  content: name
-    ? `Hey ${name}, welcome to SunSweeper.com. How can I help you today?`
-    : "Hey, welcome to SunSweeper.com. How can I help you today?",
+  role: "assistant", type: "text",
+  content: name ? `Hey ${name}, welcome to SunSweeper.com. How can I help you today?` : "Hey, welcome to SunSweeper.com. How can I help you today?",
 });
 
 const SERVICE_TO_UCS_KEY: Record<ServiceKey, UcsServiceKey> = {
-  solarPanelCleaning: "solar_panel_cleaning",
-  gutterCleaning: "gutter_cleaning",
-  gutterRepair: "gutter_repair_install",
-  roofWashing: "roof_cleaning",
-  softWashing: "exterior_cleaning",
-  pressureWashing: "exterior_cleaning",
+  solarPanelCleaning: "solar_panel_cleaning", gutterCleaning: "gutter_cleaning",
+  gutterRepair: "gutter_repair_install", roofWashing: "roof_cleaning",
+  softWashing: "exterior_cleaning", pressureWashing: "exterior_cleaning",
 };
 
 const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
@@ -67,167 +43,168 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
 const NAV_ITEMS: NavLabel[] = ["New Chat", "Services", "SunPass", "Contact Us"];
 
 const NAV_OPENERS: Record<NavLabel, string[]> = {
-  "New Chat": [
-    "Welcome back. How can I help you today?",
-    "New conversation started. Need help with services, pricing, or booking?",
-    "How can I help with your property cleaning needs today?",
-  ],
-  Services: [
-    "I can walk you through each service. Which one are you considering?",
-    "Happy to help. Which service would you like details on?",
-    "We handle solar panels, roofs, gutters, and exterior cleaning. What do you need?",
-  ],
-  SunPass: [
-    "I can provide a quick SunPass breakdown. Want the details?",
-    "SunPass is designed for consistent maintenance with less hassle. Want details?",
-    "If you'd like, I can summarize SunPass in a few quick points.",
-  ],
-  "Contact Us": [
-    "I can help connect you with the team. What's the best way to reach you?",
-    "Would you prefer a call, text, or to leave a message here?",
-    "If you'd like, I can collect your information and pass it to a specialist.",
-  ],
+  "New Chat": ["Welcome back. How can I help you today?", "New conversation started. Need help with services, pricing, or booking?", "How can I help with your property cleaning needs today?"],
+  Services: ["I can walk you through each service. Which one are you considering?", "Happy to help. Which service would you like details on?", "We handle solar panels, roofs, gutters, and exterior cleaning. What do you need?"],
+  SunPass: ["I can provide a quick SunPass breakdown. Want the details?", "SunPass is designed for consistent maintenance with less hassle. Want details?", "If you\u2019d like, I can summarize SunPass in a few quick points."],
+  "Contact Us": ["I can help connect you with the team. What\u2019s the best way to reach you?", "Would you prefer a call, text, or to leave a message here?", "If you\u2019d like, I can collect your information and pass it to a specialist."],
 };
 
-const getRandomItem = <T,>(items: readonly T[]): T => {
-  const randomIndex = Math.floor(Math.random() * items.length);
-  return items[randomIndex];
-};
-
-const getRandomSolarImages = (count: number): string[] => {
-  const shuffled = [...solarImagePaths].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-};
+const getRandomItem = <T,>(items: readonly T[]): T => items[Math.floor(Math.random() * items.length)];
+const getRandomSolarImages = (count: number): string[] => [...solarImagePaths].sort(() => Math.random() - 0.5).slice(0, count);
 
 const isSolarCleaningQuestion = (value: string): boolean => {
-  const normalized = value.toLowerCase();
-  const hasSolarContext = /(solar|panel|panels|pv)/.test(normalized);
-  const hasCleaningIntent = /(clean|cleaning|dirty|dust|wash|washing|bird droppings|grime|photos|picture|images)/.test(normalized);
-  return hasSolarContext && hasCleaningIntent;
+  const n = value.toLowerCase();
+  return /(solar|panel|panels|pv)/.test(n) && /(clean|cleaning|dirty|dust|wash|washing|bird droppings|grime|photos|picture|images)/.test(n);
 };
 
 const sanitizeKnownName = (value: string | null): string | null => {
   if (!value) return null;
-  const firstToken = value.trim().split(/\s+/)[0] ?? "";
-  const lettersOnly = firstToken.replace(/[^A-Za-z]/g, "");
-  if (lettersOnly.length < 2 || lettersOnly.length > 20) return null;
-
-  const normalized = lettersOnly.toLowerCase();
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  const first = value.trim().split(/\s+/)[0] ?? "";
+  const letters = first.replace(/[^A-Za-z]/g, "");
+  if (letters.length < 2 || letters.length > 20) return null;
+  const n = letters.toLowerCase();
+  return n.charAt(0).toUpperCase() + n.slice(1);
 };
 
-const withOptionalName = (followUp: string, knownName: string | null): string => {
-  if (!knownName) return followUp;
-  return followUp.replace(/\?$/, `, ${knownName}?`);
-};
+const withOptionalName = (followUp: string, knownName: string | null): string =>
+  knownName ? followUp.replace(/\?$/, `, ${knownName}?`) : followUp;
 
-// ─────────────────────────────────────────────────────────────────
-// REFERRAL FORM COMPONENT
-// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// DATE/TIME PICKER MODAL
+// ─────────────────────────────────────────────
 
-type ReferralFormProps = {
-  onSubmit: (data: { firstName: string; lastName: string; phone: string }) => void;
-  onSkip: () => void;
-  isSubmitting: boolean;
-};
+function formatTime(time: string): string {
+  if (!time) return "";
+  const [hourStr, minuteStr] = time.split(":");
+  const hour = parseInt(hourStr ?? "0", 10);
+  const minute = minuteStr ?? "00";
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12}:${minute} ${period}`;
+}
 
-function ReferralForm({ onSubmit, onSkip, isSubmitting }: ReferralFormProps) {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
+function formatDate(date: string): string {
+  if (!date) return "";
+  const [year, month, day] = date.split("-");
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const monthName = months[parseInt(month ?? "1", 10) - 1] ?? "";
+  return `${monthName} ${parseInt(day ?? "1", 10)}, ${year}`;
+}
 
-  const handleSubmit = () => {
-    if (!firstName.trim() || !lastName.trim() || !phone.trim()) return;
-    onSubmit({ firstName: firstName.trim(), lastName: lastName.trim(), phone: phone.trim() });
+function getTodayString(): string {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
+
+type DateTimeModalProps = { onConfirm: (dateTimeString: string) => void; onDismiss: () => void; };
+
+function DateTimeModal({ onConfirm, onDismiss }: DateTimeModalProps) {
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("09:00");
+  const handleConfirm = () => {
+    if (!selectedDate) return;
+    onConfirm(`${formatDate(selectedDate)} at ${formatTime(selectedTime)}`);
   };
-
   return (
-    <div style={{
-      background: "rgba(255,255,255,0.07)",
-      border: "1px solid rgba(255,255,255,0.15)",
-      borderRadius: "12px",
-      padding: "16px",
-      marginTop: "10px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "10px",
-    }}>
-      <p style={{ margin: 0, fontSize: "0.8rem", color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>
-        REFERRAL — optional
-      </p>
-      <input
-        type="text"
-        placeholder="First name"
-        value={firstName}
-        onChange={(e) => setFirstName(e.target.value)}
-        style={inputStyle}
-      />
-      <input
-        type="text"
-        placeholder="Last name"
-        value={lastName}
-        onChange={(e) => setLastName(e.target.value)}
-        style={inputStyle}
-      />
-      <input
-        type="tel"
-        placeholder="Phone number"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        style={inputStyle}
-      />
-      <div style={{ display: "flex", gap: "8px" }}>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={isSubmitting || !firstName.trim() || !lastName.trim() || !phone.trim()}
-          style={{
-            ...btnStyle,
-            background: "#f5a623",
-            color: "#0f172a",
-            opacity: (isSubmitting || !firstName.trim() || !lastName.trim() || !phone.trim()) ? 0.5 : 1,
-          }}
-        >
-          {isSubmitting ? "Sending..." : "Submit Referral"}
-        </button>
-        <button
-          type="button"
-          onClick={onSkip}
-          disabled={isSubmitting}
-          style={{ ...btnStyle, background: "rgba(255,255,255,0.1)", color: "#fff" }}
-        >
-          Skip
-        </button>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "16px" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onDismiss(); }}>
+      <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "32px 28px", width: "100%", maxWidth: "380px", boxShadow: "0 25px 60px rgba(0,0,0,0.5)" }}>
+        <h2 style={{ color: "#f8fafc", fontSize: "1.2rem", fontWeight: 700, marginBottom: "6px" }}>Pick a date and time</h2>
+        <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "24px" }}>Choose your preferred appointment window.</p>
+        <label style={{ display: "block", color: "#cbd5e1", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", textTransform: "uppercase" }}>Date</label>
+        <input type="date" min={getTodayString()} value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}
+          style={{ width: "100%", padding: "12px 14px", borderRadius: "10px", border: "1px solid #334155", background: "#1e293b", color: "#f1f5f9", fontSize: "1rem", marginBottom: "20px", boxSizing: "border-box", outline: "none" }} />
+        <label style={{ display: "block", color: "#cbd5e1", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", textTransform: "uppercase" }}>Preferred Time</label>
+        <input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)}
+          style={{ width: "100%", padding: "12px 14px", borderRadius: "10px", border: "1px solid #334155", background: "#1e293b", color: "#f1f5f9", fontSize: "1rem", marginBottom: "28px", boxSizing: "border-box", outline: "none" }} />
+        <div style={{ display: "flex", gap: "12px" }}>
+          <button type="button" onClick={onDismiss} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #334155", background: "transparent", color: "#94a3b8", fontSize: "0.95rem", fontWeight: 600, cursor: "pointer" }}>Cancel</button>
+          <button type="button" onClick={handleConfirm} disabled={!selectedDate}
+            style={{ flex: 2, padding: "12px", borderRadius: "10px", border: "none", background: selectedDate ? "#f59e0b" : "#334155", color: selectedDate ? "#0f172a" : "#64748b", fontSize: "0.95rem", fontWeight: 700, cursor: selectedDate ? "pointer" : "not-allowed", transition: "background 0.2s" }}>
+            Confirm Appointment
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.08)",
-  border: "1px solid rgba(255,255,255,0.2)",
-  borderRadius: "8px",
-  padding: "10px 12px",
-  color: "#fff",
-  fontSize: "0.9rem",
-  outline: "none",
-  width: "100%",
-  boxSizing: "border-box",
-};
+// ─────────────────────────────────────────────
+// STREET VIEW MODAL
+// ─────────────────────────────────────────────
 
-const btnStyle: React.CSSProperties = {
-  border: "none",
-  borderRadius: "8px",
-  padding: "10px 16px",
-  fontSize: "0.85rem",
-  fontWeight: 600,
-  cursor: "pointer",
-  flex: 1,
-};
+const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+
+async function checkStreetViewAvailable(address: string): Promise<boolean> {
+  if (!MAPS_API_KEY) return false;
+  const encoded = encodeURIComponent(address);
+  try {
+    const res = await fetch(`https://maps.googleapis.com/maps/api/streetview/metadata?location=${encoded}&key=${MAPS_API_KEY}`);
+    const data = await res.json() as { status: string };
+    return data.status === "OK";
+  } catch { return false; }
+}
+
+function buildStreetViewUrl(address: string): string {
+  return `https://maps.googleapis.com/maps/api/streetview?size=600x340&location=${encodeURIComponent(address)}&fov=90&pitch=0&key=${MAPS_API_KEY}`;
+}
+
+type StreetViewModalProps = { address: string; onConfirm: () => void; onReenter: () => void; };
+
+function StreetViewModal({ address, onConfirm, onReenter }: StreetViewModalProps) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "16px" }}>
+      <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "640px", boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}>
+        <h2 style={{ color: "#f8fafc", fontSize: "1.15rem", fontWeight: 700, marginBottom: "4px" }}>Does this look like your property?</h2>
+        <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "16px" }}>{address}</p>
+        <div style={{ borderRadius: "10px", overflow: "hidden", border: "1px solid #1e293b", marginBottom: "20px", lineHeight: 0 }}>
+          <img src={buildStreetViewUrl(address)} alt="Street view of service address" style={{ width: "100%", height: "auto", display: "block" }} />
+        </div>
+        <div style={{ display: "flex", gap: "12px" }}>
+          <button type="button" onClick={onReenter} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #334155", background: "transparent", color: "#94a3b8", fontSize: "0.95rem", fontWeight: 600, cursor: "pointer" }}>Re-enter address</button>
+          <button type="button" onClick={onConfirm} style={{ flex: 2, padding: "12px", borderRadius: "10px", border: "none", background: "#f59e0b", color: "#0f172a", fontSize: "0.95rem", fontWeight: 700, cursor: "pointer" }}>Yes, that&apos;s it</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────
+// REFERRAL FORM COMPONENT
+// ─────────────────────────────────────────────────────────────────
+
+type ReferralFormProps = { onSubmit: (data: { firstName: string; lastName: string; phone: string }) => void; onSkip: () => void; isSubmitting: boolean; };
+
+function ReferralForm({ onSubmit, onSkip, isSubmitting }: ReferralFormProps) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const handleSubmit = () => {
+    if (!firstName.trim() || !lastName.trim() || !phone.trim()) return;
+    onSubmit({ firstName: firstName.trim(), lastName: lastName.trim(), phone: phone.trim() });
+  };
+  const inputStyle: React.CSSProperties = { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "8px", padding: "10px 12px", color: "#fff", fontSize: "0.9rem", outline: "none", width: "100%", boxSizing: "border-box" };
+  const btnBase: React.CSSProperties = { border: "none", borderRadius: "8px", padding: "10px 16px", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", flex: 1 };
+  return (
+    <div style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "12px", padding: "16px", marginTop: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
+      <p style={{ margin: 0, fontSize: "0.8rem", color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>REFERRAL — optional</p>
+      <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={inputStyle} />
+      <input type="text" placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} style={inputStyle} />
+      <input type="tel" placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} />
+      <div style={{ display: "flex", gap: "8px" }}>
+        <button type="button" onClick={handleSubmit} disabled={isSubmitting || !firstName.trim() || !lastName.trim() || !phone.trim()}
+          style={{ ...btnBase, background: "#f5a623", color: "#0f172a", opacity: (isSubmitting || !firstName.trim() || !lastName.trim() || !phone.trim()) ? 0.5 : 1 }}>
+          {isSubmitting ? "Sending..." : "Submit Referral"}
+        </button>
+        <button type="button" onClick={onSkip} disabled={isSubmitting} style={{ ...btnBase, background: "rgba(255,255,255,0.1)", color: "#fff" }}>Skip</button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // MAIN PAGE
-// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
 
 export default function Page() {
   const [messages, setMessages] = useState<ChatMessage[]>([getInitialGreeting(null)]);
@@ -242,6 +219,9 @@ export default function Page() {
   const [lastClientHandoffOfferedAt, setLastClientHandoffOfferedAt] = useState<number | null>(null);
   const [clientHandoffActive] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [showDateTimeModal, setShowDateTimeModal] = useState(false);
+  const [streetViewAddress, setStreetViewAddress] = useState<string | null>(null);
+  const [pendingAddress, setPendingAddress] = useState<string | null>(null);
   const [lightboxImagePath, setLightboxImagePath] = useState<string | null>(null);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const [isReviewsDropdownOpen, setIsReviewsDropdownOpen] = useState(false);
@@ -253,179 +233,70 @@ export default function Page() {
 
   useEffect(() => {
     const existing = window.localStorage.getItem("sunny_session_id");
-    if (existing) {
-      setSessionId(existing);
-    } else {
-      const generated = typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `sunny-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    if (existing) { setSessionId(existing); } else {
+      const generated = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `sunny-${Date.now()}-${Math.random().toString(16).slice(2)}`;
       window.localStorage.setItem("sunny_session_id", generated);
       setSessionId(generated);
     }
-
     const storedName = sanitizeKnownName(window.localStorage.getItem("sunny_known_name"));
     const hasVisited = window.localStorage.getItem("sunny_has_visited") === "true";
-
     setShowOnboardingModal(!hasVisited);
     setKnownName(storedName);
-    setMessages((prev) => {
-      if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev;
-      return [getInitialGreeting(storedName)];
-    });
+    setMessages((prev) => { if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev; return [getInitialGreeting(storedName)]; });
   }, []);
 
-  const handleStartChat = () => {
-    window.localStorage.setItem("sunny_has_visited", "true");
-    setShowOnboardingModal(false);
-  };
+  // Show date/time modal when Sunny asks for it
+  useEffect(() => {
+    if (chatState.lastAskedField === "preferred date and time" && !isLoading) setShowDateTimeModal(true);
+  }, [chatState.lastAskedField, isLoading]);
+
+  // Show Street View modal when address is collected
+  useEffect(() => {
+    const address = chatState.quoteAddress as string | undefined;
+    if (address && address !== pendingAddress && !isLoading && MAPS_API_KEY) {
+      setPendingAddress(address);
+      void checkStreetViewAvailable(address).then((available) => { if (available) setStreetViewAddress(address); });
+    }
+  }, [chatState.quoteAddress, isLoading, pendingAddress]);
+
+  const handleStartChat = () => { window.localStorage.setItem("sunny_has_visited", "true"); setShowOnboardingModal(false); };
 
   useEffect(() => {
-    const messagesElement = messagesRef.current;
-    if (!messagesElement) return;
-
-    messagesElement.scrollTo({
-      top: messagesElement.scrollHeight,
-      behavior: "smooth",
-    });
+    const el = messagesRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages, isLoading, showReferralForm]);
 
-  // ─────────────────────────────────────────────────────────────
-  // REFERRAL HANDLERS
-  // ─────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // CORE SEND FUNCTION
+  // ─────────────────────────────────────────────
 
-  const handleReferralSubmit = async (data: { firstName: string; lastName: string; phone: string }) => {
-    setIsReferralSubmitting(true);
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "",
-          state: chatState,
-          messages,
-          sessionId,
-          referralData: data,
-        }),
-      });
+  const sendMessage = async (text: string, overrideState?: Record<string, unknown>) => {
+    if (!text.trim() || isLoading) return;
+    if (!hasUserEngaged) setHasUserEngaged(true);
 
-      const result = (await response.json()) as {
-        reply?: string;
-        state?: Record<string, unknown>;
-      };
-
-      const reply = result.reply?.trim() || "Referral noted — thank you!";
-      setShowReferralForm(false);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", type: "text", content: reply },
-      ]);
-      if (result.state) setChatState(result.state);
-    } catch {
-      setShowReferralForm(false);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", type: "text", content: "Referral noted — thank you! Let me pull up your booking summary." },
-      ]);
-    } finally {
-      setIsReferralSubmitting(false);
-    }
-  };
-
-  const handleReferralSkip = async () => {
-    setShowReferralForm(false);
-    setIsLoading(true);
-    try {
-      // Pass referralSubmitted:true so backend skips referral prompt and goes straight to summary
-      const skippedState = { ...chatState, referralSubmitted: true, awaitingReferral: false };
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "show booking summary",
-          state: skippedState,
-          messages,
-          sessionId,
-        }),
-      });
-
-      const data = (await response.json()) as {
-        reply?: string;
-        state?: Record<string, unknown>;
-      };
-
-      const reply = data.reply?.trim() || "No problem — here is your booking summary.";
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", type: "text", content: reply },
-      ]);
-      if (data.state) setChatState(data.state);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", type: "text", content: "No problem — let me pull up your booking summary." },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSend = async () => {
-    const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
-
-    if (!hasUserEngaged) {
-      setHasUserEngaged(true);
-    }
-
-    const userMessage: UserTextMessage = { role: "user", type: "text", content: trimmed };
+    const userMessage: UserTextMessage = { role: "user", type: "text", content: text.trim() };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
 
-    const extractedEmail = extractEmail(trimmed);
-    const extractedPhone = extractPhone(trimmed);
-    const extractedName = extractFirstName(trimmed);
-
-    if (extractedName) {
-      window.localStorage.setItem("sunny_known_name", extractedName);
-      setKnownName(extractedName);
-    }
-
-    if (extractedEmail) {
-      window.localStorage.setItem("sunny_known_email", extractedEmail);
-    }
-
-    if (extractedPhone) {
-      window.localStorage.setItem("sunny_known_phone", extractedPhone);
-    }
+    const extractedEmail = extractEmail(text);
+    const extractedPhone = extractPhone(text);
+    const extractedName = extractFirstName(text);
+    if (extractedName) { window.localStorage.setItem("sunny_known_name", extractedName); setKnownName(extractedName); }
+    if (extractedEmail) window.localStorage.setItem("sunny_known_email", extractedEmail);
+    if (extractedPhone) window.localStorage.setItem("sunny_known_phone", extractedPhone);
 
     const email = window.localStorage.getItem("sunny_known_email") || "";
     const phone = window.localStorage.getItem("sunny_known_phone") || "";
-    const { lead_detected, lead_reason } = detectLeadReason(trimmed);
+    const { lead_detected, lead_reason } = detectLeadReason(text);
 
     const now = Date.now();
-    const nextFrustrationScore = Math.max(0, clientFrustrationScore - 1) + frustrationDelta(trimmed);
-    const frustrationTriggered = shouldOfferHandoff({
-      frustrationScore: nextFrustrationScore,
-      handoffActive: clientHandoffActive,
-      lastHandoffOfferedAt: lastClientHandoffOfferedAt,
-      now,
-    });
-
+    const nextFrustrationScore = Math.max(0, clientFrustrationScore - 1) + frustrationDelta(text);
+    const frustrationTriggered = shouldOfferHandoff({ frustrationScore: nextFrustrationScore, handoffActive: clientHandoffActive, lastHandoffOfferedAt: lastClientHandoffOfferedAt, now });
     setClientFrustrationScore(nextFrustrationScore);
-    if (frustrationTriggered) {
-      setLastClientHandoffOfferedAt(now);
-    }
+    if (frustrationTriggered) setLastClientHandoffOfferedAt(now);
 
-    logSunny({
-      role: "user",
-      type: "message",
-      text: trimmed,
-      lead_detected,
-      lead_reason,
-      phone,
-      email,
-      handoff_requested: frustrationTriggered || detectHumanRequest(trimmed) || lead_detected,
-    });
+    logSunny({ role: "user", type: "message", text: text.trim(), lead_detected, lead_reason, phone, email, handoff_requested: frustrationTriggered || detectHumanRequest(text) || lead_detected });
 
     setInput("");
     setIsLoading(true);
@@ -434,154 +305,112 @@ export default function Page() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: trimmed,
-          state: chatState,
-          messages: nextMessages,
-          sessionId,
-        }),
+        body: JSON.stringify({ message: text.trim(), state: overrideState ?? chatState, messages: nextMessages, sessionId }),
       });
 
-      const data = (await response.json()) as {
-        reply?: string;
-        state?: Record<string, unknown>;
-      };
+      const data = (await response.json()) as { reply?: string; state?: Record<string, unknown>; };
+      const reply = data.reply?.trim() || "I'm sorry\u2014something went wrong while responding.";
 
-      const reply = data.reply?.trim() || "I'm sorry—something went wrong while responding.";
-
-      const nextAssistantMessage: AssistantTextMessage = {
-        role: "assistant",
-        type: "text",
-        content: reply,
-        imagePaths: isSolarCleaningQuestion(trimmed) ? getRandomSolarImages(2) : undefined,
-      };
-
-      setMessages((prev) => [...prev, nextAssistantMessage]);
-      logSunny({
-        role: "assistant",
-        type: "message",
-        text: reply,
-        lead_detected: false,
-        lead_reason: "",
-        handoff_requested: false,
-      });
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply, imagePaths: isSolarCleaningQuestion(text) ? getRandomSolarImages(2) : undefined }]);
+      logSunny({ role: "assistant", type: "message", text: reply, lead_detected: false, lead_reason: "", handoff_requested: false });
 
       if (data.state) {
         setChatState(data.state);
-        // Show referral form when backend sets awaitingReferral
-        if (data.state.awaitingReferral === true && !data.state.referralSubmitted) {
-          setShowReferralForm(true);
-        }
+        if (data.state.awaitingReferral === true && !data.state.referralSubmitted) setShowReferralForm(true);
       }
     } catch (error) {
       console.error("Chat fetch error:", error);
       const fallbackReply = "I'm having trouble right now. Please try again in a moment.";
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", type: "text", content: fallbackReply },
-      ]);
-      logSunny({
-        role: "assistant",
-        type: "message",
-        text: fallbackReply,
-        lead_detected: false,
-        lead_reason: "",
-        handoff_requested: false,
-      });
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: fallbackReply }]);
+      logSunny({ role: "assistant", type: "message", text: fallbackReply, lead_detected: false, lead_reason: "", handoff_requested: false });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleSend = async () => { await sendMessage(input); };
+  const handleDateTimeConfirm = async (dateTimeString: string) => { setShowDateTimeModal(false); await sendMessage(dateTimeString); };
+  const handleStreetViewConfirm = () => { setStreetViewAddress(null); };
+  const handleStreetViewReenter = async () => {
+    setStreetViewAddress(null);
+    setPendingAddress(null);
+    setChatState((prev) => ({ ...prev, quoteAddress: undefined, address: undefined, lastAskedField: "quoteAddress" }));
+    await sendMessage("I need to correct my address");
+  };
+
+  // ─────────────────────────────────────────────
+  // REFERRAL HANDLERS
+  // ─────────────────────────────────────────────
+
+  const handleReferralSubmit = async (data: { firstName: string; lastName: string; phone: string }) => {
+    setIsReferralSubmitting(true);
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "", state: chatState, messages, sessionId, referralData: data }),
+      });
+      const result = (await response.json()) as { reply?: string; state?: Record<string, unknown>; };
+      const reply = result.reply?.trim() || "Referral noted \u2014 thank you!";
+      setShowReferralForm(false);
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply }]);
+      if (result.state) setChatState(result.state);
+    } catch {
+      setShowReferralForm(false);
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: "Referral noted \u2014 thank you! Let me pull up your booking summary." }]);
+    } finally { setIsReferralSubmitting(false); }
+  };
+
+  const handleReferralSkip = async () => {
+    setShowReferralForm(false);
+    setIsLoading(true);
+    try {
+      const skippedState = { ...chatState, referralSubmitted: true, awaitingReferral: false };
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "show booking summary", state: skippedState, messages, sessionId }),
+      });
+      const data = (await response.json()) as { reply?: string; state?: Record<string, unknown>; };
+      const reply = data.reply?.trim() || "No problem \u2014 here is your booking summary.";
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply }]);
+      if (data.state) setChatState(data.state);
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: "No problem \u2014 let me pull up your booking summary." }]);
+    } finally { setIsLoading(false); }
+  };
+
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      void handleSend();
-    }
+    if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void handleSend(); }
   };
 
   const handleServiceClick = (service: ServiceKey) => {
     const ucsKey = SERVICE_TO_UCS_KEY[service];
     const serviceLine = getRandomItem(ucsContent[ucsKey]);
-    const lastAssistantMessage = [...messages]
-      .reverse()
-      .find((m): m is Extract<ChatMessage, { role: "assistant"; type: "text" }> => m.role === "assistant" && m.type === "text")?.content ?? "";
-
+    const lastAssistantMessage = [...messages].reverse().find((m): m is Extract<ChatMessage, { role: "assistant"; type: "text" }> => m.role === "assistant" && m.type === "text")?.content ?? "";
     let universalFollowUp = getRandomItem(universalFollowUps);
     let attempts = 0;
-
-    while (lastAssistantMessage.endsWith(withOptionalName(universalFollowUp, knownName)) && attempts < 4) {
-      universalFollowUp = getRandomItem(universalFollowUps);
-      attempts += 1;
-    }
-
-    const followUpWithOptionalName = withOptionalName(universalFollowUp, knownName);
-    const ucsMessage = `${serviceLine}\n\n${followUpWithOptionalName}`;
-
-    const serviceIntroMessage: AssistantTextMessage = {
-      role: "assistant",
-      type: "text",
-      content: ucsMessage,
-      imagePaths: service === "solarPanelCleaning" ? getRandomSolarImages(2) : undefined,
-    };
-
+    while (lastAssistantMessage.endsWith(withOptionalName(universalFollowUp, knownName)) && attempts < 4) { universalFollowUp = getRandomItem(universalFollowUps); attempts += 1; }
+    const ucsMessage = `${serviceLine}\n\n${withOptionalName(universalFollowUp, knownName)}`;
+    const serviceIntroMessage: AssistantTextMessage = { role: "assistant", type: "text", content: ucsMessage, imagePaths: service === "solarPanelCleaning" ? getRandomSolarImages(2) : undefined };
     setActiveService(service);
-    if (!hasUserEngaged) {
-      setMessages([serviceIntroMessage]);
-    } else {
-      setMessages((prev) => [...prev, serviceIntroMessage]);
-    }
-    logSunny({
-      role: "assistant",
-      type: "ucs",
-      service_key: ucsKey,
-      text: ucsMessage,
-      lead_detected: false,
-      lead_reason: "",
-      handoff_requested: false,
-    });
+    if (!hasUserEngaged) { setMessages([serviceIntroMessage]); } else { setMessages((prev) => [...prev, serviceIntroMessage]); }
+    logSunny({ role: "assistant", type: "ucs", service_key: ucsKey, text: ucsMessage, lead_detected: false, lead_reason: "", handoff_requested: false });
     setChatState((prev) => ({ ...prev, selectedService: service }));
     chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   const handleNavClick = (label: NavLabel) => {
     const opener = getRandomItem(NAV_OPENERS[label]);
-    const navMessage: AssistantTextMessage = {
-      role: "assistant",
-      type: "text",
-      content: opener,
-    };
-
+    const navMessage: AssistantTextMessage = { role: "assistant", type: "text", content: opener };
     if (label === "New Chat") {
-      setMessages([navMessage]);
-      setChatState({});
-      setActiveService(null);
-      setHasUserEngaged(false);
-      setShowReferralForm(false);
+      setMessages([navMessage]); setChatState({}); setActiveService(null); setHasUserEngaged(false);
+      setShowReferralForm(false); setStreetViewAddress(null); setPendingAddress(null);
     } else if (label === "SunPass") {
-      if (!hasUserEngaged) {
-        setMessages([navMessage]);
-      } else {
-        setMessages((prev) => [...prev, navMessage]);
-      }
-      setChatState((prev) => ({
-        ...prev,
-        activeConversationState: "sunpass_intro",
-      }));
-    } else if (!hasUserEngaged) {
-      setMessages([navMessage]);
-    } else {
-      setMessages((prev) => [...prev, navMessage]);
-    }
-
-    logSunny({
-      role: "assistant",
-      type: "message",
-      text: opener,
-      lead_detected: false,
-      lead_reason: "",
-      handoff_requested: false,
-    });
+      if (!hasUserEngaged) { setMessages([navMessage]); } else { setMessages((prev) => [...prev, navMessage]); }
+      setChatState((prev) => ({ ...prev, activeConversationState: "sunpass_intro" }));
+    } else if (!hasUserEngaged) { setMessages([navMessage]); } else { setMessages((prev) => [...prev, navMessage]); }
+    logSunny({ role: "assistant", type: "message", text: opener, lead_detected: false, lead_reason: "", handoff_requested: false });
     chatShellRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
@@ -594,122 +423,43 @@ export default function Page() {
           <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
           <Image src="/logo.png" alt="SunSweeper logo" width={640} height={350} className="hero-logo" priority />
         </div>
-
         <div className="contact-wrap">
-          <a
-            className="phone"
-            href="tel:8059381515"
-            aria-label="Call SunSweeper at 805-938-1515"
-          >
-            805-938-1515
-          </a>
-          <p className="contact-line">
-            Call <span>or</span> text <small>for a live human</small>
-          </p>
+          <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
+          <p className="contact-line">Call <span>or</span> text <small>for a live human</small></p>
         </div>
-
         <nav className="service-nav" aria-label="Site navigation">
           {NAV_ITEMS.map((item, index) => {
             const isServices = item === "Services";
             return (
               <Fragment key={item}>
-                {index > 0 && (
-                  <span className="service-divider" aria-hidden="true">
-                    |
-                  </span>
-                )}
+                {index > 0 && <span className="service-divider" aria-hidden="true">|</span>}
                 {isServices ? (
-                  <div
-                    className="service-dropdown"
-                    onMouseEnter={() => setIsServicesDropdownOpen(true)}
-                    onMouseLeave={() => setIsServicesDropdownOpen(false)}
-                  >
-                    <button
-                      type="button"
-                      className="service-link"
-                      onClick={() => handleNavClick(item)}
-                      onFocus={() => setIsServicesDropdownOpen(true)}
-                      onBlur={() => setTimeout(() => setIsServicesDropdownOpen(false), 100)}
-                      aria-haspopup="menu"
-                      aria-expanded={isServicesDropdownOpen}
-                    >
-                      {item}
-                    </button>
+                  <div className="service-dropdown" onMouseEnter={() => setIsServicesDropdownOpen(true)} onMouseLeave={() => setIsServicesDropdownOpen(false)}>
+                    <button type="button" className="service-link" onClick={() => handleNavClick(item)} onFocus={() => setIsServicesDropdownOpen(true)} onBlur={() => setTimeout(() => setIsServicesDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isServicesDropdownOpen}>{item}</button>
                     {isServicesDropdownOpen && (
                       <div className="service-dropdown-menu" role="menu" aria-label="Service menu">
-                        {SERVICE_OPTIONS.map((service) => {
-                          const isActive = activeService === service.key;
-                          return (
-                            <button
-                              key={service.key}
-                              type="button"
-                              role="menuitem"
-                              className={`service-dropdown-item ${isActive ? "active" : ""}`}
-                              onClick={() => {
-                                handleServiceClick(service.key);
-                                setIsServicesDropdownOpen(false);
-                              }}
-                            >
-                              {service.label}
-                            </button>
-                          );
-                        })}
+                        {SERVICE_OPTIONS.map((service) => (
+                          <button key={service.key} type="button" role="menuitem" className={`service-dropdown-item ${activeService === service.key ? "active" : ""}`}
+                            onClick={() => { handleServiceClick(service.key); setIsServicesDropdownOpen(false); }}>{service.label}</button>
+                        ))}
                       </div>
                     )}
                   </div>
                 ) : (
-                  <button type="button" className="service-link" onClick={() => handleNavClick(item)}>
-                    {item}
-                  </button>
+                  <button type="button" className="service-link" onClick={() => handleNavClick(item)}>{item}</button>
                 )}
               </Fragment>
             );
           })}
-          <span className="service-divider" aria-hidden="true">
-            |
-          </span>
-          <div
-            className="service-dropdown"
-            onMouseEnter={() => setIsReviewsDropdownOpen(true)}
-            onMouseLeave={() => setIsReviewsDropdownOpen(false)}
-          >
-            <button
-              type="button"
-              className="service-link"
-              onClick={() => setIsReviewsDropdownOpen((prev) => !prev)}
-              onFocus={() => setIsReviewsDropdownOpen(true)}
-              onBlur={() => setTimeout(() => setIsReviewsDropdownOpen(false), 100)}
-              aria-haspopup="menu"
-              aria-expanded={isReviewsDropdownOpen}
-            >
-              Reviews
-            </button>
+          <span className="service-divider" aria-hidden="true">|</span>
+          <div className="service-dropdown" onMouseEnter={() => setIsReviewsDropdownOpen(true)} onMouseLeave={() => setIsReviewsDropdownOpen(false)}>
+            <button type="button" className="service-link" onClick={() => setIsReviewsDropdownOpen((prev) => !prev)} onFocus={() => setIsReviewsDropdownOpen(true)} onBlur={() => setTimeout(() => setIsReviewsDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isReviewsDropdownOpen}>Reviews</button>
             {isReviewsDropdownOpen && (
               <div className="service-dropdown-menu" role="menu" aria-label="Reviews menu">
                 {reviewDropdownLinks.map((link) => (
-                  <a
-                    key={link.href}
-                    role="menuitem"
-                    className="service-dropdown-item"
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => setIsReviewsDropdownOpen(false)}
-                  >
-                    {link.label}
-                  </a>
+                  <a key={link.href} role="menuitem" className="service-dropdown-item" href={link.href} target="_blank" rel="noreferrer" onClick={() => setIsReviewsDropdownOpen(false)}>{link.label}</a>
                 ))}
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="service-dropdown-item"
-                  onClick={() => {
-                    setIsReviewScreenshotsOpen(true);
-                    setIsReviewsDropdownOpen(false);
-                  }}
-                >
-                  Review Screenshots
-                </button>
+                <button type="button" role="menuitem" className="service-dropdown-item" onClick={() => { setIsReviewScreenshotsOpen(true); setIsReviewsDropdownOpen(false); }}>Review Screenshots</button>
               </div>
             )}
           </div>
@@ -720,82 +470,39 @@ export default function Page() {
         <div ref={messagesRef} className="messages">
           {messages.map((message, index) => {
             const isUser = message.role === "user";
-            const isLastAssistant =
-              !isUser &&
-              index === messages.length - 1;
-
+            const isLastAssistant = !isUser && index === messages.length - 1;
             return (
               <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
                 <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
                   {message.content.split("\n").map((line, i) => (
-                    <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>
-                      {line}
-                    </p>
+                    <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>{line}</p>
                   ))}
                   {!isUser && message.imagePaths && message.imagePaths.length > 0 && (
                     <ChatImageBubble images={message.imagePaths} onImageClick={setLightboxImagePath} />
                   )}
-                  {/* Referral form renders inside the last assistant bubble that triggered it */}
                   {isLastAssistant && showReferralForm && (
-                    <ReferralForm
-                      onSubmit={handleReferralSubmit}
-                      onSkip={handleReferralSkip}
-                      isSubmitting={isReferralSubmitting}
-                    />
+                    <ReferralForm onSubmit={handleReferralSubmit} onSkip={handleReferralSkip} isSubmitting={isReferralSubmitting} />
                   )}
                 </div>
               </div>
             );
           })}
-
-          {isLoading && (
-            <div className="msg-row assistant">
-              <div>
-                <p className="typing">Sunny is thinking...</p>
-              </div>
-            </div>
-          )}
+          {isLoading && <div className="msg-row assistant"><div><p className="typing">Sunny is thinking...</p></div></div>}
         </div>
-
         <div className="input-wrap">
-          <textarea
-            id="chat-input"
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={handleKeyDown}
-            rows={1}
-            placeholder="Ask about pricing, scheduling, services..."
-            className="chat-input"
-          />
-          <button
-            type="button"
-            onClick={() => void handleSend()}
-            disabled={isLoading || !input.trim()}
-            className="send-btn"
-            aria-label="Send message to Sunny"
-          >
-            <span aria-hidden="true">➤</span>
-            <span className="send-label" style={{ fontWeight: 800, color: "#fff" }}>
-              Send
-            </span>
+          <textarea id="chat-input" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={handleKeyDown} rows={1} placeholder="Ask about pricing, scheduling, services..." className="chat-input" />
+          <button type="button" onClick={() => void handleSend()} disabled={isLoading || !input.trim()} className="send-btn" aria-label="Send message to Sunny">
+            <span aria-hidden="true">&#x27A4;</span>
+            <span className="send-label" style={{ fontWeight: 800, color: "#fff" }}>Send</span>
           </button>
         </div>
         <p className="helper-text" style={{ marginTop: "0.9rem", fontSize: "0.8rem", textAlign: "center" }}>
-          Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a
-          message and get it to a specialist.
+          Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.
         </p>
       </section>
 
       <footer className="beta-footer" />
-
-      <footer
-        style={{
-          background: "#0f172a",
-          color: "#e5e7eb",
-          padding: "48px 24px",
-          fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif",
-        }}
-      >
+      <footer style={{ background: "#0f172a", color: "#e5e7eb", padding: "48px 24px", fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif" }}>
         {/* Your full footer content here */}
       </footer>
 
@@ -803,58 +510,35 @@ export default function Page() {
         <div className="sunny-onboarding-overlay" role="dialog" aria-modal="true" aria-label="Welcome to Sunny">
           <div className="sunny-onboarding-modal">
             <p>
-              Welcome to SunSweeper.com.
-              <br />
-              We&apos;re the solar panel and roof cleaning experts.
-              <br />
-              <br />
-              If this is your first time here, this site works differently than most.
-              <br />
-              <br />
-              The entire site runs through our Customer Service Lead, Sunny.
-              <br />
-              <br />
-              Sunny is a wicked fast typist, available 24/7, doesn&apos;t need coffee, and has an unhealthy obsession with
-              clean panels and straight answers.
-              <br />
-              <br />
-              Want to learn about our services? Ask Sunny.
-              <br />
-              Want to see photos of past work? Ask Sunny.
-              <br />
-              Want to book a solar panel cleaning for the 25 panels on your second-story barn roof? Sunny can handle
-              that too.
-              <br />
-              <br />
+              Welcome to SunSweeper.com.<br />
+              We&apos;re the solar panel and roof cleaning experts.<br /><br />
+              If this is your first time here, this site works differently than most.<br /><br />
+              The entire site runs through our Customer Service Lead, Sunny.<br /><br />
+              Sunny is a wicked fast typist, available 24/7, doesn&apos;t need coffee, and has an unhealthy obsession with clean panels and straight answers.<br /><br />
+              Want to learn about our services? Ask Sunny.<br />
+              Want to see photos of past work? Ask Sunny.<br />
+              Want to book a solar panel cleaning for the 25 panels on your second-story barn roof? Sunny can handle that too.<br /><br />
               Ready to give Sunny a try?
             </p>
-
             <div className="sunny-onboarding-actions">
-              <button type="button" className="sunny-onboarding-btn sunny-onboarding-btn-gold" onClick={handleStartChat}>
-                Yes
-              </button>
-              <button
-                type="button"
-                className="sunny-onboarding-btn sunny-onboarding-btn-dark"
-                onClick={handleStartChat}
-              >
-                Yes
-              </button>
+              <button type="button" className="sunny-onboarding-btn sunny-onboarding-btn-gold" onClick={handleStartChat}>Yes</button>
+              <button type="button" className="sunny-onboarding-btn sunny-onboarding-btn-dark" onClick={handleStartChat}>Yes</button>
             </div>
           </div>
         </div>
       )}
 
+      {showDateTimeModal && (
+        <DateTimeModal onConfirm={(dateTimeString) => { void handleDateTimeConfirm(dateTimeString); }} onDismiss={() => setShowDateTimeModal(false)} />
+      )}
+
+      {streetViewAddress && (
+        <StreetViewModal address={streetViewAddress} onConfirm={handleStreetViewConfirm} onReenter={() => { void handleStreetViewReenter(); }} />
+      )}
+
       <Lightbox imagePath={lightboxImagePath} onClose={() => setLightboxImagePath(null)} />
-      <ReviewScreenshotsModal
-        isOpen={isReviewScreenshotsOpen}
-        imagePaths={reviewScreenshotPaths}
-        onClose={() => setIsReviewScreenshotsOpen(false)}
-        onImageClick={(path) => {
-          setLightboxImagePath(path);
-          setIsReviewScreenshotsOpen(false);
-        }}
-      />
+      <ReviewScreenshotsModal isOpen={isReviewScreenshotsOpen} imagePaths={reviewScreenshotPaths} onClose={() => setIsReviewScreenshotsOpen(false)}
+        onImageClick={(path) => { setLightboxImagePath(path); setIsReviewScreenshotsOpen(false); }} />
     </main>
   );
 }
