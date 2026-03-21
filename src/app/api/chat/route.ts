@@ -687,12 +687,25 @@ export async function POST(request: Request) {
         awaitingReferral: false,
         referralSubmitted: true,
         referralData: { firstName, lastName, phone },
+        awaitingConfirmation: true,
+        lastAskedField: undefined,
       };
 
-      return respondWithLoggedReply(
-        `Got it — I've passed ${firstName}'s info to Aaron. If they book and mention your name, a 10% credit will be applied to your account. Now let me pull up your booking summary.`,
-        state
-      );
+      // Immediately return booking summary so user doesn't have to say "ok"
+      const price = typeof state.price === "number" ? state.price : 0;
+      const summary = `Got it — referral noted for ${firstName} ${lastName}.
+
+Here's your booking summary${state.fullName ? `, ${state.fullName}` : ""}:
+- Name: ${state.fullName || "Not set"}
+- Email: ${state.email || "Not set"}
+- Phone: ${state.phone || "Not set"}
+- Address: ${state.address || "Not set"}
+- Date & Time: ${state.dateTime || "Not set"}
+- Service: Cleaning ${state.panelCount} solar panels for $${price.toFixed(2)}
+
+Does everything look correct? Reply YES to confirm, or tell me what to change.`;
+
+      return respondWithLoggedReply(summary.trim(), state);
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -1127,9 +1140,8 @@ Does everything look correct before I lock this in? Reply YES to confirm, or tel
         const referralSection = referral
           ? `
             <hr>
-            <h3>Referral on file</h3>
-            <p>${referral.firstName} ${referral.lastName} — ${referral.phone}</p>
-            <p><em>If they book and mention your name, a 10% credit will be applied to your account.</em></p>
+            <p>Thank you for referring ${referral.firstName} ${referral.lastName}. We will reach out to them at ${referral.phone}. If we are able to book a service with them you will receive a 10% credit towards future services once we complete their booking. Once again, thank you for the referral.</p>
+            <p><strong>- Aaron, SunSweeper CEO</strong></p>
           `
           : "";
 
