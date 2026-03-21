@@ -42,6 +42,10 @@ type BookingState = {
   quoteLastCleaned?: "never" | "lt2" | "gt2";
   quoteReady?: boolean;
   lichenSurchargeApplied?: boolean;
+  // Referral fields
+  awaitingReferral?: boolean;
+  referralSubmitted?: boolean;
+  referralData?: { firstName: string; lastName: string; phone: string } | null;
   // SunPass fields
   sunpassLeadActive?: boolean;
   sunpassLeadData?: Record<string, string>;
@@ -434,7 +438,6 @@ function buildFinalQuote(state: BookingState): {
 
 // ─────────────────────────────────────────────────────────────────
 // SOLAR QUOTING STATE MACHINE
-// Panel count is a HARD GATE — no quote without it
 // ─────────────────────────────────────────────────────────────────
 
 type QuoteField = "quoteAddress" | "panelCount" | "quoteStorey" | "quoteLastCleaned";
@@ -466,38 +469,24 @@ function parseStorey(message: string): "1" | "2" | null {
 // UPDATED: parseLastCleaned
 // Accepts loose natural language. Vague or unclear answers default
 // to "gt2" (more than 2 years), which applies the higher price.
-// This is the safer business default.
 // ─────────────────────────────────────────────────────────────────
 function parseLastCleaned(message: string): "never" | "lt2" | "gt2" | null {
   const m = message.toLowerCase();
 
-  // Never cleaned
   if (/never|not.*clean|first.*time|brand.?new/i.test(m)) return "never";
-
-  // Explicit "more than 2 years" phrasing
   if (/\b(over|more than|greater than|beyond)\s*(2|two)\s*year/i.test(m)) return "gt2";
-
-  // 3+ years ago = gt2
   if (/\b[3-9]\s*year|\b[1-9]\d+\s*year/i.test(m)) return "gt2";
   if (/\b(few|couple|several|some)\s*year/i.test(m)) return "gt2";
-
-  // Specific short timeframes = lt2
   if (/\b\d+\s*(day|days|week|weeks|month|months)\s*(ago)?/i.test(m)) return "lt2";
-
-  // "1 year ago", "last year", "a year ago" = lt2
   if (/\b(1|one|a)\s*year\s*(ago)?/i.test(m)) return "lt2";
   if (/\blast\s*year\b/i.test(m)) return "lt2";
-
-  // "2 years ago" = gt2 (borderline, erring on surcharge side)
   if (/\b2\s*year/i.test(m)) return "gt2";
-
-  // Generic "within/less than 2 years"
   if (/\b(within|less|under|recent)\s*(the\s*)?(last\s*)?(1|2|one|two)\s*year/i.test(m)) return "lt2";
 
-  // Vague uncertainty — default to gt2 (higher price)
+  // Vague/uncertain — default to gt2 (higher price, safer business default)
   if (/\b(not sure|don.?t know|unsure|no idea|a while|long time|ages|been a while|awhile|can.?t remember|forget|forgot|unknown|not certain)\b/i.test(m)) return "gt2";
 
-  // Any non-empty answer that didn't match above — default to gt2
+  // Any non-empty answer — default to gt2
   if (m.trim().length > 0) return "gt2";
 
   return null;
@@ -520,6 +509,41 @@ function parsePanelCount(message: string, isDirectAnswer: boolean = false): numb
 }
 
 // ─────────────────────────────────────────────────────────────────
+// REFERRAL EMAIL
+// ─────────────────────────────────────────────────────────────────
+
+async function sendReferralEmail(payload: {
+  referrerName: string;
+  referrerEmail: string;
+  referralFirstName: string;
+  referralLastName: string;
+  referralPhone: string;
+  baseUrl: string;
+}) {
+  const { referrerName, referrerEmail, referralFirstName, referralLastName, referralPhone, baseUrl } = payload;
+  try {
+    await fetch(`${baseUrl}/api/send-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: ["aaron@sunsweeper.com"],
+        subject: `New Referral from ${referrerName}`,
+        html: `
+          <h2>New Referral</h2>
+          <p><strong>Referred by:</strong> ${referrerName} (${referrerEmail})</p>
+          <p><strong>Referral name:</strong> ${referralFirstName} ${referralLastName}</p>
+          <p><strong>Referral phone:</strong> ${referralPhone}</p>
+          <p><em>If this person books a service, apply a 10% credit (up to $500) to ${referrerName}'s account.</em></p>
+        `,
+        text: `New referral from ${referrerName} (${referrerEmail}): ${referralFirstName} ${referralLastName}, ${referralPhone}`,
+      }),
+    });
+  } catch (err) {
+    console.error("[REFERRAL] Email send failed:", err);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // MAIN HANDLER
 // ─────────────────────────────────────────────────────────────────
 
@@ -533,6 +557,7 @@ export async function POST(request: Request) {
       state?: BookingState;
       messages?: Message[];
       sessionId?: string;
+      referralData?: { firstName: string; lastName: string; phone: string };
     };
 
     const rawMessage = body.message ?? "";
@@ -568,8 +593,8 @@ export async function POST(request: Request) {
 
     const offerHandoff = shouldOfferHandoff({
       frustrationScore: sessionState.frustrationScore,
-      lastHandoffOfferedAt: sessionState.lastHandoffOfferedAt,
       handoffActive: sessionState.handoffActive,
+      lastHandoffOfferedAt: sessionState.lastHandoffOfferedAt,
       now,
     });
 
@@ -636,8 +661,38 @@ export async function POST(request: Request) {
       Object.keys(currentState)
     );
 
-    if (!message) {
+    if (!message && !body.referralData) {
       return respondWithLoggedReply(SAFE_FAIL_MESSAGE, currentState, 400);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // REFERRAL FORM SUBMISSION (comes from frontend form, not chat)
+    // ──────────────────────────────────────────────────────────────
+
+    if (body.referralData) {
+      const { firstName, lastName, phone } = body.referralData;
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.trim() || "https://www.sunsweeper.com";
+
+      await sendReferralEmail({
+        referrerName: currentState.fullName || "A customer",
+        referrerEmail: currentState.email || "unknown",
+        referralFirstName: firstName,
+        referralLastName: lastName,
+        referralPhone: phone,
+        baseUrl,
+      });
+
+      const state: BookingState = {
+        ...currentState,
+        awaitingReferral: false,
+        referralSubmitted: true,
+        referralData: { firstName, lastName, phone },
+      };
+
+      return respondWithLoggedReply(
+        `Got it — I've passed ${firstName}'s info to Aaron. If they book and mention your name, a 10% credit will be applied to your account. Now let me pull up your booking summary.`,
+        state
+      );
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -872,7 +927,6 @@ export async function POST(request: Request) {
 
     // ──────────────────────────────────────────────────────────────
     // STEP 1: SOLAR PANEL QUOTING STATE MACHINE
-    // Panel count is a HARD GATE — no quote without it
     // ──────────────────────────────────────────────────────────────
 
     const solarQuoteInProgress = currentState.intent === "solar_cleaning";
@@ -942,7 +996,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 2: BOOKING FLOW (quote issued, collecting booking details)
+    // STEP 2: BOOKING FLOW
     // ──────────────────────────────────────────────────────────────
 
     const hasPanelCount = typeof currentState.panelCount === "number";
@@ -1032,6 +1086,15 @@ Do not add explanations, do not wrap in code block, output pure JSON only.
           `We're almost done with intake${name}. What is your ${nextField}?`,
         ];
         reply = templates[Math.floor(Math.random() * templates.length)];
+
+      // ──────────────────────────────────────────────────────────
+      // REFERRAL PROMPT — fires when all fields collected, before
+      // confirmation summary. Only fires once per booking.
+      // ──────────────────────────────────────────────────────────
+      } else if (!state.referralSubmitted && !state.awaitingReferral && !state.awaitingConfirmation) {
+        state.awaitingReferral = true;
+        reply = "One more thing before your summary — SunSweeper has a referral program. If you refer someone and they book service you'll receive a credit for 10% of their bill towards a future service (up to $500). No forms or links needed — just a name and phone number. Got someone in mind?";
+
       } else if (!state.awaitingConfirmation) {
         const summary = `
 Here's what I've got for your booking${state.fullName ? `, ${state.fullName}` : ""}:
@@ -1045,6 +1108,7 @@ Here's what I've got for your booking${state.fullName ? `, ${state.fullName}` : 
 Does everything look correct before I lock this in? Reply YES to confirm, or tell me what to change.`;
         reply = summary.trim();
         state.awaitingConfirmation = true;
+        state.awaitingReferral = false;
         state.lastAskedField = undefined;
       } else if (
         ["yes", "confirm", "book it", "go ahead", "sure", "okay", "yep", "yeah"].some((w) =>
@@ -1058,6 +1122,20 @@ Does everything look correct before I lock this in? Reply YES to confirm, or tel
         const dateTime = state.dateTime!;
         const panelCount = state.panelCount!;
         const priceStr = price.toFixed(2);
+        const referral = state.referralData;
+
+        const referralSection = referral
+          ? `
+            <hr>
+            <h3>Referral on file</h3>
+            <p>${referral.firstName} ${referral.lastName} — ${referral.phone}</p>
+            <p><em>If they book and mention your name, a 10% credit will be applied to your account.</em></p>
+          `
+          : "";
+
+        const referralTextSection = referral
+          ? `\nReferral: ${referral.firstName} ${referral.lastName}, ${referral.phone}`
+          : "";
 
         try {
           const baseUrl =
@@ -1078,9 +1156,14 @@ Does everything look correct before I lock this in? Reply YES to confirm, or tel
                 <p>Phone: ${phone}</p>
                 <p>We'll see you then! Questions? Reply or call.</p>
                 <hr>
+                <h3>Referral Program</h3>
+                <p>If you ever send someone our way and they end up using us, we'll put a credit on your account for 10% of their job (up to $500). You can use that toward any future service.</p>
+                <p>No forms or links needed — if they mention your name when booking, we'll take care of the rest.</p>
+                ${referralSection}
+                <hr>
                 <p><small>Copy for Aaron - new booking logged.</small></p>
               `,
-              text: `Booking Confirmed: ${fullName}, ${panelCount} panels, $${priceStr}, ${dateTime} at ${address}`,
+              text: `Booking Confirmed: ${fullName}, ${panelCount} panels, $${priceStr}, ${dateTime} at ${address}${referralTextSection}\n\nReferral Program: If you send someone our way and they book, we'll credit 10% of their job (up to $500) to your account. No forms needed — just have them mention your name.`,
             }),
           });
 
