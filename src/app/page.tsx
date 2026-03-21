@@ -333,15 +333,16 @@ export default function Page() {
 
   const handleReferralSkip = async () => {
     setShowReferralForm(false);
-    // Send a skip signal so backend moves to confirmation summary
     setIsLoading(true);
     try {
+      // Pass referralSubmitted:true so backend skips referral prompt and goes straight to summary
+      const skippedState = { ...chatState, referralSubmitted: true, awaitingReferral: false };
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: "skip",
-          state: { ...chatState, referralSubmitted: true, awaitingReferral: false },
+          message: "show booking summary",
+          state: skippedState,
           messages,
           sessionId,
         }),
@@ -352,7 +353,7 @@ export default function Page() {
         state?: Record<string, unknown>;
       };
 
-      const reply = data.reply?.trim() || "No problem — let me pull up your booking summary.";
+      const reply = data.reply?.trim() || "No problem — here is your booking summary.";
       setMessages((prev) => [
         ...prev,
         { role: "assistant", type: "text", content: reply },
