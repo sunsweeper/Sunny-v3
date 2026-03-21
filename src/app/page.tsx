@@ -804,7 +804,7 @@ export default function Page() {
             <p>
               Welcome to SunSweeper.com.
               <br />
-              We're the solar panel and roof cleaning experts.
+              We&apos;re the solar panel and roof cleaning experts.
               <br />
               <br />
               If this is your first time here, this site works differently than most.
@@ -813,7 +813,7 @@ export default function Page() {
               The entire site runs through our Customer Service Lead, Sunny.
               <br />
               <br />
-              Sunny is a wicked fast typist, available 24/7, doesn't need coffee, and has an unhealthy obsession with
+              Sunny is a wicked fast typist, available 24/7, doesn&apos;t need coffee, and has an unhealthy obsession with
               clean panels and straight answers.
               <br />
               <br />
