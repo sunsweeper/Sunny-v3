@@ -19,6 +19,40 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// ─────────────────────────────────────────────────────────────────
+// GOOGLE SHEETS LOGGING
+// Single URL handles both conversation logs and booking logs.
+// ─────────────────────────────────────────────────────────────────
+
+const SHEET_URL =
+  process.env.SUNNY_SHEET_WEBHOOK_URL ||
+  "https://script.google.com/macros/s/AKfycbzf9rDq_0RELBDZ9nEycVPej2Ow53r4c4xvEtcic9JYWURlwwerTHciILU9ydsUf9bU_Q/exec";
+
+async function logToSheet(payload: Record<string, unknown>): Promise<void> {
+  try {
+    const response = await fetch(SHEET_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      redirect: "follow",
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      console.error("[SHEET] write failed:", response.status, body.slice(0, 300));
+    } else {
+      const result = await response.json();
+      console.log("[SHEET] write ok:", result);
+    }
+  } catch (err) {
+    console.error("[SHEET] write error:", err);
+  }
+}
+
+// Fire-and-forget — does not block response
+function logToSheetAsync(payload: Record<string, unknown>): void {
+  logToSheet(payload).catch((err) => console.error("[SHEET] async error:", err));
+}
+
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -99,7 +133,6 @@ type ConversationLogEntry = {
   message: string;
 };
 
-const SERVER_LOG_WEBHOOK_URL = process.env.SUNNY_LOG_WEBHOOK_URL;
 const sunpassPath = path.join(process.cwd(), "data/sunpass.json");
 
 function loadSunPassData(): SunPassData | null {
@@ -257,28 +290,18 @@ function buildSunPassLeadSummary(leadData: Record<string, string>) {
   ].join("\n");
 }
 
+// ─────────────────────────────────────────────────────────────────
+// CONVERSATION LOGGING — fires on every single turn
+// ─────────────────────────────────────────────────────────────────
+
 async function writeConversationLog(entry: ConversationLogEntry) {
   console.log("[SUNNY-LOG]", JSON.stringify(entry));
-
-  if (!SERVER_LOG_WEBHOOK_URL) {
-    console.warn("[SUNNY-LOG] SUNNY_LOG_WEBHOOK_URL not set. Logging to console only.");
-    return;
-  }
-
-  try {
-    const response = await fetch(SERVER_LOG_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entry),
-    });
-
-    if (!response.ok) {
-      const body = await response.text();
-      console.error("[SUNNY-LOG] webhook failed:", response.status, body.slice(0, 500));
-    }
-  } catch (error) {
-    console.error("[SUNNY-LOG] webhook error:", error);
-  }
+  logToSheetAsync({
+    session_id: entry.session_id,
+    role: entry.role,
+    type: "conversation",
+    text: entry.message,
+  });
 }
 
 async function logConversationTurn(payload: {
@@ -287,7 +310,7 @@ async function logConversationTurn(payload: {
   assistantMessage: string;
 }) {
   const timestamp = new Date().toISOString();
-  console.log("[SUNNY-LOG] logging conversation turn for session", payload.sessionId);
+  console.log("[SUNNY-LOG] logging turn for session", payload.sessionId);
 
   await writeConversationLog({
     timestamp,
@@ -465,11 +488,6 @@ function parseStorey(message: string): "1" | "2" | null {
   return null;
 }
 
-// ─────────────────────────────────────────────────────────────────
-// UPDATED: parseLastCleaned
-// Accepts loose natural language. Vague or unclear answers default
-// to "gt2" (more than 2 years), which applies the higher price.
-// ─────────────────────────────────────────────────────────────────
 function parseLastCleaned(message: string): "never" | "lt2" | "gt2" | null {
   const m = message.toLowerCase();
 
@@ -482,11 +500,7 @@ function parseLastCleaned(message: string): "never" | "lt2" | "gt2" | null {
   if (/\blast\s*year\b/i.test(m)) return "lt2";
   if (/\b2\s*year/i.test(m)) return "gt2";
   if (/\b(within|less|under|recent)\s*(the\s*)?(last\s*)?(1|2|one|two)\s*year/i.test(m)) return "lt2";
-
-  // Vague/uncertain — default to gt2 (higher price, safer business default)
   if (/\b(not sure|don.?t know|unsure|no idea|a while|long time|ages|been a while|awhile|can.?t remember|forget|forgot|unknown|not certain)\b/i.test(m)) return "gt2";
-
-  // Any non-empty answer — default to gt2
   if (m.trim().length > 0) return "gt2";
 
   return null;
@@ -666,7 +680,7 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // REFERRAL FORM SUBMISSION (comes from frontend form, not chat)
+    // REFERRAL FORM SUBMISSION
     // ──────────────────────────────────────────────────────────────
 
     if (body.referralData) {
@@ -691,7 +705,6 @@ export async function POST(request: Request) {
         lastAskedField: undefined,
       };
 
-      // Immediately return booking summary so user doesn't have to say "ok"
       const price = typeof state.price === "number" ? state.price : 0;
       const summary = `Got it — referral noted for ${firstName} ${lastName}.
 
@@ -881,12 +894,19 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
             role: leadData.role || "",
           });
 
-          await writeConversationLog({
+          // Log SunPass lead capture to sheet
+          logToSheetAsync({
+            type: "sunpass_lead",
             timestamp: timestampIso,
             session_id: sessionId,
-            role: "assistant",
-            message: `[sunpass_lead_capture] ${JSON.stringify(leadData)}`,
+            full_name: leadData.full_name || "",
+            email: leadData.email || "",
+            phone: leadData.phone_optional || "",
+            role: leadData.role || "",
+            property_address: leadData.property_address_optional || "",
+            notes: leadData.notes || "",
           });
+
         } catch (sunpassErr) {
           console.error("[SUNPASS] lead submission failed", sunpassErr);
         }
@@ -1100,10 +1120,6 @@ Do not add explanations, do not wrap in code block, output pure JSON only.
         ];
         reply = templates[Math.floor(Math.random() * templates.length)];
 
-      // ──────────────────────────────────────────────────────────
-      // REFERRAL PROMPT — fires when all fields collected, before
-      // confirmation summary. Only fires once per booking.
-      // ──────────────────────────────────────────────────────────
       } else if (!state.referralSubmitted && !state.awaitingReferral && !state.awaitingConfirmation) {
         state.awaitingReferral = true;
         reply = "One more thing before your summary — SunSweeper has a referral program. If you refer someone and they book service you'll receive a credit for 10% of their bill towards a future service (up to $500). No forms or links needed — just a name and phone number. Got someone in mind?";
@@ -1123,6 +1139,7 @@ Does everything look correct before I lock this in? Reply YES to confirm, or tel
         state.awaitingConfirmation = true;
         state.awaitingReferral = false;
         state.lastAskedField = undefined;
+
       } else if (
         ["yes", "confirm", "book it", "go ahead", "sure", "okay", "yep", "yeah"].some((w) =>
           messageLower.includes(w)
@@ -1148,6 +1165,18 @@ Does everything look correct before I lock this in? Reply YES to confirm, or tel
         const referralTextSection = referral
           ? `\nReferral: ${referral.firstName} ${referral.lastName}, ${referral.phone}`
           : "";
+
+        // ── Sheet: log booking immediately, independent of email ──
+        logToSheetAsync({
+          session_id: sessionId,
+          type: "booking",
+          known_name: fullName,
+          phone: phone,
+          email: email,
+          text: `${panelCount} panels at ${address} on ${dateTime} — $${priceStr}`,
+          service_key: "solar_cleaning",
+          lead_detected: true,
+        });
 
         try {
           const baseUrl =
@@ -1183,41 +1212,19 @@ Does everything look correct before I lock this in? Reply YES to confirm, or tel
           console.log("[BOOKING] Email result:", emailResult);
 
           if (emailResult.ok) {
-            try {
-              const sheetRes = await fetch(
-                "https://script.google.com/macros/s/AKfycbwXF31hUCdYh-9dzpf_hJT1-NWAv6Eerrr1Fj1mRxT6TA2ADllLR9e9fakEp80_ArUGLg/exec",
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    Client_Name: fullName,
-                    Address: address,
-                    Panel_Count: panelCount,
-                    Location: "Santa Maria",
-                    Phone_number: phone,
-                    email: email,
-                    Requested_Date: dateTime.split(" at ")[0] || dateTime,
-                    Time: dateTime.split(" at ")[1] || "N/A",
-                    Booking_Timestamp: new Date().toISOString(),
-                  }),
-                }
-              );
-              const sheetResult = await sheetRes.json();
-              console.log("[SHEET] Append result:", sheetResult);
-            } catch (sheetErr) {
-              console.error("Google Sheet append error:", sheetErr);
-            }
-
             reply = `Great — your booking request is confirmed, ${fullName.split(" ")[0]}. A confirmation email has been sent to ${email}. We have you scheduled for ${dateTime}. If anything needs to be updated, just let me know.`;
-            state = { ...state, confirmed: true, awaitingConfirmation: false };
           } else {
             reply =
-              "I ran into an issue sending the confirmation email. Aaron will reach out to finalize your booking.";
+              "Your booking is confirmed. I ran into an issue sending the confirmation email but Aaron will follow up with you directly.";
             console.error("Email send failed:", emailResult.error);
           }
+
+          state = { ...state, confirmed: true, awaitingConfirmation: false };
+
         } catch (err) {
           reply =
-            "I hit an issue while finalizing the booking. Aaron will follow up to get this completed.";
+            "Your booking is noted. I hit an issue while sending the confirmation email — Aaron will follow up to get this completed.";
+          state = { ...state, confirmed: true, awaitingConfirmation: false };
           console.error("Email trigger error:", err);
         }
       } else {
