@@ -19,16 +19,20 @@ type SunnyInboundLog = {
   handoff_requested?: boolean;
 };
 
-const SHEET_LOG_WEBHOOK_URL = process.env.SUNNY_LOG_GOOGLE_SCRIPT_URL;
+const SHEET_LOG_WEBHOOK_URL =
+  process.env.SUNNY_LOG_GOOGLE_SCRIPT_URL ||
+  process.env.SUNNY_SHEET_WEBHOOK_URL ||
+  "https://script.google.com/macros/s/AKfycbzf9rDq_0RELBDZ9nEycVPej2Ow53r4c4xvEtcic9JYWURlwwerTHciILU9ydsUf9bU_Q/exec";
+const SHEET_ID =
+  process.env.SUNNY_LOG_SHEET_ID || "1lLxFltIKAQjl3E-zHFCFJO7gAVd9yIACdKoXxi1PFto";
+const SHEET_GID = process.env.SUNNY_LOG_SHEET_GID || "632074952";
 
 async function sendToGoogleSheet(log: Required<SunnyInboundLog>) {
-  if (!SHEET_LOG_WEBHOOK_URL) {
-    console.warn("[SUNNY-SHEET-LOG] SUNNY_LOG_GOOGLE_SCRIPT_URL not set. Skipping Google Sheet append.");
-    return;
-  }
-
   const row = {
+    spreadsheet_id: SHEET_ID,
+    gid: SHEET_GID,
     ts: log.timestamp,
+    "session id": log.session_id,
     session_id: log.session_id,
     known_name: log.known_name,
     role: log.role,
@@ -48,6 +52,7 @@ async function sendToGoogleSheet(log: Required<SunnyInboundLog>) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(row),
+    redirect: "follow",
   });
 
   if (!response.ok) {
