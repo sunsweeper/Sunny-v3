@@ -10,7 +10,7 @@ export type SunnyLogPayload = {
   email?: string;
 };
 
-const LOG_URL = process.env.NEXT_PUBLIC_SUNNY_LOG_URL || "/api/sunny-log";
+const LOG_URL = "/api/sunny-log";
 
 const getSessionId = (): string => {
   const existing = window.localStorage.getItem("sunny_session_id");
@@ -37,6 +37,7 @@ export const logSunny = (payload: SunnyLogPayload): void => {
     void fetch(LOG_URL, {
       method: "POST",
       keepalive: true,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         timestamp: new Date().toISOString(),
         session_id: sessionId,
