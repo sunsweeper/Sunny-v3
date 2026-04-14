@@ -228,6 +228,7 @@ export default function Page() {
   const [isReviewScreenshotsOpen, setIsReviewScreenshotsOpen] = useState(false);
   const [showReferralForm, setShowReferralForm] = useState(false);
   const [isReferralSubmitting, setIsReferralSubmitting] = useState(false);
+  const [contextPhoto] = useState<string | null>(null);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -416,89 +417,103 @@ export default function Page() {
 
   return (
     <main className="page-shell">
-      <section className="hero">
-        <div className="hero-content">
-          <p className="hero-kicker">SunSweeper Premium Service</p>
-          <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
-          <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
-          <Image src="/logo.png" alt="SunSweeper logo" width={640} height={350} className="hero-logo" priority />
-        </div>
-        <div className="contact-wrap">
-          <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
-          <p className="contact-line">Call <span>or</span> text <small>for a live human</small></p>
-        </div>
-        <nav className="service-nav" aria-label="Site navigation">
-          {NAV_ITEMS.map((item, index) => {
-            const isServices = item === "Services";
-            return (
-              <Fragment key={item}>
-                {index > 0 && <span className="service-divider" aria-hidden="true">|</span>}
-                {isServices ? (
-                  <div className="service-dropdown" onMouseEnter={() => setIsServicesDropdownOpen(true)} onMouseLeave={() => setIsServicesDropdownOpen(false)}>
-                    <button type="button" className="service-link" onClick={() => handleNavClick(item)} onFocus={() => setIsServicesDropdownOpen(true)} onBlur={() => setTimeout(() => setIsServicesDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isServicesDropdownOpen}>{item}</button>
-                    {isServicesDropdownOpen && (
-                      <div className="service-dropdown-menu" role="menu" aria-label="Service menu">
-                        {SERVICE_OPTIONS.map((service) => (
-                          <button key={service.key} type="button" role="menuitem" className={`service-dropdown-item ${activeService === service.key ? "active" : ""}`}
-                            onClick={() => { handleServiceClick(service.key); setIsServicesDropdownOpen(false); }}>{service.label}</button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <button type="button" className="service-link" onClick={() => handleNavClick(item)}>{item}</button>
-                )}
-              </Fragment>
-            );
-          })}
-          <span className="service-divider" aria-hidden="true">|</span>
-          <div className="service-dropdown" onMouseEnter={() => setIsReviewsDropdownOpen(true)} onMouseLeave={() => setIsReviewsDropdownOpen(false)}>
-            <button type="button" className="service-link" onClick={() => setIsReviewsDropdownOpen((prev) => !prev)} onFocus={() => setIsReviewsDropdownOpen(true)} onBlur={() => setTimeout(() => setIsReviewsDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isReviewsDropdownOpen}>Reviews</button>
-            {isReviewsDropdownOpen && (
-              <div className="service-dropdown-menu" role="menu" aria-label="Reviews menu">
-                {reviewDropdownLinks.map((link) => (
-                  <a key={link.href} role="menuitem" className="service-dropdown-item" href={link.href} target="_blank" rel="noreferrer" onClick={() => setIsReviewsDropdownOpen(false)}>{link.label}</a>
-                ))}
-                <button type="button" role="menuitem" className="service-dropdown-item" onClick={() => { setIsReviewScreenshotsOpen(true); setIsReviewsDropdownOpen(false); }}>Review Screenshots</button>
-              </div>
-            )}
-          </div>
-        </nav>
+      <section className="phone-bar">
+        <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
+        <p className="contact-line">Call or <span>Text</span> for a Live Human</p>
       </section>
 
-      <section ref={chatShellRef} className="chat-shell">
-        <div ref={messagesRef} className="messages">
-          {messages.map((message, index) => {
-            const isUser = message.role === "user";
-            const isLastAssistant = !isUser && index === messages.length - 1;
-            return (
-              <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
-                <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
-                  {message.content.split("\n").map((line, i) => (
-                    <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>{line}</p>
-                  ))}
-                  {!isUser && message.imagePaths && message.imagePaths.length > 0 && (
-                    <ChatImageBubble images={message.imagePaths} onImageClick={setLightboxImagePath} />
-                  )}
-                  {isLastAssistant && showReferralForm && (
-                    <ReferralForm onSubmit={handleReferralSubmit} onSkip={handleReferralSkip} isSubmitting={isReferralSubmitting} />
+      <nav className="service-nav" aria-label="Site navigation">
+        {NAV_ITEMS.map((item, index) => {
+          const isServices = item === "Services";
+          return (
+            <Fragment key={item}>
+              {index > 0 && <span className="service-divider" aria-hidden="true">|</span>}
+              {isServices ? (
+                <div className="service-dropdown" onMouseEnter={() => setIsServicesDropdownOpen(true)} onMouseLeave={() => setIsServicesDropdownOpen(false)}>
+                  <button type="button" className="service-link" onClick={() => handleNavClick(item)} onFocus={() => setIsServicesDropdownOpen(true)} onBlur={() => setTimeout(() => setIsServicesDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isServicesDropdownOpen}>{item}</button>
+                  {isServicesDropdownOpen && (
+                    <div className="service-dropdown-menu" role="menu" aria-label="Service menu">
+                      {SERVICE_OPTIONS.map((service) => (
+                        <button key={service.key} type="button" role="menuitem" className={`service-dropdown-item ${activeService === service.key ? "active" : ""}`}
+                          onClick={() => { handleServiceClick(service.key); setIsServicesDropdownOpen(false); }}>{service.label}</button>
+                      ))}
+                    </div>
                   )}
                 </div>
-              </div>
-            );
-          })}
-          {isLoading && <div className="msg-row assistant"><div><p className="typing">Sunny is thinking...</p></div></div>}
+              ) : (
+                <button type="button" className="service-link" onClick={() => handleNavClick(item)}>{item}</button>
+              )}
+            </Fragment>
+          );
+        })}
+        <span className="service-divider" aria-hidden="true">|</span>
+        <div className="service-dropdown" onMouseEnter={() => setIsReviewsDropdownOpen(true)} onMouseLeave={() => setIsReviewsDropdownOpen(false)}>
+          <button type="button" className="service-link" onClick={() => setIsReviewsDropdownOpen((prev) => !prev)} onFocus={() => setIsReviewsDropdownOpen(true)} onBlur={() => setTimeout(() => setIsReviewsDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isReviewsDropdownOpen}>Reviews</button>
+          {isReviewsDropdownOpen && (
+            <div className="service-dropdown-menu" role="menu" aria-label="Reviews menu">
+              {reviewDropdownLinks.map((link) => (
+                <a key={link.href} role="menuitem" className="service-dropdown-item" href={link.href} target="_blank" rel="noreferrer" onClick={() => setIsReviewsDropdownOpen(false)}>{link.label}</a>
+              ))}
+              <button type="button" role="menuitem" className="service-dropdown-item" onClick={() => { setIsReviewScreenshotsOpen(true); setIsReviewsDropdownOpen(false); }}>Review Screenshots</button>
+            </div>
+          )}
         </div>
-        <div className="input-wrap">
-          <textarea id="chat-input" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={handleKeyDown} rows={1} placeholder="Ask about pricing, scheduling, services..." className="chat-input" />
-          <button type="button" onClick={() => void handleSend()} disabled={isLoading || !input.trim()} className="send-btn" aria-label="Send message to Sunny">
-            <span aria-hidden="true">&#x27A4;</span>
-            <span className="send-label" style={{ fontWeight: 800, color: "#fff" }}>Send</span>
-          </button>
+      </nav>
+
+      <section className="hero-layout">
+        <div className="hero-content">
+          <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
+          <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
+          <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
+          <Image src="/logo.png" alt="SunSweeper logo" width={150} height={82} className="hero-logo" priority />
+          {contextPhoto && (
+            <div className="context-photo-zone">
+              <img src={contextPhoto} alt="Contextual property reference" className="context-photo" />
+            </div>
+          )}
         </div>
-        <p className="helper-text" style={{ marginTop: "0.9rem", fontSize: "0.8rem", textAlign: "center" }}>
-          Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.
-        </p>
+
+        <section ref={chatShellRef} className="chat-shell">
+          <div className="chat-header">
+            <div className="chat-header-left">
+              <span className="online-dot" aria-hidden="true" />
+              <span className="chat-title">Sunny</span>
+            </div>
+            <span className="chat-status">Online now</span>
+          </div>
+          <div ref={messagesRef} className="messages">
+            {messages.map((message, index) => {
+              const isUser = message.role === "user";
+              const isLastAssistant = !isUser && index === messages.length - 1;
+              return (
+                <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
+                  <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
+                    {message.content.split("\n").map((line, i) => (
+                      <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>{line}</p>
+                    ))}
+                    {!isUser && message.imagePaths && message.imagePaths.length > 0 && (
+                      <ChatImageBubble images={message.imagePaths} onImageClick={setLightboxImagePath} />
+                    )}
+                    {isLastAssistant && showReferralForm && (
+                      <ReferralForm onSubmit={handleReferralSubmit} onSkip={handleReferralSkip} isSubmitting={isReferralSubmitting} />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {isLoading && <div className="msg-row assistant"><div><p className="typing">Sunny is thinking...</p></div></div>}
+          </div>
+          <div className="input-wrap">
+            <textarea id="chat-input" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={handleKeyDown} rows={1} placeholder="Ask me anything..." className="chat-input" />
+            <button type="button" onClick={() => void handleSend()} disabled={isLoading || !input.trim()} className="send-btn" aria-label="Send message to Sunny">
+              <span aria-hidden="true">&#x27A4;</span>
+              <span className="send-label" style={{ fontWeight: 800, color: "#fff" }}>Send</span>
+            </button>
+          </div>
+          <p className="helper-text" style={{ marginTop: "0.9rem", fontSize: "0.8rem", textAlign: "center" }}>
+            Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.
+          </p>
+        </section>
       </section>
 
       <footer className="beta-footer" />
