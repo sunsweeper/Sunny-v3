@@ -228,6 +228,8 @@ footer {
 
 .context-photo-zone {
   margin-top: 18px;
+  display: grid;
+  gap: 10px;
 }
 
 .context-photo {

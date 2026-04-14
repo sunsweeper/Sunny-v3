@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ChatImageBubble } from "../components/chat/ChatImageBubble";
 import { Lightbox } from "../components/chat/Lightbox";
 import { ReviewScreenshotsModal } from "../components/reviews/ReviewScreenshotsModal";
 import { reviewDropdownLinks, reviewScreenshotPaths } from "../data/reviewLinks";
@@ -228,7 +227,7 @@ export default function Page() {
   const [isReviewScreenshotsOpen, setIsReviewScreenshotsOpen] = useState(false);
   const [showReferralForm, setShowReferralForm] = useState(false);
   const [isReferralSubmitting, setIsReferralSubmitting] = useState(false);
-  const [contextPhoto] = useState<string | null>(null);
+  const [contextPhoto, setContextPhoto] = useState<string[]>([]);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -312,7 +311,9 @@ export default function Page() {
       const data = (await response.json()) as { reply?: string; state?: Record<string, unknown>; };
       const reply = data.reply?.trim() || "I'm sorry\u2014something went wrong while responding.";
 
-      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply, imagePaths: isSolarCleaningQuestion(text) ? getRandomSolarImages(2) : undefined }]);
+      const imageUrls = isSolarCleaningQuestion(text) ? getRandomSolarImages(2) : [];
+      setContextPhoto(imageUrls.slice(0, 2));
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply, imagePaths: imageUrls.length > 0 ? imageUrls : undefined }]);
       logSunny({ role: "assistant", type: "message", text: reply, lead_detected: false, lead_reason: "", handoff_requested: false });
 
       if (data.state) {
@@ -393,7 +394,9 @@ export default function Page() {
     let attempts = 0;
     while (lastAssistantMessage.endsWith(withOptionalName(universalFollowUp, knownName)) && attempts < 4) { universalFollowUp = getRandomItem(universalFollowUps); attempts += 1; }
     const ucsMessage = `${serviceLine}\n\n${withOptionalName(universalFollowUp, knownName)}`;
-    const serviceIntroMessage: AssistantTextMessage = { role: "assistant", type: "text", content: ucsMessage, imagePaths: service === "solarPanelCleaning" ? getRandomSolarImages(2) : undefined };
+    const imageUrls = service === "solarPanelCleaning" ? getRandomSolarImages(2) : [];
+    setContextPhoto(imageUrls.slice(0, 2));
+    const serviceIntroMessage: AssistantTextMessage = { role: "assistant", type: "text", content: ucsMessage, imagePaths: imageUrls.length > 0 ? imageUrls : undefined };
     setActiveService(service);
     if (!hasUserEngaged) { setMessages([serviceIntroMessage]); } else { setMessages((prev) => [...prev, serviceIntroMessage]); }
     logSunny({ role: "assistant", type: "ucs", service_key: ucsKey, text: ucsMessage, lead_detected: false, lead_reason: "", handoff_requested: false });
@@ -407,6 +410,7 @@ export default function Page() {
     if (label === "New Chat") {
       setMessages([navMessage]); setChatState({}); setActiveService(null); setHasUserEngaged(false);
       setShowReferralForm(false); setStreetViewAddress(null); setPendingAddress(null);
+      setContextPhoto([]);
     } else if (label === "SunPass") {
       if (!hasUserEngaged) { setMessages([navMessage]); } else { setMessages((prev) => [...prev, navMessage]); }
       setChatState((prev) => ({ ...prev, activeConversationState: "sunpass_intro" }));
@@ -466,9 +470,16 @@ export default function Page() {
           <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
           <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
           <Image src="/logo.png" alt="SunSweeper logo" width={150} height={82} className="hero-logo" priority />
-          {contextPhoto && (
+          {contextPhoto.length > 0 && (
             <div className="context-photo-zone">
-              <img src={contextPhoto} alt="Contextual property reference" className="context-photo" />
+              {contextPhoto.slice(0, 2).map((imageUrl, index) => (
+                <img
+                  key={`${imageUrl}-${index}`}
+                  src={imageUrl}
+                  alt={`Contextual property reference ${index + 1}`}
+                  className="context-photo"
+                />
+              ))}
             </div>
           )}
         </div>
@@ -491,9 +502,6 @@ export default function Page() {
                     {message.content.split("\n").map((line, i) => (
                       <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>{line}</p>
                     ))}
-                    {!isUser && message.imagePaths && message.imagePaths.length > 0 && (
-                      <ChatImageBubble images={message.imagePaths} onImageClick={setLightboxImagePath} />
-                    )}
                     {isLastAssistant && showReferralForm && (
                       <ReferralForm onSubmit={handleReferralSubmit} onSkip={handleReferralSkip} isSubmitting={isReferralSubmitting} />
                     )}
