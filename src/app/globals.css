@@ -177,6 +177,7 @@ footer {
   gap: 18px;
   align-items: stretch;
   flex: 1;
+  min-height: clamp(620px, 72vh, 840px);
 }
 
 .hero-content,
@@ -250,6 +251,7 @@ footer {
   padding: 16px;
   display: flex;
   flex-direction: column;
+  min-height: 100%;
 }
 
 .chat-header {
@@ -282,6 +284,7 @@ footer {
   .hero-layout {
     width: min(1320px, calc(100% - 24px));
     grid-template-columns: 1fr;
+    min-height: auto;
   }
 
   .service-nav,
