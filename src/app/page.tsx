@@ -421,48 +421,50 @@ export default function Page() {
 
   return (
     <main className="page-shell">
-      <section className="phone-bar">
-        <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
-        <p className="contact-line">Call or <span>Text</span> for a Live Human</p>
-      </section>
+      <section className="top-bar-layout">
+        <section className="phone-bar">
+          <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
+          <p className="contact-line">Call or <span>Text</span> for a Live Human</p>
+        </section>
 
-      <nav className="service-nav" aria-label="Site navigation">
-        {NAV_ITEMS.map((item, index) => {
-          const isServices = item === "Services";
-          return (
-            <Fragment key={item}>
-              {index > 0 && <span className="service-divider" aria-hidden="true">|</span>}
-              {isServices ? (
-                <div className="service-dropdown" onMouseEnter={() => setIsServicesDropdownOpen(true)} onMouseLeave={() => setIsServicesDropdownOpen(false)}>
-                  <button type="button" className="service-link" onClick={() => handleNavClick(item)} onFocus={() => setIsServicesDropdownOpen(true)} onBlur={() => setTimeout(() => setIsServicesDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isServicesDropdownOpen}>{item}</button>
-                  {isServicesDropdownOpen && (
-                    <div className="service-dropdown-menu" role="menu" aria-label="Service menu">
-                      {SERVICE_OPTIONS.map((service) => (
-                        <button key={service.key} type="button" role="menuitem" className={`service-dropdown-item ${activeService === service.key ? "active" : ""}`}
-                          onClick={() => { handleServiceClick(service.key); setIsServicesDropdownOpen(false); }}>{service.label}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button type="button" className="service-link" onClick={() => handleNavClick(item)}>{item}</button>
-              )}
-            </Fragment>
-          );
-        })}
-        <span className="service-divider" aria-hidden="true">|</span>
-        <div className="service-dropdown" onMouseEnter={() => setIsReviewsDropdownOpen(true)} onMouseLeave={() => setIsReviewsDropdownOpen(false)}>
-          <button type="button" className="service-link" onClick={() => setIsReviewsDropdownOpen((prev) => !prev)} onFocus={() => setIsReviewsDropdownOpen(true)} onBlur={() => setTimeout(() => setIsReviewsDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isReviewsDropdownOpen}>Reviews</button>
-          {isReviewsDropdownOpen && (
-            <div className="service-dropdown-menu" role="menu" aria-label="Reviews menu">
-              {reviewDropdownLinks.map((link) => (
-                <a key={link.href} role="menuitem" className="service-dropdown-item" href={link.href} target="_blank" rel="noreferrer" onClick={() => setIsReviewsDropdownOpen(false)}>{link.label}</a>
-              ))}
-              <button type="button" role="menuitem" className="service-dropdown-item" onClick={() => { setIsReviewScreenshotsOpen(true); setIsReviewsDropdownOpen(false); }}>Review Screenshots</button>
-            </div>
-          )}
-        </div>
-      </nav>
+        <nav className="service-nav" aria-label="Site navigation">
+          {NAV_ITEMS.map((item, index) => {
+            const isServices = item === "Services";
+            return (
+              <Fragment key={item}>
+                {index > 0 && <span className="service-divider" aria-hidden="true">|</span>}
+                {isServices ? (
+                  <div className="service-dropdown" onMouseEnter={() => setIsServicesDropdownOpen(true)} onMouseLeave={() => setIsServicesDropdownOpen(false)}>
+                    <button type="button" className="service-link" onClick={() => handleNavClick(item)} onFocus={() => setIsServicesDropdownOpen(true)} onBlur={() => setTimeout(() => setIsServicesDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isServicesDropdownOpen}>{item}</button>
+                    {isServicesDropdownOpen && (
+                      <div className="service-dropdown-menu" role="menu" aria-label="Service menu">
+                        {SERVICE_OPTIONS.map((service) => (
+                          <button key={service.key} type="button" role="menuitem" className={`service-dropdown-item ${activeService === service.key ? "active" : ""}`}
+                            onClick={() => { handleServiceClick(service.key); setIsServicesDropdownOpen(false); }}>{service.label}</button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button type="button" className="service-link" onClick={() => handleNavClick(item)}>{item}</button>
+                )}
+              </Fragment>
+            );
+          })}
+          <span className="service-divider" aria-hidden="true">|</span>
+          <div className="service-dropdown" onMouseEnter={() => setIsReviewsDropdownOpen(true)} onMouseLeave={() => setIsReviewsDropdownOpen(false)}>
+            <button type="button" className="service-link" onClick={() => setIsReviewsDropdownOpen((prev) => !prev)} onFocus={() => setIsReviewsDropdownOpen(true)} onBlur={() => setTimeout(() => setIsReviewsDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isReviewsDropdownOpen}>Reviews</button>
+            {isReviewsDropdownOpen && (
+              <div className="service-dropdown-menu" role="menu" aria-label="Reviews menu">
+                {reviewDropdownLinks.map((link) => (
+                  <a key={link.href} role="menuitem" className="service-dropdown-item" href={link.href} target="_blank" rel="noreferrer" onClick={() => setIsReviewsDropdownOpen(false)}>{link.label}</a>
+                ))}
+                <button type="button" role="menuitem" className="service-dropdown-item" onClick={() => { setIsReviewScreenshotsOpen(true); setIsReviewsDropdownOpen(false); }}>Review Screenshots</button>
+              </div>
+            )}
+          </div>
+        </nav>
+      </section>
 
       <section className="hero-layout">
         <div className="hero-content">
