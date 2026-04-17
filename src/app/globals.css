@@ -95,20 +95,19 @@ footer {
   width: 100%;
   margin: 8px 0 0;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
-  gap: 10px;
+  gap: 18px;
   background: transparent;
   padding: 0;
-  white-space: nowrap;
 }
 
 .service-link {
   border: 0;
   background: transparent;
   color: #f5c842;
-  font-size: clamp(16px, 1.7vw, 32px);
+  font-size: clamp(36px, 2.8vw, 48px);
   font-weight: 500;
   cursor: pointer;
   padding: 2px 0;
@@ -123,7 +122,7 @@ footer {
 
 .service-divider {
   color: rgba(245, 200, 66, 0.5);
-  font-size: clamp(14px, 1.5vw, 28px);
+  font-size: clamp(32px, 2.6vw, 42px);
   font-weight: 500;
 }
 
@@ -321,11 +320,11 @@ footer {
   }
 
   .service-link {
-    font-size: clamp(16px, 3.8vw, 24px);
+    font-size: clamp(30px, 6vw, 40px);
   }
 
   .service-divider {
-    font-size: clamp(13px, 3vw, 20px);
+    font-size: clamp(28px, 5vw, 34px);
   }
 }
 
