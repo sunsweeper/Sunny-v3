@@ -466,10 +466,12 @@ export default function Page() {
 
       <section className="hero-layout">
         <div className="hero-content">
-          <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
-          <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
-          <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
-          <Image src="/logo.png" alt="SunSweeper logo" width={150} height={82} className="hero-logo" priority />
+          <div className="hero-top-content">
+            <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
+            <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
+            <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
+            <Image src="/logo.png" alt="SunSweeper logo" width={150} height={82} className="hero-logo" priority />
+          </div>
           {contextPhoto.length > 0 && (
             <div className="context-photo-zone">
               {contextPhoto.slice(0, 2).map((imageUrl, index) => (
@@ -518,11 +520,13 @@ export default function Page() {
               <span className="send-label" style={{ fontWeight: 800, color: "#fff" }}>Send</span>
             </button>
           </div>
-          <p className="helper-text" style={{ marginTop: "0.9rem", fontSize: "0.8rem", textAlign: "center" }}>
+          <p className="helper-text">
             Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.
           </p>
         </section>
       </section>
+
+      <section className="sunrise-band" aria-hidden="true" />
 
       <footer className="beta-footer" />
       <footer style={{ background: "#0f172a", color: "#e5e7eb", padding: "48px 24px", fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif" }}>
