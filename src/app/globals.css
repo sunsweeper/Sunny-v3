@@ -40,6 +40,7 @@ body {
   pointer-events: none;
 }
 
+.top-bar-layout,
 .phone-bar,
 .service-nav,
 .hero-layout,
@@ -49,15 +50,24 @@ footer {
   z-index: 1;
 }
 
+.top-bar-layout {
+  width: min(1320px, calc(100% - 72px));
+  margin: 14px auto 0;
+  display: grid;
+  grid-template-columns: 35fr 65fr;
+  gap: 18px;
+  align-items: start;
+}
+
 .phone-bar {
-  background: rgba(8, 14, 28, 0.55);
-  padding: 10px 36px 8px;
-  text-align: left;
+  background: transparent;
+  padding: 4px 8px 0;
+  text-align: center;
 }
 
 .phone {
-  font-size: 36px;
-  font-weight: 500;
+  font-size: clamp(42px, 4.2vw, 58px);
+  font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.01em;
   display: block;
@@ -67,10 +77,10 @@ footer {
 }
 
 .contact-line {
-  margin: 3px 0 0;
+  margin: 4px 0 0;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
-  font-weight: 400;
+  font-size: 18px;
+  font-weight: 500;
 }
 
 .contact-line span {
@@ -82,22 +92,22 @@ footer {
    ========================= */
 
 .service-nav {
-  width: min(1320px, calc(100% - 72px));
-  margin: 0 auto;
+  width: 100%;
+  margin: 8px 0 0;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  gap: 12px;
-  background: rgba(8, 14, 28, 0.4);
-  padding: 12px 16px;
+  gap: 18px;
+  background: transparent;
+  padding: 0;
 }
 
 .service-link {
   border: 0;
   background: transparent;
   color: #f5c842;
-  font-size: 13px;
+  font-size: clamp(36px, 2.8vw, 48px);
   font-weight: 500;
   cursor: pointer;
   padding: 2px 0;
@@ -112,7 +122,7 @@ footer {
 
 .service-divider {
   color: rgba(245, 200, 66, 0.5);
-  font-size: 13px;
+  font-size: clamp(32px, 2.6vw, 42px);
   font-weight: 500;
 }
 
@@ -283,6 +293,12 @@ footer {
 }
 
 @media (max-width: 960px) {
+  .top-bar-layout {
+    width: min(1320px, calc(100% - 24px));
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
   .hero-layout {
     width: min(1320px, calc(100% - 24px));
     grid-template-columns: 1fr;
@@ -293,6 +309,22 @@ footer {
   .phone-bar {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .phone {
+    font-size: clamp(34px, 7vw, 48px);
+  }
+
+  .contact-line {
+    font-size: clamp(15px, 3.8vw, 20px);
+  }
+
+  .service-link {
+    font-size: clamp(30px, 6vw, 40px);
+  }
+
+  .service-divider {
+    font-size: clamp(28px, 5vw, 34px);
   }
 }
 
