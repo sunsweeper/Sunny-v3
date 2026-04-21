@@ -164,6 +164,16 @@ const SUNPASS_DEFAULT_INTENTS = [
   "i need help with solar on a home sale",
 ];
 
+const SUNPASS_OVERVIEW_RESPONSE = `SunPass is SunSweeper's solar lifecycle management platform — built to help homeowners protect, monitor, and maximize their solar investment.
+Here's a quick breakdown:
+
+SunPass Monitoring — Real-time production tracking, system health alerts, and performance reports.
+SunPass Transfer — Buying or selling a home with solar? SunPass handles the system ownership transfer so nothing falls through the cracks.
+SunPass Protection — Extended protection plans covering inverters, panels, optimizers, and batteries.
+SunPass Cleaning — On-demand or subscription cleaning scheduled directly through SunSweeper.
+
+For detailed questions or to get started, visit SunPassSolar.com — Pharos, the SunPass AI, can walk you through everything.`;
+
 const SUNPASS_INTRO_CONFIRMATIONS = [
   "yes",
   "yeah",
@@ -226,55 +236,12 @@ function isShortChatReply(messageLower: string): boolean {
   return messageLower.trim().split(/\s+/).filter(Boolean).length <= 4;
 }
 
-function buildSunPassAboutResponse(sunpass: SunPassData): string {
-  const about = sunpass.about_chat_response;
-  if (about) {
-    return [about.intro, about.purpose, about.who_it_helps, about.what_it_includes, about.cta]
-      .filter(Boolean)
-      .join("\n\n");
-  }
-  const services = (sunpass.services || []).slice(0, 4).join(", ");
-  const audience = (sunpass.audience || []).join(", ");
-  const cta =
-    sunpass.cta_examples?.[0] ||
-    "Ask Sunny to have SunPass reach out and I can get that started.";
-  return [
-    `${sunpass.name} helps with solar details during real estate transactions.`,
-    sunpass.description,
-    audience ? `It supports ${audience}.` : "",
-    services ? `Typical support includes ${services}.` : "",
-    cta,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+function buildSunPassAboutResponse(_sunpass: SunPassData): string {
+  return SUNPASS_OVERVIEW_RESPONSE;
 }
 
-function buildSunPassKnowledgeResponse(sunpass: SunPassData, messageLower: string): string {
-  const cta =
-    sunpass.cta_examples?.[0] ||
-    "If you want SunPass to reach out, tell me and I can collect your details.";
-
-  if (
-    /\b(service|include|offer|help with)\b/.test(messageLower) &&
-    (sunpass.services || []).length
-  ) {
-    const services = sunpass.services?.join(", ");
-    return `SunPass services include ${services}.\n\n${cta}`;
-  }
-
-  if (
-    /\b(who|for who|audience|agent|buyer|seller|escrow)\b/.test(messageLower) &&
-    (sunpass.audience || []).length
-  ) {
-    const audience = sunpass.audience?.join(", ");
-    return `SunPass is built for ${audience}.\n\n${cta}`;
-  }
-
-  if (/\b(why|purpose|what is sunpass|about sunpass|explain sunpass)\b/.test(messageLower)) {
-    return buildSunPassAboutResponse(sunpass);
-  }
-
-  return `${sunpass.description || buildSunPassAboutResponse(sunpass)}\n\n${cta}`;
+function buildSunPassKnowledgeResponse(_sunpass: SunPassData, _messageLower: string): string {
+  return SUNPASS_OVERVIEW_RESPONSE;
 }
 
 function buildSunPassLeadSummary(leadData: Record<string, string>) {
