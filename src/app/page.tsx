@@ -563,13 +563,6 @@ export default function Page() {
         </section>
       </section>
 
-      <section className="sunrise-band" aria-hidden="true" />
-
-      <footer className="beta-footer" />
-      <footer style={{ background: "#0f172a", color: "#e5e7eb", padding: "48px 24px", fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif" }}>
-        {/* Your full footer content here */}
-      </footer>
-
       {showOnboardingModal && (
         <div className="sunny-onboarding-overlay" role="dialog" aria-modal="true" aria-label="Welcome to Sunny">
           <div className="sunny-onboarding-modal">

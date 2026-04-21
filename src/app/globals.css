@@ -5,7 +5,6 @@
   --gold: #d7a321;
   --sky: #7fc9ff;
   --surface: #d7dce6;
-  --chat-viewport-offset: 160px;
 }
 
 * {
@@ -14,6 +13,7 @@
 
 html,
 body {
+  height: 100%;
   margin: 0;
   padding: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -191,8 +191,7 @@ footer {
   gap: 18px;
   align-items: stretch;
   flex: 1;
-  height: calc(100vh - var(--chat-viewport-offset));
-  max-height: calc(100vh - var(--chat-viewport-offset));
+  min-height: 0;
 }
 
 .hero-content,
@@ -308,8 +307,7 @@ footer {
   .hero-layout {
     width: min(1320px, calc(100% - 24px));
     grid-template-columns: 1fr;
-    height: calc(100vh - 124px);
-    max-height: calc(100vh - 124px);
+    min-height: 0;
   }
 
   .service-nav,
@@ -342,17 +340,6 @@ footer {
   text-align: center;
   color: rgba(255, 255, 255, 0.78);
   flex-shrink: 0;
-}
-
-.sunrise-band {
-  width: 100%;
-  min-height: clamp(180px, 22vw, 320px);
-  background-image: url("/solar-background.png");
-  background-position: center top;
-  background-repeat: no-repeat;
-  background-size: cover;
-  position: relative;
-  z-index: 1;
 }
 
 /* =========================
