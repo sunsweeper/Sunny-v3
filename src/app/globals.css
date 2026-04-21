@@ -5,6 +5,7 @@
   --gold: #d7a321;
   --sky: #7fc9ff;
   --surface: #d7dce6;
+  --chat-viewport-offset: 160px;
 }
 
 * {
@@ -190,7 +191,8 @@ footer {
   gap: 18px;
   align-items: stretch;
   flex: 1;
-  height: clamp(620px, 72vh, 840px);
+  height: calc(100vh - var(--chat-viewport-offset));
+  max-height: calc(100vh - var(--chat-viewport-offset));
 }
 
 .hero-content,
@@ -306,7 +308,8 @@ footer {
   .hero-layout {
     width: min(1320px, calc(100% - 24px));
     grid-template-columns: 1fr;
-    height: auto;
+    height: calc(100vh - 124px);
+    max-height: calc(100vh - 124px);
   }
 
   .service-nav,
@@ -338,6 +341,7 @@ footer {
   font-size: 0.8rem;
   text-align: center;
   color: rgba(255, 255, 255, 0.78);
+  flex-shrink: 0;
 }
 
 .sunrise-band {
@@ -359,6 +363,7 @@ footer {
   display: grid;
   gap: 18px;
   flex: 1 1 auto;
+  height: 100%;
 
   background: rgba(255, 255, 255, 0.05);
   border: none;
@@ -372,7 +377,6 @@ footer {
   padding: clamp(16px, 2.2vw, 22px);
 
   min-height: 0;
-  max-height: 100%;
   overflow-y: auto;
 
   color: rgba(255, 255, 255, 0.92);
@@ -455,6 +459,7 @@ footer {
   display: flex;
   gap: 10px;
   align-items: stretch;
+  flex-shrink: 0;
 }
 
 .chat-input {
