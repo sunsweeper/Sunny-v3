@@ -236,11 +236,11 @@ function isShortChatReply(messageLower: string): boolean {
   return messageLower.trim().split(/\s+/).filter(Boolean).length <= 4;
 }
 
-function buildSunPassAboutResponse(_sunpass: SunPassData): string {
+function buildSunPassAboutResponse(): string {
   return SUNPASS_OVERVIEW_RESPONSE;
 }
 
-function buildSunPassKnowledgeResponse(_sunpass: SunPassData, _messageLower: string): string {
+function buildSunPassKnowledgeResponse(): string {
   return SUNPASS_OVERVIEW_RESPONSE;
 }
 
@@ -711,7 +711,7 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
 
       if (isSunPassIntroConfirmation(messageLower)) {
         const reply = sunpassData
-          ? buildSunPassAboutResponse(sunpassData)
+          ? buildSunPassAboutResponse()
           : "SunPass helps buyers, sellers, agents, and escrow understand solar details during a home sale. If you want SunPass to reach out, tell me and I can collect your details.";
         return respondWithLoggedReply(reply, {
           ...currentState,
@@ -720,7 +720,7 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
       }
 
       if (sunpassData) {
-        const reply = buildSunPassKnowledgeResponse(sunpassData, messageLower);
+        const reply = buildSunPassKnowledgeResponse();
         return respondWithLoggedReply(reply, {
           ...currentState,
           activeConversationState: "sunpass_followup",
@@ -756,7 +756,7 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
 
       if (sunpassData && detectSunPassTopic(messageLower)) {
         return respondWithLoggedReply(
-          buildSunPassKnowledgeResponse(sunpassData, messageLower),
+          buildSunPassKnowledgeResponse(),
           currentState
         );
       }
@@ -920,7 +920,7 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
       }
 
       const aboutReply = sunpassData
-        ? buildSunPassKnowledgeResponse(sunpassData, messageLower)
+        ? buildSunPassKnowledgeResponse()
         : "SunPass supports buyers, sellers, agents, and escrow with solar details during a home sale. Ask Sunny to have SunPass reach out and I can collect your info now.";
       return respondWithLoggedReply(aboutReply, currentState);
     }
