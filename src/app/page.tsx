@@ -500,12 +500,39 @@ export default function Page() {
             {messages.map((message, index) => {
               const isUser = message.role === "user";
               const isLastAssistant = !isUser && index === messages.length - 1;
+              const quickReplies =
+                isLastAssistant && !isUser && Array.isArray(chatState.sunpassQuickReplies)
+                  ? (chatState.sunpassQuickReplies as string[])
+                  : [];
               return (
                 <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
                   <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
                     {message.content.split("\n").map((line, i) => (
                       <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>{line}</p>
                     ))}
+                    {quickReplies.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
+                        {quickReplies.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            disabled={isLoading}
+                            onClick={() => void sendMessage(option)}
+                            style={{
+                              borderRadius: "999px",
+                              border: "1px solid rgba(255,255,255,0.35)",
+                              background: "rgba(245,166,35,0.18)",
+                              color: "#fff",
+                              padding: "6px 12px",
+                              fontSize: "0.8rem",
+                              cursor: isLoading ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {isLastAssistant && showReferralForm && (
                       <ReferralForm onSubmit={handleReferralSubmit} onSkip={handleReferralSkip} isSubmitting={isReferralSubmitting} />
                     )}

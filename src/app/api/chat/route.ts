@@ -85,7 +85,8 @@ type BookingState = {
   sunpassLeadData?: Record<string, string>;
   sunpassLastAskedField?: string;
   sunpassAwaitingConfirmation?: boolean;
-  activeConversationState?: "sunpass_intro" | "sunpass_followup";
+  activeConversationState?: "sunpass_intro" | "sunpass_role_prompt" | "sunpass_followup";
+  sunpassQuickReplies?: string[];
   [key: string]: unknown;
 };
 
@@ -164,15 +165,33 @@ const SUNPASS_DEFAULT_INTENTS = [
   "i need help with solar on a home sale",
 ];
 
-const SUNPASS_OVERVIEW_RESPONSE = `SunPass is SunSweeper's solar lifecycle management platform — built to help homeowners protect, monitor, and maximize their solar investment.
-Here's a quick breakdown:
+const SUNPASS_ROLE_PROMPT =
+  "Let me break SunPass down for you. Are you a 1) Homeowner, 2) Home Buyer, or 3) Real Estate Agent?";
 
-SunPass Monitoring — Real-time production tracking, system health alerts, and performance reports.
-SunPass Transfer — Buying or selling a home with solar? SunPass handles the system ownership transfer so nothing falls through the cracks.
-SunPass Protection — Extended protection plans covering inverters, panels, optimizers, and batteries.
-SunPass Cleaning — On-demand or subscription cleaning scheduled directly through SunSweeper.
+const SUNPASS_ROLE_QUICK_REPLIES = ["Homeowner", "Home Buyer", "Real Estate Agent"];
 
-For detailed questions or to get started, visit SunPassSolar.com — Pharos, the SunPass AI, can walk you through everything.`;
+const SUNPASS_HOMEOWNER_RESPONSE = `SunPass gives you a clear picture of what your solar system is actually worth and how it's performing.
+
+System Inspection & Valuation — We visually inspect and document your solar array and compile an easily digestible report that includes brand, size, remaining warranty, visual condition, and product-specific notes on your panels, inverter, battery (if included), and wiring.
+Inverter Reconnection — If your system went offline after a sale or service gap, we get you back online so you can monitor your own production through SolarEdge or Enphase.
+
+Learn more at SunPassSolar.com`;
+
+const SUNPASS_HOME_BUYER_RESPONSE = `Buying a home with solar is great — unless nobody can tell you what the system is actually worth or whether it's working.
+
+System Inspection & Valuation — We visually inspect and document your solar array and compile an easily digestible report that includes brand, size, remaining warranty, visual condition, and product-specific notes on your panels, inverter, battery (if included), and wiring.
+Inverter Reconnection — We get the system in your name and online so you can monitor your own production from day one.
+
+Learn more at SunPassSolar.com`;
+
+const SUNPASS_AGENT_RESPONSE = `SunPass costs you nothing and makes solar a documented, appraiser-ready asset on every transaction.
+
+System Inspection & Valuation — We visually inspect and document the solar array and compile an easily digestible report that includes brand, size, remaining warranty, visual condition, and product-specific notes on the panels, inverter, battery (if included), and wiring. Formal documentation you can use in MLS listings, your appraiser and lender can use to include solar in the home's value — meaning higher comps and larger loan amounts.
+Full Disclosure Protection — Your clients get the complete picture on condition, size, and output. Clean disclosure, no surprises at close.
+Inverter Reconnection — New owner gets connected and monitoring from day one.
+
+Order it on every solar listing and it pays for itself in commission.
+Learn more at SunPassSolar.com`;
 
 const SUNPASS_INTRO_CONFIRMATIONS = [
   "yes",
@@ -211,14 +230,37 @@ function normalizeFieldValue(field: string, value: string): string {
 }
 
 function detectSunPassTopic(messageLower: string): boolean {
-  if (messageLower.includes("sunpass")) return true;
-  if (
-    messageLower.includes("solar") &&
-    /(real estate|home sale|escrow|buying|selling|agent)/.test(messageLower)
-  ) {
-    return true;
+  return (
+    messageLower.includes("sunpass") ||
+    /\bsolar monitoring\b/.test(messageLower) ||
+    /\bsolar transfer\b/.test(messageLower) ||
+    /\bsolar inspection\b/.test(messageLower) ||
+    /\bsolar valuation\b/.test(messageLower) ||
+    /\bsolar documentation\b/.test(messageLower) ||
+    (messageLower.includes("solar") &&
+      /(real estate|home sale|escrow|buying|selling|agent)/.test(messageLower))
+  );
+}
+
+function detectSunPassAudience(messageLower: string): "homeowner" | "home_buyer" | "agent" | null {
+  if (/\b(real estate agent|realtor|broker|listing agent|agent)\b/i.test(messageLower)) {
+    return "agent";
   }
-  return false;
+  if (/\b(home buyer|homebuyer|buyer|buying|purchasing|purchase)\b/i.test(messageLower)) {
+    return "home_buyer";
+  }
+  if (/\b(homeowner|owner|home owner)\b/i.test(messageLower)) {
+    return "homeowner";
+  }
+  return null;
+}
+
+function getSunPassAudienceResponse(
+  audience: "homeowner" | "home_buyer" | "agent"
+): string {
+  if (audience === "agent") return SUNPASS_AGENT_RESPONSE;
+  if (audience === "home_buyer") return SUNPASS_HOME_BUYER_RESPONSE;
+  return SUNPASS_HOMEOWNER_RESPONSE;
 }
 
 function detectSunPassLeadIntent(messageLower: string, phrases: string[]): boolean {
@@ -234,14 +276,6 @@ function isSunPassIntroConfirmation(messageLower: string): boolean {
 
 function isShortChatReply(messageLower: string): boolean {
   return messageLower.trim().split(/\s+/).filter(Boolean).length <= 4;
-}
-
-function buildSunPassAboutResponse(): string {
-  return SUNPASS_OVERVIEW_RESPONSE;
-}
-
-function buildSunPassKnowledgeResponse(): string {
-  return SUNPASS_OVERVIEW_RESPONSE;
 }
 
 function buildSunPassLeadSummary(leadData: Record<string, string>) {
@@ -693,6 +727,15 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
     // ──────────────────────────────────────────────────────────────
 
     if (currentState.activeConversationState === "sunpass_intro") {
+      const selectedAudience = detectSunPassAudience(messageLower);
+      if (selectedAudience) {
+        return respondWithLoggedReply(getSunPassAudienceResponse(selectedAudience), {
+          ...currentState,
+          activeConversationState: "sunpass_followup",
+          sunpassQuickReplies: undefined,
+        });
+      }
+
       if (detectSunPassLeadIntent(messageLower, sunpassIntentPhrases)) {
         const firstField =
           sunpassLeadFields.find((field) => !isOptionalLeadField(field)) || "full_name";
@@ -710,22 +753,36 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
       }
 
       if (isSunPassIntroConfirmation(messageLower)) {
-        const reply = sunpassData
-          ? buildSunPassAboutResponse()
-          : "SunPass helps buyers, sellers, agents, and escrow understand solar details during a home sale. If you want SunPass to reach out, tell me and I can collect your details.";
-        return respondWithLoggedReply(reply, {
+        return respondWithLoggedReply(SUNPASS_ROLE_PROMPT, {
           ...currentState,
-          activeConversationState: "sunpass_followup",
+          activeConversationState: "sunpass_role_prompt",
+          sunpassQuickReplies: SUNPASS_ROLE_QUICK_REPLIES,
         });
       }
 
       if (sunpassData) {
-        const reply = buildSunPassKnowledgeResponse();
-        return respondWithLoggedReply(reply, {
+        return respondWithLoggedReply(SUNPASS_ROLE_PROMPT, {
           ...currentState,
-          activeConversationState: "sunpass_followup",
+          activeConversationState: "sunpass_role_prompt",
+          sunpassQuickReplies: SUNPASS_ROLE_QUICK_REPLIES,
         });
       }
+    }
+
+    if (currentState.activeConversationState === "sunpass_role_prompt") {
+      const selectedAudience = detectSunPassAudience(messageLower);
+      if (!selectedAudience) {
+        return respondWithLoggedReply(SUNPASS_ROLE_PROMPT, {
+          ...currentState,
+          sunpassQuickReplies: SUNPASS_ROLE_QUICK_REPLIES,
+        });
+      }
+
+      return respondWithLoggedReply(getSunPassAudienceResponse(selectedAudience), {
+        ...currentState,
+        activeConversationState: "sunpass_followup",
+        sunpassQuickReplies: undefined,
+      });
     }
 
     if (currentState.activeConversationState === "sunpass_followup") {
@@ -755,9 +812,20 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
       }
 
       if (sunpassData && detectSunPassTopic(messageLower)) {
+        const selectedAudience = detectSunPassAudience(messageLower);
+        if (selectedAudience) {
+          return respondWithLoggedReply(getSunPassAudienceResponse(selectedAudience), {
+            ...currentState,
+            sunpassQuickReplies: undefined,
+          });
+        }
         return respondWithLoggedReply(
-          buildSunPassKnowledgeResponse(),
-          currentState
+          SUNPASS_ROLE_PROMPT,
+          {
+            ...currentState,
+            activeConversationState: "sunpass_role_prompt",
+            sunpassQuickReplies: SUNPASS_ROLE_QUICK_REPLIES,
+          }
         );
       }
 
@@ -897,6 +965,15 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
     }
 
     if (detectSunPassTopic(messageLower)) {
+      const selectedAudience = detectSunPassAudience(messageLower);
+      if (selectedAudience) {
+        return respondWithLoggedReply(getSunPassAudienceResponse(selectedAudience), {
+          ...currentState,
+          activeConversationState: "sunpass_followup",
+          sunpassQuickReplies: undefined,
+        });
+      }
+
       if (detectSunPassLeadIntent(messageLower, sunpassIntentPhrases)) {
         const leadData: Record<string, string> = {};
         for (const [roleKey, rolePattern] of Object.entries(SUNPASS_ROLE_PATTERNS)) {
@@ -919,10 +996,11 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
         );
       }
 
-      const aboutReply = sunpassData
-        ? buildSunPassKnowledgeResponse()
-        : "SunPass supports buyers, sellers, agents, and escrow with solar details during a home sale. Ask Sunny to have SunPass reach out and I can collect your info now.";
-      return respondWithLoggedReply(aboutReply, currentState);
+      return respondWithLoggedReply(SUNPASS_ROLE_PROMPT, {
+        ...currentState,
+        activeConversationState: "sunpass_role_prompt",
+        sunpassQuickReplies: SUNPASS_ROLE_QUICK_REPLIES,
+      });
     }
 
     // ──────────────────────────────────────────────────────────────
