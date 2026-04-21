@@ -93,6 +93,8 @@ footer {
    ========================= */
 
 .service-nav {
+  position: relative;
+  z-index: 999;
   width: 100%;
   margin: 24px 0 0;
   display: flex;
@@ -148,7 +150,7 @@ footer {
   box-shadow: 0 12px 22px rgba(0, 0, 0, 0.3);
   display: grid;
   gap: 4px;
-  z-index: 20;
+  z-index: 1000;
 }
 
 .service-dropdown-menu::before {
@@ -262,6 +264,8 @@ footer {
 }
 
 .chat-shell {
+  position: relative;
+  z-index: 10;
   padding: 16px;
   display: flex;
   flex-direction: column;
