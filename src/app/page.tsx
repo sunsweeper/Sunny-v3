@@ -434,7 +434,7 @@ export default function Page() {
           <p className="contact-line">Call or <span>Text</span> for a Live Human</p>
         </section>
 
-        <nav className="service-nav" aria-label="Site navigation">
+        <nav className="service-nav" aria-label="Site navigation" style={{ position: "relative", zIndex: 1000 }}>
           {NAV_ITEMS.map((item, index) => {
             const isServices = item === "Services";
             return (
