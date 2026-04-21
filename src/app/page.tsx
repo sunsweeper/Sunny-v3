@@ -230,6 +230,7 @@ export default function Page() {
   const [contextPhoto, setContextPhoto] = useState<string[]>([]);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const existing = window.localStorage.getItem("sunny_session_id");
@@ -262,9 +263,7 @@ export default function Page() {
   const handleStartChat = () => { window.localStorage.setItem("sunny_has_visited", "true"); setShowOnboardingModal(false); };
 
   useEffect(() => {
-    const el = messagesRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, isLoading, showReferralForm]);
 
   // ─────────────────────────────────────────────
@@ -541,6 +540,7 @@ export default function Page() {
               );
             })}
             {isLoading && <div className="msg-row assistant"><div><p className="typing">Sunny is thinking...</p></div></div>}
+            <div ref={messagesEndRef} aria-hidden="true" />
           </div>
           <div className="input-wrap">
             <textarea id="chat-input" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={handleKeyDown} rows={1} placeholder="Ask me anything..." className="chat-input" />
