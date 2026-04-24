@@ -299,7 +299,7 @@ footer {
   color: rgba(255, 255, 255, 0.85);
 }
 
-@media (max-width: 960px) {
+@media (max-width: 767px) {
   .top-bar-layout {
     width: min(1320px, calc(100% - 24px));
     grid-template-columns: 1fr;
