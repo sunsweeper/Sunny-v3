@@ -458,8 +458,6 @@ export default function Page() {
       <header className="top-nav">
         <div className="top-nav-left">
           <button type="button" className="new-chat-btn" onClick={() => handleNavClick("New Chat")}>+ New Chat</button>
-          <Image src="/logo.png" alt="SunSweeper logo" width={40} height={40} className="nav-logo" />
-          <span className="wordmark">SunSweeper</span>
         </div>
         <nav className="top-nav-center" aria-label="Site navigation">
           <button type="button" className="service-link" onClick={() => setIsServicesDropdownOpen((prev) => !prev)}>Services</button>
