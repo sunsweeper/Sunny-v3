@@ -481,8 +481,8 @@ export default function Page() {
         </div>
       </header>
 
-      <section className="home-layout">
-        <aside className="brand-panel">
+      <section className="home-layout" style={{ height: "100vh", overflow: "hidden" }}>
+        <aside className="brand-panel" style={{ height: "100%", overflowY: "auto" }}>
           <Image src="/logo.png" alt="SunSweeper logo" width={120} height={65} className="hero-logo" priority />
           <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
           <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
@@ -520,7 +520,7 @@ export default function Page() {
           </div>
         </aside>
 
-        <section ref={chatShellRef} className="chat-column">
+        <section ref={chatShellRef} className="chat-column" style={{ height: "100%", overflow: "hidden" }}>
           <section className="chat-shell">
           <div className="chat-header">
             <div className="chat-header-left">
