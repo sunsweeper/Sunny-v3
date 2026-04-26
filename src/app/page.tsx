@@ -542,7 +542,7 @@ export default function Page() {
           <Image src="/logo.png" alt="SunSweeper logo" width={120} height={65} className="hero-logo" priority />
           <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
           <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
-          <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
+          <p className="hero-subtext">Protecting your investment.</p>
 
           <div className="stats-grid">
             {visibleStatIndexes.map((statIndex, slot) => {
