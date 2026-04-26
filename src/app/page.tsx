@@ -578,15 +578,27 @@ export default function Page() {
           </div>
         </aside>
 
-        <section ref={chatShellRef} className="chat-column" style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", height: "100%" }}>
-          <section className="chat-shell" style={{ width: "100%", maxWidth: "800px", height: "100%" }}>
+        <section
+          ref={chatShellRef}
+          className="chat-column"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            padding: "24px",
+            height: "calc(100vh - 72px)",
+          }}
+        >
+          <section className="chat-shell" style={{ width: "100%", maxWidth: "800px", height: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
           <div className="chat-header">
             <div className="chat-header-left">
               <span className="online-dot" aria-hidden="true" />
               <span className="chat-title">Sunny</span>
             </div>
           </div>
-          <div ref={messagesRef} className="messages">
+          <div ref={messagesRef} className="messages" style={{ flex: 1, overflowY: "auto" }}>
             {messages.map((message, index) => {
               const isUser = message.role === "user";
               const isLastAssistant = !isUser && index === messages.length - 1;
