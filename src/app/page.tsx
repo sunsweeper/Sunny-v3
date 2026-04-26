@@ -507,7 +507,7 @@ export default function Page() {
   return (
     <main className="page-shell">
       <div className="page-background" />
-      <header className="top-nav">
+      <header className="top-nav" style={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%" }}>
         <div className="top-nav-left">
           <button type="button" className="new-chat-btn" onClick={() => handleNavClick("New Chat")}>+ New Chat</button>
         </div>
@@ -525,7 +525,7 @@ export default function Page() {
             </div>
           )}
         </nav>
-        <div className="top-nav-right" style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+        <div className="top-nav-right" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "24px", marginLeft: "auto" }}>
           <div className="weather-line" style={{ display: "flex", alignItems: "center", gap: "8px", margin: 0, color: "rgba(255,255,255,0.85)", fontSize: "1.02rem", fontWeight: 500 }}>
             <span aria-hidden="true" style={{ fontSize: "18px", lineHeight: 1 }}>{weather.icon}</span>
             <span>{`${weather.city} ${weather.temperature}`}</span>
