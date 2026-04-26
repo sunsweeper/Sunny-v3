@@ -157,6 +157,25 @@ body {
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 166, 35, 0.3) transparent;
+}
+
+.brand-panel::-webkit-scrollbar {
+  width: 3px;
+}
+
+.brand-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.brand-panel::-webkit-scrollbar-thumb {
+  background: rgba(245, 166, 35, 0.3);
+  border-radius: 999px;
+}
+
+.brand-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 166, 35, 0.6);
 }
 
 .hero-logo { width: 96px; height: auto; }
