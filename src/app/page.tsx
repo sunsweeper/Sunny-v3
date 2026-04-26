@@ -19,6 +19,7 @@ type ChatMessage = UserTextMessage | AssistantTextMessage;
 type ServiceKey = "solarPanelCleaning" | "gutterCleaning" | "gutterRepair" | "roofWashing" | "softWashing" | "pressureWashing";
 type NavLabel = "New Chat" | "Services" | "SunPass" | "Contact Us";
 type StatItem = { value: string; label: string; href?: string; };
+type WeatherDisplay = { city: string; temperature: string; icon: string; };
 
 const getInitialGreeting = (name: string | null): AssistantTextMessage => ({
   role: "assistant", type: "text",
@@ -59,6 +60,19 @@ const NAV_OPENERS: Record<NavLabel, string[]> = {
 
 const getRandomItem = <T,>(items: readonly T[]): T => items[Math.floor(Math.random() * items.length)];
 const getRandomSolarImages = (count: number): string[] => [...solarImagePaths].sort(() => Math.random() - 0.5).slice(0, count);
+const SANTA_MARIA_COORDS = { latitude: 34.9530, longitude: -120.4357 };
+const WEATHER_LOADING: WeatherDisplay = { city: "—", temperature: "—", icon: "—" };
+
+const weatherCodeToEmoji = (code: number): string => {
+  if (code === 0) return "☀️";
+  if (code === 1 || code === 2) return "🌤️";
+  if (code === 3) return "☁️";
+  if (code === 45 || code === 48) return "🌫️";
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return "🌧️";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "🌨️";
+  if ([95, 96, 99].includes(code)) return "⛅";
+  return "⛅";
+};
 
 const isSolarCleaningQuestion = (value: string): boolean => {
   const n = value.toLowerCase();
@@ -237,6 +251,7 @@ export default function Page() {
   const [isReferralSubmitting, setIsReferralSubmitting] = useState(false);
   const [visibleStatIndexes, setVisibleStatIndexes] = useState<number[]>([0, 1, 2, 3]);
   const [fadeSlot, setFadeSlot] = useState<number | null>(null);
+  const [weather, setWeather] = useState<WeatherDisplay>(WEATHER_LOADING);
   const rotationStepRef = useRef(0);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
@@ -278,6 +293,43 @@ export default function Page() {
       rotationStepRef.current += 1;
     }, STAT_ROTATION_MS);
     return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchWeatherFor = async (latitude: number, longitude: number) => {
+      try {
+        const [locationResponse, weatherResponse] = await Promise.all([
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`),
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&temperature_unit=fahrenheit`),
+        ]);
+        const locationData = await locationResponse.json() as { address?: { city?: string; town?: string; village?: string } };
+        const weatherData = await weatherResponse.json() as { current_weather?: { temperature?: number; weathercode?: number } };
+        const city = locationData.address?.city ?? locationData.address?.town ?? locationData.address?.village ?? "Santa Maria";
+        const temp = weatherData.current_weather?.temperature;
+        const weatherCode = weatherData.current_weather?.weathercode;
+        if (typeof temp !== "number" || typeof weatherCode !== "number") {
+          setWeather(WEATHER_LOADING);
+          return;
+        }
+        setWeather({ city, temperature: `${Math.round(temp)}°F`, icon: weatherCodeToEmoji(weatherCode) });
+      } catch {
+        setWeather(WEATHER_LOADING);
+      }
+    };
+
+    if (!("geolocation" in navigator)) {
+      void fetchWeatherFor(SANTA_MARIA_COORDS.latitude, SANTA_MARIA_COORDS.longitude);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        void fetchWeatherFor(position.coords.latitude, position.coords.longitude);
+      },
+      () => {
+        void fetchWeatherFor(SANTA_MARIA_COORDS.latitude, SANTA_MARIA_COORDS.longitude);
+      }
+    );
   }, []);
 
   // Show Street View modal when address is collected
@@ -474,6 +526,7 @@ export default function Page() {
           )}
         </nav>
         <div className="top-nav-right">
+          <p className="weather-line">{`${weather.icon} ${weather.city}  ${weather.temperature}`}</p>
           <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
           <p className="contact-line">Call or Text a Live Human</p>
         </div>
