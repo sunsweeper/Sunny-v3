@@ -537,8 +537,8 @@ export default function Page() {
         </div>
       </header>
 
-      <section className="home-layout">
-        <aside className="brand-panel">
+      <section className="home-layout" style={{ display: "flex", flexDirection: "row", width: "100%", height: "calc(100vh - 72px)" }}>
+        <aside className="brand-panel" style={{ width: "320px", flexShrink: 0 }}>
           <Image src="/logo.png" alt="SunSweeper logo" width={120} height={65} className="hero-logo" priority />
           <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
           <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
@@ -576,8 +576,8 @@ export default function Page() {
           </div>
         </aside>
 
-        <section ref={chatShellRef} className="chat-column" style={{ height: "100%", overflow: "hidden" }}>
-          <section className="chat-shell">
+        <section ref={chatShellRef} className="chat-column" style={{ flex: 1, minWidth: 0, height: "100%", overflow: "hidden" }}>
+          <section className="chat-shell" style={{ width: "100%", maxWidth: "760px", margin: "0 auto" }}>
           <div className="chat-header">
             <div className="chat-header-left">
               <span className="online-dot" aria-hidden="true" />
