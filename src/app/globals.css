@@ -336,19 +336,22 @@ footer {
   }
 
   .service-nav {
-    margin-top: 12px;
+    margin-top: 6px;
     justify-content: center;
     flex-wrap: wrap;
     white-space: normal;
-    row-gap: 6px;
+    row-gap: 2px;
+    column-gap: 8px;
   }
 
   .service-link {
-    font-size: clamp(22px, 7vw, 32px);
+    font-size: clamp(16px, 4.8vw, 22px);
+    line-height: 1.2;
+    padding: 0;
   }
 
   .service-divider {
-    font-size: clamp(20px, 5vw, 28px);
+    font-size: clamp(14px, 4.2vw, 18px);
   }
 }
 
