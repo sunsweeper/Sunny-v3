@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Lightbox } from "../components/chat/Lightbox";
 import { ReviewScreenshotsModal } from "../components/reviews/ReviewScreenshotsModal";
 import { reviewDropdownLinks, reviewScreenshotPaths } from "../data/reviewLinks";
@@ -18,6 +18,7 @@ type ChatMessage = UserTextMessage | AssistantTextMessage;
 
 type ServiceKey = "solarPanelCleaning" | "gutterCleaning" | "gutterRepair" | "roofWashing" | "softWashing" | "pressureWashing";
 type NavLabel = "New Chat" | "Services" | "SunPass" | "Contact Us";
+type StatItem = { value: string; label: string; href?: string; };
 
 const getInitialGreeting = (name: string | null): AssistantTextMessage => ({
   role: "assistant", type: "text",
@@ -39,7 +40,15 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "pressureWashing", label: "Pressure Washing" },
 ];
 
-const NAV_ITEMS: NavLabel[] = ["New Chat", "Services", "SunPass", "Contact Us"];
+const STAT_ROTATION_MS = 4000;
+const STAT_FADE_MS = 500;
+const STATS_POOL: StatItem[] = [
+  { value: "$8M+", label: "In electricity restored — Projected 2026" },
+  { value: "175K+", label: "Solar panels cleaned — Projected 2026" },
+  { value: "74", label: "Utility-scale sites served" },
+  { value: "23%", label: "Avg. output restored all time" },
+  { value: "5★", label: "Customer rating — Yelp & Google ↗", href: "https://www.yelp.com/biz/sun-sweeper-santa-maria?override_cta=Get+pricing" },
+];
 
 const NAV_OPENERS: Record<NavLabel, string[]> = {
   "New Chat": ["Welcome back. How can I help you today?", "New conversation started. Need help with services, pricing, or booking?", "How can I help with your property cleaning needs today?"],
@@ -223,11 +232,12 @@ export default function Page() {
   const [pendingAddress, setPendingAddress] = useState<string | null>(null);
   const [lightboxImagePath, setLightboxImagePath] = useState<string | null>(null);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
-  const [isReviewsDropdownOpen, setIsReviewsDropdownOpen] = useState(false);
   const [isReviewScreenshotsOpen, setIsReviewScreenshotsOpen] = useState(false);
   const [showReferralForm, setShowReferralForm] = useState(false);
   const [isReferralSubmitting, setIsReferralSubmitting] = useState(false);
-  const [contextPhoto, setContextPhoto] = useState<string[]>([]);
+  const [visibleStatIndexes, setVisibleStatIndexes] = useState<number[]>([0, 1, 2, 3]);
+  const [fadeSlot, setFadeSlot] = useState<number | null>(null);
+  const rotationStepRef = useRef(0);
   const chatShellRef = useRef<HTMLElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -250,6 +260,25 @@ export default function Page() {
   useEffect(() => {
     if (chatState.lastAskedField === "preferred date and time" && !isLoading) setShowDateTimeModal(true);
   }, [chatState.lastAskedField, isLoading]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      const step = rotationStepRef.current;
+      const slot = step % 4;
+      const incomingIndex = (step + 4) % STATS_POOL.length;
+      setFadeSlot(slot);
+      window.setTimeout(() => {
+        setVisibleStatIndexes((prev) => {
+          const next = [...prev];
+          next[slot] = incomingIndex;
+          return next;
+        });
+        setFadeSlot(null);
+      }, STAT_FADE_MS);
+      rotationStepRef.current += 1;
+    }, STAT_ROTATION_MS);
+    return () => window.clearInterval(interval);
+  }, []);
 
   // Show Street View modal when address is collected
   useEffect(() => {
@@ -319,7 +348,6 @@ export default function Page() {
       const reply = data.reply?.trim() || "I'm sorry\u2014something went wrong while responding.";
 
       const imageUrls = isSolarCleaningQuestion(text) ? getRandomSolarImages(2) : [];
-      setContextPhoto(imageUrls.slice(0, 2));
       setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply, imagePaths: imageUrls.length > 0 ? imageUrls : undefined }]);
       logSunny({ role: "assistant", type: "message", text: reply, lead_detected: false, lead_reason: "", handoff_requested: false });
 
@@ -402,7 +430,6 @@ export default function Page() {
     while (lastAssistantMessage.endsWith(withOptionalName(universalFollowUp, knownName)) && attempts < 4) { universalFollowUp = getRandomItem(universalFollowUps); attempts += 1; }
     const ucsMessage = `${serviceLine}\n\n${withOptionalName(universalFollowUp, knownName)}`;
     const imageUrls = service === "solarPanelCleaning" ? getRandomSolarImages(2) : [];
-    setContextPhoto(imageUrls.slice(0, 2));
     const serviceIntroMessage: AssistantTextMessage = { role: "assistant", type: "text", content: ucsMessage, imagePaths: imageUrls.length > 0 ? imageUrls : undefined };
     setActiveService(service);
     if (!hasUserEngaged) { setMessages([serviceIntroMessage]); } else { setMessages((prev) => [...prev, serviceIntroMessage]); }
@@ -417,7 +444,6 @@ export default function Page() {
     if (label === "New Chat") {
       setMessages([navMessage]); setChatState({}); setActiveService(null); setHasUserEngaged(false);
       setShowReferralForm(false); setStreetViewAddress(null); setPendingAddress(null);
-      setContextPhoto([]);
     } else if (label === "SunPass") {
       if (!hasUserEngaged) { setMessages([navMessage]); } else { setMessages((prev) => [...prev, navMessage]); }
       setChatState((prev) => ({ ...prev, activeConversationState: "sunpass_intro" }));
@@ -428,80 +454,79 @@ export default function Page() {
 
   return (
     <main className="page-shell">
-      <section className="top-bar-layout">
-        <section className="phone-bar">
-          <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
-          <p className="contact-line">Call or <span>Text</span> for a Live Human</p>
-        </section>
-
-        <nav className="service-nav" aria-label="Site navigation" style={{ position: "relative", zIndex: 1000 }}>
-          {NAV_ITEMS.map((item, index) => {
-            const isServices = item === "Services";
-            return (
-              <Fragment key={item}>
-                {index > 0 && <span className="service-divider" aria-hidden="true">|</span>}
-                {isServices ? (
-                  <div className="service-dropdown" onMouseEnter={() => setIsServicesDropdownOpen(true)} onMouseLeave={() => setIsServicesDropdownOpen(false)}>
-                    <button type="button" className="service-link" onClick={() => handleNavClick(item)} onFocus={() => setIsServicesDropdownOpen(true)} onBlur={() => setTimeout(() => setIsServicesDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isServicesDropdownOpen}>{item}</button>
-                    {isServicesDropdownOpen && (
-                      <div className="service-dropdown-menu" role="menu" aria-label="Service menu">
-                        {SERVICE_OPTIONS.map((service) => (
-                          <button key={service.key} type="button" role="menuitem" className={`service-dropdown-item ${activeService === service.key ? "active" : ""}`}
-                            onClick={() => { handleServiceClick(service.key); setIsServicesDropdownOpen(false); }}>{service.label}</button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <button type="button" className="service-link" onClick={() => handleNavClick(item)}>{item}</button>
-                )}
-              </Fragment>
-            );
-          })}
-          <span className="service-divider" aria-hidden="true">|</span>
-          <div className="service-dropdown" onMouseEnter={() => setIsReviewsDropdownOpen(true)} onMouseLeave={() => setIsReviewsDropdownOpen(false)}>
-            <button type="button" className="service-link" onClick={() => setIsReviewsDropdownOpen((prev) => !prev)} onFocus={() => setIsReviewsDropdownOpen(true)} onBlur={() => setTimeout(() => setIsReviewsDropdownOpen(false), 100)} aria-haspopup="menu" aria-expanded={isReviewsDropdownOpen}>Reviews</button>
-            {isReviewsDropdownOpen && (
-              <div className="service-dropdown-menu" role="menu" aria-label="Reviews menu">
-                {reviewDropdownLinks.map((link) => (
-                  <a key={link.href} role="menuitem" className="service-dropdown-item" href={link.href} target="_blank" rel="noreferrer" onClick={() => setIsReviewsDropdownOpen(false)}>{link.label}</a>
-                ))}
-                <button type="button" role="menuitem" className="service-dropdown-item" onClick={() => { setIsReviewScreenshotsOpen(true); setIsReviewsDropdownOpen(false); }}>Review Screenshots</button>
-              </div>
-            )}
-          </div>
-        </nav>
-      </section>
-
-      <section className="hero-layout">
-        <div className="hero-content">
-          <div className="hero-top-content">
-            <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
-            <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
-            <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
-            <Image src="/logo.png" alt="SunSweeper logo" width={150} height={82} className="hero-logo" priority />
-          </div>
-          {contextPhoto.length > 0 && (
-            <div className="context-photo-zone">
-              {contextPhoto.slice(0, 2).map((imageUrl, index) => (
-                <img
-                  key={`${imageUrl}-${index}`}
-                  src={imageUrl}
-                  alt={`Contextual property reference ${index + 1}`}
-                  className="context-photo"
-                />
+      <div className="page-background" />
+      <header className="top-nav">
+        <div className="top-nav-left">
+          <button type="button" className="new-chat-btn" onClick={() => handleNavClick("New Chat")}>+ New Chat</button>
+          <Image src="/logo.png" alt="SunSweeper logo" width={40} height={40} className="nav-logo" />
+          <span className="wordmark">SunSweeper</span>
+        </div>
+        <nav className="top-nav-center" aria-label="Site navigation">
+          <button type="button" className="service-link" onClick={() => setIsServicesDropdownOpen((prev) => !prev)}>Services</button>
+          <button type="button" className="service-link" onClick={() => handleNavClick("SunPass")}>SunPass</button>
+          <button type="button" className="service-link" onClick={() => handleNavClick("Contact Us")}>Contact</button>
+          <a className="service-link" href={reviewDropdownLinks[3]?.href ?? "https://www.yelp.com"} target="_blank" rel="noreferrer">Reviews</a>
+          {isServicesDropdownOpen && (
+            <div className="service-dropdown-menu" role="menu" aria-label="Service menu">
+              {SERVICE_OPTIONS.map((service) => (
+                <button key={service.key} type="button" role="menuitem" className={`service-dropdown-item ${activeService === service.key ? "active" : ""}`}
+                  onClick={() => { handleServiceClick(service.key); setIsServicesDropdownOpen(false); }}>{service.label}</button>
               ))}
             </div>
           )}
+        </nav>
+        <div className="top-nav-right">
+          <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
+          <p className="contact-line">Call or Text a Live Human</p>
         </div>
+      </header>
 
-        <section ref={chatShellRef} className="chat-shell">
+      <section className="home-layout">
+        <aside className="brand-panel">
+          <Image src="/logo.png" alt="SunSweeper logo" width={120} height={65} className="hero-logo" priority />
+          <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
+          <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
+          <p className="hero-subtext">Protecting your investment. Maximizing your output.</p>
+
+          <div className="stats-grid">
+            {visibleStatIndexes.map((statIndex, slot) => {
+              const stat = STATS_POOL[statIndex];
+              const content = (
+                <>
+                  <p className="stat-value">{stat.value}</p>
+                  <p className="stat-label">{stat.label}</p>
+                </>
+              );
+              return stat.href ? (
+                <a key={`${stat.value}-${slot}`} href={stat.href} target="_blank" rel="noreferrer" className={`stat-tile ${fadeSlot === slot ? "fade" : ""}`}>{content}</a>
+              ) : (
+                <div key={`${stat.value}-${slot}`} className={`stat-tile ${fadeSlot === slot ? "fade" : ""}`}>{content}</div>
+              );
+            })}
+          </div>
+
+          <div className="left-list">
+            <p className="left-label">Services</p>
+            <ul>
+              {SERVICE_OPTIONS.map((service) => (
+                <li key={service.key}>{service.label}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="left-list">
+            <p className="left-label">Service Area Cities</p>
+            <p className="city-copy">Santa Maria • Orcutt • Nipomo • Arroyo Grande • Pismo Beach • San Luis Obispo • Paso Robles • Cambria</p>
+          </div>
+        </aside>
+
+        <section ref={chatShellRef} className="chat-column">
+          <section className="chat-shell">
           <div className="chat-header">
             <div className="chat-header-left">
               <span className="online-dot" aria-hidden="true" />
               <span className="chat-title">Sunny</span>
             </div>
-            <span className="chat-status">Online now</span>
           </div>
           <div ref={messagesRef} className="messages">
             {messages.map((message, index) => {
@@ -560,6 +585,7 @@ export default function Page() {
           <p className="helper-text">
             Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.
           </p>
+          </section>
         </section>
       </section>
 
