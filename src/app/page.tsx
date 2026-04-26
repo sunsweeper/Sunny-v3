@@ -571,13 +571,15 @@ export default function Page() {
           </div>
 
           <div className="left-list">
-            <p className="left-label">Service Area Cities</p>
-            <p className="city-copy">Santa Maria • Orcutt • Nipomo • Arroyo Grande • Pismo Beach • San Luis Obispo • Paso Robles • Cambria</p>
+            <p className="left-label">Santa Barbara County</p>
+            <p className="city-copy">Carpinteria · Summerland · Montecito · Santa Barbara · Goleta · Isla Vista · Gaviota · Lompoc · Buellton · Solvang · Santa Ynez · Los Olivos · Los Alamos · Guadalupe · Santa Maria · Orcutt · Nipomo</p>
+            <p className="left-label">San Luis Obispo County</p>
+            <p className="city-copy">Arroyo Grande · Grover Beach · Pismo Beach · Shell Beach · Oceano · Avila Beach · San Luis Obispo · Los Osos · Morro Bay · Cayucos · Cambria · Templeton · Atascadero · Paso Robles · Shandon · Santa Margarita · Creston</p>
           </div>
         </aside>
 
-        <section ref={chatShellRef} className="chat-column" style={{ height: "100%", overflow: "hidden" }}>
-          <section className="chat-shell">
+        <section ref={chatShellRef} className="chat-column" style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", height: "100%" }}>
+          <section className="chat-shell" style={{ width: "100%", maxWidth: "800px", height: "100%" }}>
           <div className="chat-header">
             <div className="chat-header-left">
               <span className="online-dot" aria-hidden="true" />
