@@ -507,11 +507,11 @@ export default function Page() {
   return (
     <main className="page-shell">
       <div className="page-background" />
-      <header className="top-nav" style={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%" }}>
+      <header className="top-nav" style={{ position: "relative", display: "flex", flexDirection: "row", alignItems: "center", width: "100%" }}>
         <div className="top-nav-left">
           <button type="button" className="new-chat-btn" onClick={() => handleNavClick("New Chat")}>+ New Chat</button>
         </div>
-        <nav className="top-nav-center" aria-label="Site navigation">
+        <nav className="top-nav-center" aria-label="Site navigation" style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
           <button type="button" className="service-link" onClick={() => setIsServicesDropdownOpen((prev) => !prev)}>Services</button>
           <button type="button" className="service-link" onClick={() => handleNavClick("SunPass")}>SunPass</button>
           <button type="button" className="service-link" onClick={() => handleNavClick("Contact Us")}>Contact</button>
