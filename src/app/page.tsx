@@ -525,10 +525,15 @@ export default function Page() {
             </div>
           )}
         </nav>
-        <div className="top-nav-right">
-          <p className="weather-line">{`${weather.icon} ${weather.city}  ${weather.temperature}`}</p>
-          <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
-          <p className="contact-line">Call or Text a Live Human</p>
+        <div className="top-nav-right" style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+          <div className="weather-line" style={{ display: "flex", alignItems: "center", gap: "8px", margin: 0, color: "rgba(255,255,255,0.85)", fontSize: "1.02rem", fontWeight: 500 }}>
+            <span aria-hidden="true" style={{ fontSize: "18px", lineHeight: 1 }}>{weather.icon}</span>
+            <span>{`${weather.city} ${weather.temperature}`}</span>
+          </div>
+          <div style={{ borderLeft: "1px solid rgba(255,255,255,0.12)", paddingLeft: "24px", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
+            <p className="contact-line">Call or Text a Live Human</p>
+          </div>
         </div>
       </header>
 
