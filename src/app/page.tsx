@@ -45,7 +45,7 @@ const STAT_ROTATION_MS = 4000;
 const STAT_FADE_MS = 500;
 const STATS_POOL: StatItem[] = [
   { value: "$8M+", label: "In electricity restored — Projected 2026" },
-  { value: "175K+", label: "Solar panels cleaned — Projected 2026" },
+  { value: "245K+", label: "Solar panels cleaned — Projected 2026" },
   { value: "74", label: "Utility-scale sites served" },
   { value: "23%", label: "Avg. output restored all time" },
   { value: "5★", label: "Customer rating — Yelp & Google ↗", href: "https://www.yelp.com/biz/sun-sweeper-santa-maria?override_cta=Get+pricing" },
