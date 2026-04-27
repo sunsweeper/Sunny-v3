@@ -507,11 +507,11 @@ export default function Page() {
   return (
     <main className="page-shell">
       <div className="page-background" />
-      <header className="top-nav" style={{ position: "relative", display: "flex", flexDirection: "row", alignItems: "center", width: "100%" }}>
+      <header className="top-nav">
         <div className="top-nav-left">
           <button type="button" className="new-chat-btn" onClick={() => handleNavClick("New Chat")}>+ New Chat</button>
         </div>
-        <nav className="top-nav-center" aria-label="Site navigation" style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+        <nav className="top-nav-center" aria-label="Site navigation">
           <button type="button" className="service-link" onClick={() => setIsServicesDropdownOpen((prev) => !prev)}>Services</button>
           <button type="button" className="service-link" onClick={() => handleNavClick("SunPass")}>SunPass</button>
           <button type="button" className="service-link" onClick={() => handleNavClick("Contact Us")}>Contact</button>
@@ -525,12 +525,12 @@ export default function Page() {
             </div>
           )}
         </nav>
-        <div className="top-nav-right" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "24px", marginLeft: "auto" }}>
-          <div className="weather-line" style={{ display: "flex", alignItems: "center", gap: "8px", margin: 0, color: "rgba(255,255,255,0.85)", fontSize: "1.02rem", fontWeight: 500 }}>
+        <div className="top-nav-right">
+          <div className="weather-line">
             <span aria-hidden="true" style={{ fontSize: "18px", lineHeight: 1 }}>{weather.icon}</span>
             <span>{`${weather.city} ${weather.temperature}`}</span>
           </div>
-          <div style={{ borderLeft: "1px solid rgba(255,255,255,0.12)", paddingLeft: "24px", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+          <div className="contact-block">
             <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
             <p className="contact-line">Call or Text a Live Human</p>
           </div>
@@ -539,7 +539,7 @@ export default function Page() {
 
       <section className="home-layout">
         <aside className="brand-panel">
-          <Image src="/logo.png" alt="SunSweeper logo" width={120} height={65} className="hero-logo" priority />
+          <Image src="/logo.png" alt="SunSweeper logo" width={120} height={65} className="hero-logo" />
           <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
           <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
           <p className="hero-subtext">Protecting your investment.</p>
@@ -578,27 +578,15 @@ export default function Page() {
           </div>
         </aside>
 
-        <section
-          ref={chatShellRef}
-          className="chat-column"
-          style={{
-            flex: 1,
-            minWidth: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            padding: "24px",
-            height: "calc(100vh - 72px)",
-          }}
-        >
-          <section className="chat-shell" style={{ width: "100%", maxWidth: "800px", height: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
+        <section ref={chatShellRef} className="chat-column">
+          <section className="chat-shell">
           <div className="chat-header">
             <div className="chat-header-left">
               <span className="online-dot" aria-hidden="true" />
               <span className="chat-title">Sunny</span>
             </div>
           </div>
-          <div ref={messagesRef} className="messages" style={{ flex: 1, overflowY: "auto" }}>
+          <div ref={messagesRef} className="messages">
             {messages.map((message, index) => {
               const isUser = message.role === "user";
               const isLastAssistant = !isUser && index === messages.length - 1;
