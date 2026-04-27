@@ -550,7 +550,7 @@ export default function Page() {
 
       <section className="home-layout">
         <aside className="brand-panel left-sidebar">
-          <Image src="/logo.png" alt="SunSweeper logo" width={120} height={65} className="hero-logo" />
+          <Image src="/logo.png" alt="SunSweeper logo" width={160} height={87} className="hero-logo" />
           <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
           <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
           <p className="hero-subtext">Protecting your investment.</p>
@@ -703,6 +703,29 @@ export default function Page() {
           display: none;
         }
 
+        .hero-logo {
+          display: block !important;
+          width: 160px !important;
+          height: auto !important;
+          margin: 0 auto 16px auto !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+
+        .page-background {
+          z-index: 0;
+        }
+
+        .top-nav,
+        .home-layout,
+        .mobile-brand-header,
+        .mobile-nav-links,
+        .mobile-service-dropdown-wrap,
+        .mobile-chat-footer {
+          position: relative;
+          z-index: 1;
+        }
+
         @media (max-width: 768px) {
           .top-nav-center {
             display: none;
@@ -715,11 +738,17 @@ export default function Page() {
             justify-content: center;
             gap: 6px;
             padding: 10px 0 8px;
+            opacity: 1;
+            filter: none;
+            mix-blend-mode: normal;
           }
 
           .mobile-hero-logo {
             width: 100px;
             height: auto;
+            opacity: 1 !important;
+            position: relative;
+            z-index: 10;
           }
 
           .mobile-hero-kicker {
