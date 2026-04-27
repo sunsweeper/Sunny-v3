@@ -21,9 +21,9 @@ type NavLabel = "New Chat" | "Services" | "SunPass" | "Contact Us";
 type StatItem = { value: string; label: string; href?: string; };
 type WeatherDisplay = { city: string; temperature: string; icon: string; };
 
-const getInitialGreeting = (name: string | null): AssistantTextMessage => ({
+const getInitialGreeting = (): AssistantTextMessage => ({
   role: "assistant", type: "text",
-  content: name ? `Hey ${name}, welcome to SunSweeper.com. How can I help you today?` : "Hey, welcome to SunSweeper.com. How can I help you today?",
+  content: "Hey! Welcome to SunSweeper.com. How can I help you today?",
 });
 
 const SERVICE_TO_UCS_KEY: Record<ServiceKey, UcsServiceKey> = {
@@ -44,9 +44,9 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
 const STAT_ROTATION_MS = 4000;
 const STAT_FADE_MS = 500;
 const STATS_POOL: StatItem[] = [
-  { value: "$8M+", label: "In electricity restored — Projected 2026" },
+  { value: "$12M+", label: "In electricity restored — Projected 2026" },
   { value: "245K+", label: "Solar panels cleaned — Projected 2026" },
-  { value: "74", label: "Utility-scale sites served" },
+  { value: "89", label: "Utility-scale sites served" },
   { value: "23%", label: "Avg. output restored all time" },
   { value: "5★", label: "Customer rating — Yelp & Google ↗", href: "https://www.yelp.com/biz/sun-sweeper-santa-maria?override_cta=Get+pricing" },
 ];
@@ -77,15 +77,6 @@ const weatherCodeToEmoji = (code: number): string => {
 const isSolarCleaningQuestion = (value: string): boolean => {
   const n = value.toLowerCase();
   return /(solar|panel|panels|pv)/.test(n) && /(clean|cleaning|dirty|dust|wash|washing|bird droppings|grime|photos|picture|images)/.test(n);
-};
-
-const sanitizeKnownName = (value: string | null): string | null => {
-  if (!value) return null;
-  const first = value.trim().split(/\s+/)[0] ?? "";
-  const letters = first.replace(/[^A-Za-z]/g, "");
-  if (letters.length < 2 || letters.length > 20) return null;
-  const n = letters.toLowerCase();
-  return n.charAt(0).toUpperCase() + n.slice(1);
 };
 
 const withOptionalName = (followUp: string, knownName: string | null): string =>
@@ -229,7 +220,7 @@ function ReferralForm({ onSubmit, onSkip, isSubmitting }: ReferralFormProps) {
 // ─────────────────────────────────────────────
 
 export default function Page() {
-  const [messages, setMessages] = useState<ChatMessage[]>([getInitialGreeting(null)]);
+  const [messages, setMessages] = useState<ChatMessage[]>([getInitialGreeting()]);
   const [hasUserEngaged, setHasUserEngaged] = useState(false);
   const [chatState, setChatState] = useState<Record<string, unknown>>({});
   const [input, setInput] = useState("");
@@ -264,11 +255,9 @@ export default function Page() {
       window.localStorage.setItem("sunny_session_id", generated);
       setSessionId(generated);
     }
-    const storedName = sanitizeKnownName(window.localStorage.getItem("sunny_known_name"));
     const hasVisited = window.localStorage.getItem("sunny_has_visited") === "true";
     setShowOnboardingModal(!hasVisited);
-    setKnownName(storedName);
-    setMessages((prev) => { if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev; return [getInitialGreeting(storedName)]; });
+    setMessages((prev) => { if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev; return [getInitialGreeting()]; });
   }, []);
 
   // Show date/time modal when Sunny asks for it
@@ -537,8 +526,30 @@ export default function Page() {
         </div>
       </header>
 
+      <section className="mobile-brand-header" aria-hidden="true">
+        <Image src="/logo.png" alt="SunSweeper logo" width={100} height={54} className="mobile-hero-logo" />
+        <p className="mobile-hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
+      </section>
+
+      <nav className="mobile-nav-links" aria-label="Mobile site navigation">
+        <button type="button" className="service-link" onClick={() => setIsServicesDropdownOpen((prev) => !prev)}>Services</button>
+        <button type="button" className="service-link" onClick={() => handleNavClick("SunPass")}>SunPass</button>
+        <button type="button" className="service-link" onClick={() => handleNavClick("Contact Us")}>Contact</button>
+        <a className="service-link" href={reviewDropdownLinks[3]?.href ?? "https://www.yelp.com"} target="_blank" rel="noreferrer">Reviews</a>
+      </nav>
+      {isServicesDropdownOpen && (
+        <div className="mobile-service-dropdown-wrap">
+          <div className="service-dropdown-menu mobile-service-dropdown-menu" role="menu" aria-label="Service menu">
+            {SERVICE_OPTIONS.map((service) => (
+              <button key={service.key} type="button" role="menuitem" className={`service-dropdown-item ${activeService === service.key ? "active" : ""}`}
+                onClick={() => { handleServiceClick(service.key); setIsServicesDropdownOpen(false); }}>{service.label}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <section className="home-layout">
-        <aside className="brand-panel">
+        <aside className="brand-panel left-sidebar">
           <Image src="/logo.png" alt="SunSweeper logo" width={120} height={65} className="hero-logo" />
           <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
           <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
@@ -644,6 +655,10 @@ export default function Page() {
             Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.
           </p>
           </section>
+          <section className="mobile-chat-footer" aria-hidden="true">
+            <h1 className="mobile-headline">The Solar Panel and Roof Cleaning Experts.</h1>
+            <p className="mobile-subtext">Protecting your investment.</p>
+          </section>
         </section>
       </section>
 
@@ -680,6 +695,95 @@ export default function Page() {
       <Lightbox imagePath={lightboxImagePath} onClose={() => setLightboxImagePath(null)} />
       <ReviewScreenshotsModal isOpen={isReviewScreenshotsOpen} imagePaths={reviewScreenshotPaths} onClose={() => setIsReviewScreenshotsOpen(false)}
         onImageClick={(path) => { setLightboxImagePath(path); setIsReviewScreenshotsOpen(false); }} />
+      <style jsx global>{`
+        .mobile-brand-header,
+        .mobile-nav-links,
+        .mobile-service-dropdown-wrap,
+        .mobile-chat-footer {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .top-nav-center {
+            display: none;
+          }
+
+          .mobile-brand-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 0 8px;
+          }
+
+          .mobile-hero-logo {
+            width: 100px;
+            height: auto;
+          }
+
+          .mobile-hero-kicker {
+            margin: 0;
+            color: #f5a623;
+            font-size: 10px;
+            letter-spacing: 0.16em;
+            text-align: center;
+          }
+
+          .mobile-nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          }
+
+          .mobile-service-dropdown-wrap {
+            display: flex;
+            justify-content: center;
+            padding: 8px 0;
+          }
+
+          .mobile-service-dropdown-menu {
+            position: static;
+            width: min(92vw, 360px);
+          }
+
+          .left-sidebar,
+          .brand-panel {
+            display: none;
+          }
+
+          .chat-column {
+            width: 100%;
+          }
+
+          .chat-shell {
+            width: 100%;
+            min-height: 60vh;
+            border-radius: 12px;
+          }
+
+          .mobile-chat-footer {
+            display: block;
+            padding: 24px 20px;
+            text-align: center;
+          }
+
+          .mobile-headline {
+            margin: 0;
+            font-family: "DM Serif Display", serif;
+            font-size: 22px;
+            line-height: 1.2;
+          }
+
+          .mobile-subtext {
+            margin: 8px 0 0;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.65);
+          }
+        }
+      `}</style>
     </main>
   );
 }
