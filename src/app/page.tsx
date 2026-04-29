@@ -771,10 +771,13 @@ export default function Page() {
             display: flex;
             justify-content: center;
             padding: 8px 0;
+            position: relative;
+            z-index: 50;
           }
 
           .mobile-service-dropdown-menu {
-            position: static;
+            position: relative;
+            z-index: 100;
             width: min(92vw, 360px);
           }
 
