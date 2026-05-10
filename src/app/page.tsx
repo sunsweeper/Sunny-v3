@@ -34,6 +34,7 @@ const SERVICE_TO_UCS_KEY: Record<ServiceKey, UcsServiceKey> = {
 
 const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "solarPanelCleaning", label: "Solar Panel Cleaning" },
+  { key: "birdProofing", label: "Solar Bird Proofing" },
   { key: "gutterCleaning", label: "Gutter Cleaning" },
   { key: "gutterRepair", label: "Gutter Repair" },
   { key: "roofWashing", label: "Roof Washing" },
