@@ -260,10 +260,11 @@ export default function Page() {
     setMessages((prev) => { if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev; return [getInitialGreeting()]; });
   }, []);
 
-  // Show date/time modal when Sunny asks for it
+// Show date/time modal when Sunny asks for it — fires for any service
   useEffect(() => {
-    if (chatState.lastAskedField === "preferred date and time" && !isLoading) setShowDateTimeModal(true);
-  }, [chatState.lastAskedField, isLoading]);
+    const askedField = chatState.lastAskedField ?? chatState.roofLastAskedField;
+    if (askedField === "preferred date and time" && !isLoading) setShowDateTimeModal(true);
+  }, [chatState.lastAskedField, chatState.roofLastAskedField, isLoading]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
