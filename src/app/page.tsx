@@ -322,13 +322,13 @@ export default function Page() {
   }, []);
 
   // Show Street View modal when address is collected
-  useEffect(() => {
-    const address = chatState.quoteAddress as string | undefined;
+useEffect(() => {
+    const address = (chatState.quoteAddress ?? chatState.roofQuoteAddress) as string | undefined;
     if (address && address !== pendingAddress && !isLoading && MAPS_API_KEY) {
       setPendingAddress(address);
       void checkStreetViewAvailable(address).then((available) => { if (available) setStreetViewAddress(address); });
     }
-  }, [chatState.quoteAddress, isLoading, pendingAddress]);
+  }, [chatState.quoteAddress, chatState.roofQuoteAddress, isLoading, pendingAddress]);
 
   const handleStartChat = () => { window.localStorage.setItem("sunny_has_visited", "true"); setShowOnboardingModal(false); };
 
@@ -412,7 +412,11 @@ export default function Page() {
   const handleStreetViewReenter = async () => {
     setStreetViewAddress(null);
     setPendingAddress(null);
-    setChatState((prev) => ({ ...prev, quoteAddress: undefined, address: undefined, lastAskedField: "quoteAddress" }));
+    const isRoofFlow = !!chatState.roofWashIntent;
+    setChatState((prev) => isRoofFlow
+      ? { ...prev, roofQuoteAddress: undefined, address: undefined, roofLastAskedField: "roofQuoteAddress" }
+      : { ...prev, quoteAddress: undefined, address: undefined, lastAskedField: "quoteAddress" }
+    );
     await sendMessage("I need to correct my address");
   };
 
