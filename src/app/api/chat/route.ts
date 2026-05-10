@@ -1299,9 +1299,6 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
       state.roofQuoteReady = true;
       state.roofQuotePrice = finalPrice;
       state.roofLastAskedField = undefined;
-      state.quoteReady = false;
-      state.panelCount = undefined;
-      state.price = undefined;
 
       // Build plain-English condition description for output
       let conditionDesc = "good condition";
@@ -1331,13 +1328,7 @@ Based on this pricing, would you like to schedule your roof cleaning?`;
 
     const roofQuotePrice = typeof currentState.roofQuotePrice === "number" ? currentState.roofQuotePrice : undefined;
 
-   const summary = `Here's what I've got for your booking${state.fullName ? `, ${state.fullName}` : ""}:
-- Name: ${state.fullName || "Not set"}
-- Email: ${state.email || "Not set"}
-- Phone: ${state.phone || "Not set"}
-- Address: ${state.address || "Not set"}
-- Date & Time: ${state.dateTime || "Not set"}
-- Service: Roof wash — $${roofQuotePrice.toLocaleString()}
+    if (currentState.roofQuoteReady && typeof roofQuotePrice === "number" && !currentState.confirmed) {
       let reply = "";
       let state: BookingState = {
         ...currentState,
@@ -1522,11 +1513,9 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
     const hasPanelCount = typeof currentState.panelCount === "number";
     const price = typeof currentState.price === "number" ? currentState.price : undefined;
 
-if (
+    if (
       hasPanelCount &&
       typeof price === "number" &&
-      typeof currentState.panelCount === "number" &&
-      currentState.panelCount > 0 &&
       currentState.quoteReady &&
       !currentState.roofQuoteReady &&
       !currentState.confirmed
