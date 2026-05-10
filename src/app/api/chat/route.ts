@@ -1331,7 +1331,13 @@ Based on this pricing, would you like to schedule your roof cleaning?`;
 
     const roofQuotePrice = typeof currentState.roofQuotePrice === "number" ? currentState.roofQuotePrice : undefined;
 
-    if (currentState.roofQuoteReady && typeof roofQuotePrice === "number" && !currentState.confirmed) {
+   const summary = `Here's what I've got for your booking${state.fullName ? `, ${state.fullName}` : ""}:
+- Name: ${state.fullName || "Not set"}
+- Email: ${state.email || "Not set"}
+- Phone: ${state.phone || "Not set"}
+- Address: ${state.address || "Not set"}
+- Date & Time: ${state.dateTime || "Not set"}
+- Service: Roof wash — $${roofQuotePrice.toLocaleString()}
       let reply = "";
       let state: BookingState = {
         ...currentState,
