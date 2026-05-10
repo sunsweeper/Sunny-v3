@@ -1522,7 +1522,6 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
     const hasPanelCount = typeof currentState.panelCount === "number";
     const price = typeof currentState.price === "number" ? currentState.price : undefined;
 
-    if (
 if (
       hasPanelCount &&
       typeof price === "number" &&
