@@ -16,7 +16,7 @@ type UserTextMessage = { role: "user"; type: "text"; content: string; };
 type AssistantTextMessage = { role: "assistant"; type: "text"; content: string; imagePaths?: string[]; };
 type ChatMessage = UserTextMessage | AssistantTextMessage;
 
-type ServiceKey = "solarPanelCleaning" | "gutterCleaning" | "gutterRepair" | "roofWashing" | "softWashing" | "pressureWashing";
+type ServiceKey = "solarPanelCleaning" | "gutterCleaning" | "gutterRepair" | "roofWashing" | "softWashing" | "pressureWashing" | "birdProofing";
 type NavLabel = "New Chat" | "Services" | "SunPass" | "Contact Us";
 type StatItem = { value: string; label: string; href?: string; };
 type WeatherDisplay = { city: string; temperature: string; icon: string; };
@@ -56,8 +56,8 @@ const STATS_POOL: StatItem[] = [
 const NAV_OPENERS: Record<NavLabel, string[]> = {
   "New Chat": ["Welcome back. How can I help you today?", "New conversation started. Need help with services, pricing, or booking?", "How can I help with your property cleaning needs today?"],
   Services: ["I can walk you through each service. Which one are you considering?", "Happy to help. Which service would you like details on?", "We handle solar panels, roofs, gutters, and exterior cleaning. What do you need?"],
-  SunPass: ["I can provide a quick SunPass breakdown. Want the details?", "SunPass is designed for consistent maintenance with less hassle. Want details?", "If you\u2019d like, I can summarize SunPass in a few quick points."],
-  "Contact Us": ["I can help connect you with the team. What\u2019s the best way to reach you?", "Would you prefer a call, text, or to leave a message here?", "If you\u2019d like, I can collect your information and pass it to a specialist."],
+  SunPass: ["I can provide a quick SunPass breakdown. Want the details?", "SunPass is designed for consistent maintenance with less hassle. Want details?", "If you'd like, I can summarize SunPass in a few quick points."],
+  "Contact Us": ["I can help connect you with the team. What's the best way to reach you?", "Would you prefer a call, text, or to leave a message here?", "If you'd like, I can collect your information and pass it to a specialist."],
 };
 
 const getRandomItem = <T,>(items: readonly T[]): T => items[Math.floor(Math.random() * items.length)];
@@ -262,7 +262,7 @@ export default function Page() {
     setMessages((prev) => { if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev; return [getInitialGreeting()]; });
   }, []);
 
-// Show date/time modal when Sunny asks for it — fires for any service
+  // Show date/time modal when Sunny asks for it — fires for any service
   useEffect(() => {
     const askedField = chatState.lastAskedField ?? chatState.roofLastAskedField;
     if (askedField === "preferred date and time" && !isLoading) setShowDateTimeModal(true);
@@ -315,17 +315,13 @@ export default function Page() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        void fetchWeatherFor(position.coords.latitude, position.coords.longitude);
-      },
-      () => {
-        void fetchWeatherFor(SANTA_MARIA_COORDS.latitude, SANTA_MARIA_COORDS.longitude);
-      }
+      (position) => { void fetchWeatherFor(position.coords.latitude, position.coords.longitude); },
+      () => { void fetchWeatherFor(SANTA_MARIA_COORDS.latitude, SANTA_MARIA_COORDS.longitude); }
     );
   }, []);
 
-  // Show Street View modal when address is collected
-useEffect(() => {
+  // Show Street View modal when address is collected — fires for solar and roof wash
+  useEffect(() => {
     const address = (chatState.quoteAddress ?? chatState.roofQuoteAddress) as string | undefined;
     if (address && address !== pendingAddress && !isLoading && MAPS_API_KEY) {
       setPendingAddress(address);
@@ -338,63 +334,46 @@ useEffect(() => {
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       const messagesContainer = messagesRef.current;
-      if (messagesContainer) {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        return;
-      }
+      if (messagesContainer) { messagesContainer.scrollTop = messagesContainer.scrollHeight; return; }
       messagesEndRef.current?.scrollIntoView({ block: "end" });
     });
     return () => window.cancelAnimationFrame(frame);
   }, [messages, isLoading, showReferralForm]);
 
-  // ─────────────────────────────────────────────
-  // CORE SEND FUNCTION
-  // ─────────────────────────────────────────────
-
   const sendMessage = async (text: string, overrideState?: Record<string, unknown>) => {
     if (!text.trim() || isLoading) return;
     if (!hasUserEngaged) setHasUserEngaged(true);
-
     const userMessage: UserTextMessage = { role: "user", type: "text", content: text.trim() };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
-
     const extractedEmail = extractEmail(text);
     const extractedPhone = extractPhone(text);
     const extractedName = extractFirstName(text);
     if (extractedName) { window.localStorage.setItem("sunny_known_name", extractedName); setKnownName(extractedName); }
     if (extractedEmail) window.localStorage.setItem("sunny_known_email", extractedEmail);
     if (extractedPhone) window.localStorage.setItem("sunny_known_phone", extractedPhone);
-
     const email = window.localStorage.getItem("sunny_known_email") || "";
     const phone = window.localStorage.getItem("sunny_known_phone") || "";
     const { lead_detected, lead_reason } = detectLeadReason(text);
-
     const now = Date.now();
     const nextFrustrationScore = Math.max(0, clientFrustrationScore - 1) + frustrationDelta(text);
     const frustrationTriggered = shouldOfferHandoff({ frustrationScore: nextFrustrationScore, handoffActive: clientHandoffActive, lastHandoffOfferedAt: lastClientHandoffOfferedAt, now });
     setClientFrustrationScore(nextFrustrationScore);
     if (frustrationTriggered) setLastClientHandoffOfferedAt(now);
-
     logSunny({ role: "user", type: "message", text: text.trim(), lead_detected, lead_reason, phone, email, handoff_requested: frustrationTriggered || detectHumanRequest(text) || lead_detected });
-
     setInput("");
     setIsLoading(true);
-
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text.trim(), state: overrideState ?? chatState, messages: nextMessages, sessionId }),
       });
-
       const data = (await response.json()) as { reply?: string; state?: Record<string, unknown>; };
-      const reply = data.reply?.trim() || "I'm sorry\u2014something went wrong while responding.";
-
+      const reply = data.reply?.trim() || "I'm sorry—something went wrong while responding.";
       const imageUrls = isSolarCleaningQuestion(text) ? getRandomSolarImages(2) : [];
       setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply, imagePaths: imageUrls.length > 0 ? imageUrls : undefined }]);
       logSunny({ role: "assistant", type: "message", text: reply, lead_detected: false, lead_reason: "", handoff_requested: false });
-
       if (data.state) {
         setChatState(data.state);
         if (data.state.awaitingReferral === true && !data.state.referralSubmitted) setShowReferralForm(true);
@@ -410,12 +389,15 @@ useEffect(() => {
   };
 
   const handleSend = async () => { await sendMessage(input); };
+
   const handleDateTimeConfirm = async (dateTimeString: string) => {
     setShowDateTimeModal(false);
     setChatState((prev) => ({ ...prev, lastAskedField: undefined, roofLastAskedField: undefined }));
     await sendMessage(dateTimeString);
   };
+
   const handleStreetViewConfirm = () => { setStreetViewAddress(null); };
+
   const handleStreetViewReenter = async () => {
     setStreetViewAddress(null);
     setPendingAddress(null);
@@ -427,10 +409,6 @@ useEffect(() => {
     await sendMessage("I need to correct my address");
   };
 
-  // ─────────────────────────────────────────────
-  // REFERRAL HANDLERS
-  // ─────────────────────────────────────────────
-
   const handleReferralSubmit = async (data: { firstName: string; lastName: string; phone: string }) => {
     setIsReferralSubmitting(true);
     try {
@@ -440,13 +418,13 @@ useEffect(() => {
         body: JSON.stringify({ message: "", state: chatState, messages, sessionId, referralData: data }),
       });
       const result = (await response.json()) as { reply?: string; state?: Record<string, unknown>; };
-      const reply = result.reply?.trim() || "Referral noted \u2014 thank you!";
+      const reply = result.reply?.trim() || "Referral noted — thank you!";
       setShowReferralForm(false);
       setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply }]);
       if (result.state) setChatState(result.state);
     } catch {
       setShowReferralForm(false);
-      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: "Referral noted \u2014 thank you! Let me pull up your booking summary." }]);
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: "Referral noted — thank you! Let me pull up your booking summary." }]);
     } finally { setIsReferralSubmitting(false); }
   };
 
@@ -461,11 +439,11 @@ useEffect(() => {
         body: JSON.stringify({ message: "show booking summary", state: skippedState, messages, sessionId }),
       });
       const data = (await response.json()) as { reply?: string; state?: Record<string, unknown>; };
-      const reply = data.reply?.trim() || "No problem \u2014 here is your booking summary.";
+      const reply = data.reply?.trim() || "No problem — here is your booking summary.";
       setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply }]);
       if (data.state) setChatState(data.state);
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: "No problem \u2014 let me pull up your booking summary." }]);
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: "No problem — let me pull up your booking summary." }]);
     } finally { setIsLoading(false); }
   };
 
@@ -565,16 +543,10 @@ useEffect(() => {
           <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
           <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
           <p className="hero-subtext">Protecting your investment.</p>
-
           <div className="stats-grid">
             {visibleStatIndexes.map((statIndex, slot) => {
               const stat = STATS_POOL[statIndex];
-              const content = (
-                <>
-                  <p className="stat-value">{stat.value}</p>
-                  <p className="stat-label">{stat.label}</p>
-                </>
-              );
+              const content = (<><p className="stat-value">{stat.value}</p><p className="stat-label">{stat.label}</p></>);
               return stat.href ? (
                 <a key={`${stat.value}-${slot}`} href={stat.href} target="_blank" rel="noreferrer" className={`stat-tile ${fadeSlot === slot ? "fade" : ""}`}>{content}</a>
               ) : (
@@ -582,16 +554,10 @@ useEffect(() => {
               );
             })}
           </div>
-
           <div className="left-list">
             <p className="left-label">Services</p>
-            <ul>
-              {SERVICE_OPTIONS.map((service) => (
-                <li key={service.key}>{service.label}</li>
-              ))}
-            </ul>
+            <ul>{SERVICE_OPTIONS.map((service) => (<li key={service.key}>{service.label}</li>))}</ul>
           </div>
-
           <div className="left-list">
             <p className="left-label">Santa Barbara County</p>
             <p className="city-copy">Carpinteria · Summerland · Montecito · Santa Barbara · Goleta · Isla Vista · Gaviota · Lompoc · Buellton · Solvang · Santa Ynez · Los Olivos · Los Alamos · Guadalupe · Santa Maria · Orcutt · Nipomo</p>
@@ -602,69 +568,52 @@ useEffect(() => {
 
         <section ref={chatShellRef} className="chat-column">
           <section className="chat-shell">
-          <div className="chat-header">
-            <div className="chat-header-left">
-              <span className="online-dot" aria-hidden="true" />
-              <span className="chat-title">Sunny</span>
+            <div className="chat-header">
+              <div className="chat-header-left">
+                <span className="online-dot" aria-hidden="true" />
+                <span className="chat-title">Sunny</span>
+              </div>
             </div>
-          </div>
-          <div ref={messagesRef} className="messages">
-            {messages.map((message, index) => {
-              const isUser = message.role === "user";
-              const isLastAssistant = !isUser && index === messages.length - 1;
-              const quickReplies =
-                isLastAssistant && !isUser && Array.isArray(chatState.sunpassQuickReplies)
-                  ? (chatState.sunpassQuickReplies as string[])
-                  : [];
-              return (
-                <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
-                  <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
-                    {message.content.split("\n").map((line, i) => (
-                      <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>{line}</p>
-                    ))}
-                    {quickReplies.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
-                        {quickReplies.map((option) => (
-                          <button
-                            key={option}
-                            type="button"
-                            disabled={isLoading}
-                            onClick={() => void sendMessage(option)}
-                            style={{
-                              borderRadius: "999px",
-                              border: "1px solid rgba(255,255,255,0.35)",
-                              background: "rgba(245,166,35,0.18)",
-                              color: "#fff",
-                              padding: "6px 12px",
-                              fontSize: "0.8rem",
-                              cursor: isLoading ? "not-allowed" : "pointer",
-                            }}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {isLastAssistant && showReferralForm && (
-                      <ReferralForm onSubmit={handleReferralSubmit} onSkip={handleReferralSkip} isSubmitting={isReferralSubmitting} />
-                    )}
+            <div ref={messagesRef} className="messages">
+              {messages.map((message, index) => {
+                const isUser = message.role === "user";
+                const isLastAssistant = !isUser && index === messages.length - 1;
+                const quickReplies = isLastAssistant && !isUser && Array.isArray(chatState.sunpassQuickReplies)
+                  ? (chatState.sunpassQuickReplies as string[]) : [];
+                return (
+                  <div key={`${message.role}-${index}`} className={`msg-row ${isUser ? "user" : "assistant"}`}>
+                    <div className={`bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
+                      {message.content.split("\n").map((line, i) => (
+                        <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>{line}</p>
+                      ))}
+                      {quickReplies.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
+                          {quickReplies.map((option) => (
+                            <button key={option} type="button" disabled={isLoading} onClick={() => void sendMessage(option)}
+                              style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.35)", background: "rgba(245,166,35,0.18)", color: "#fff", padding: "6px 12px", fontSize: "0.8rem", cursor: isLoading ? "not-allowed" : "pointer" }}>
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {isLastAssistant && showReferralForm && (
+                        <ReferralForm onSubmit={handleReferralSubmit} onSkip={handleReferralSkip} isSubmitting={isReferralSubmitting} />
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-            {isLoading && <div className="msg-row assistant"><div><p className="typing">Sunny is thinking...</p></div></div>}
-            <div ref={messagesEndRef} aria-hidden="true" />
-          </div>
-          <div className="input-wrap">
-            <textarea id="chat-input" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={handleKeyDown} rows={1} placeholder="Ask me anything..." className="chat-input" />
-            <button type="button" onClick={() => void handleSend()} disabled={isLoading || !input.trim()} className="send-btn" aria-label="Send message to Sunny">
-              <span aria-hidden="true">&#x27A4;</span>
-              <span className="send-label" style={{ fontWeight: 800, color: "#fff" }}>Send</span>
-            </button>
-          </div>
-          <p className="helper-text">
-            Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.
-          </p>
+                );
+              })}
+              {isLoading && <div className="msg-row assistant"><div><p className="typing">Sunny is thinking...</p></div></div>}
+              <div ref={messagesEndRef} aria-hidden="true" />
+            </div>
+            <div className="input-wrap">
+              <textarea id="chat-input" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={handleKeyDown} rows={1} placeholder="Ask me anything..." className="chat-input" />
+              <button type="button" onClick={() => void handleSend()} disabled={isLoading || !input.trim()} className="send-btn" aria-label="Send message to Sunny">
+                <span aria-hidden="true">&#x27A4;</span>
+                <span className="send-label" style={{ fontWeight: 800, color: "#fff" }}>Send</span>
+              </button>
+            </div>
+            <p className="helper-text">Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.</p>
           </section>
           <section className="mobile-chat-footer" aria-hidden="true">
             <h1 className="mobile-headline">The Solar Panel and Roof Cleaning Experts.</h1>
@@ -707,124 +656,24 @@ useEffect(() => {
       <ReviewScreenshotsModal isOpen={isReviewScreenshotsOpen} imagePaths={reviewScreenshotPaths} onClose={() => setIsReviewScreenshotsOpen(false)}
         onImageClick={(path) => { setLightboxImagePath(path); setIsReviewScreenshotsOpen(false); }} />
       <style jsx global>{`
-        .mobile-brand-header,
-        .mobile-nav-links,
-        .mobile-service-dropdown-wrap,
-        .mobile-chat-footer {
-          display: none;
-        }
-
-        .hero-logo {
-          display: block !important;
-          width: 160px !important;
-          height: auto !important;
-          margin: 0 auto 16px auto !important;
-          opacity: 1 !important;
-          visibility: visible !important;
-        }
-
-        .page-background {
-          z-index: 0;
-        }
-
-        .top-nav,
-        .home-layout,
-        .mobile-brand-header,
-        .mobile-nav-links,
-        .mobile-service-dropdown-wrap,
-        .mobile-chat-footer {
-          position: relative;
-          z-index: 1;
-        }
-
+        .mobile-brand-header, .mobile-nav-links, .mobile-service-dropdown-wrap, .mobile-chat-footer { display: none; }
+        .hero-logo { display: block !important; width: 160px !important; height: auto !important; margin: 0 auto 16px auto !important; opacity: 1 !important; visibility: visible !important; }
+        .page-background { z-index: 0; }
+        .top-nav, .home-layout, .mobile-brand-header, .mobile-nav-links, .mobile-service-dropdown-wrap, .mobile-chat-footer { position: relative; z-index: 1; }
         @media (max-width: 768px) {
-          .top-nav-center {
-            display: none;
-          }
-
-          .mobile-brand-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px 0 8px;
-            opacity: 1;
-            filter: none;
-            mix-blend-mode: normal;
-          }
-
-          .mobile-hero-logo {
-            width: 100px;
-            height: auto;
-            opacity: 1 !important;
-            position: relative;
-            z-index: 10;
-          }
-
-          .mobile-hero-kicker {
-            margin: 0;
-            color: #f5a623;
-            font-size: 10px;
-            letter-spacing: 0.16em;
-            text-align: center;
-          }
-
-          .mobile-nav-links {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          }
-
-          .mobile-service-dropdown-wrap {
-            display: flex;
-            justify-content: center;
-            padding: 8px 0;
-            position: relative;
-            z-index: 50;
-          }
-
-          .mobile-service-dropdown-menu {
-            position: relative;
-            z-index: 100;
-            width: min(92vw, 360px);
-          }
-
-          .left-sidebar,
-          .brand-panel {
-            display: none;
-          }
-
-          .chat-column {
-            width: 100%;
-          }
-
-          .chat-shell {
-            width: 100%;
-            min-height: 60vh;
-            border-radius: 12px;
-          }
-
-          .mobile-chat-footer {
-            display: block;
-            padding: 24px 20px;
-            text-align: center;
-          }
-
-          .mobile-headline {
-            margin: 0;
-            font-family: "DM Serif Display", serif;
-            font-size: 22px;
-            line-height: 1.2;
-          }
-
-          .mobile-subtext {
-            margin: 8px 0 0;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.65);
-          }
+          .top-nav-center { display: none; }
+          .mobile-brand-header { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px 0 8px; opacity: 1; filter: none; mix-blend-mode: normal; }
+          .mobile-hero-logo { width: 100px; height: auto; opacity: 1 !important; position: relative; z-index: 10; }
+          .mobile-hero-kicker { margin: 0; color: #f5a623; font-size: 10px; letter-spacing: 0.16em; text-align: center; }
+          .mobile-nav-links { display: flex; justify-content: center; gap: 20px; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+          .mobile-service-dropdown-wrap { display: flex; justify-content: center; padding: 8px 0; position: relative; z-index: 50; }
+          .mobile-service-dropdown-menu { position: relative; z-index: 100; width: min(92vw, 360px); }
+          .left-sidebar, .brand-panel { display: none; }
+          .chat-column { width: 100%; }
+          .chat-shell { width: 100%; min-height: 60vh; border-radius: 12px; }
+          .mobile-chat-footer { display: block; padding: 24px 20px; text-align: center; }
+          .mobile-headline { margin: 0; font-family: "DM Serif Display", serif; font-size: 22px; line-height: 1.2; }
+          .mobile-subtext { margin: 8px 0 0; font-size: 13px; color: rgba(255, 255, 255, 0.65); }
         }
       `}</style>
     </main>
