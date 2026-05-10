@@ -21,9 +21,9 @@ type NavLabel = "New Chat" | "Services" | "SunPass" | "Contact Us";
 type StatItem = { value: string; label: string; href?: string; };
 type WeatherDisplay = { city: string; temperature: string; icon: string; };
 
-const getInitialGreeting = (name: string | null): AssistantTextMessage => ({
+const getInitialGreeting = (): AssistantTextMessage => ({
   role: "assistant", type: "text",
-  content: name ? `Hey ${name}, welcome to SunSweeper.com. How can I help you today?` : "Hey, welcome to SunSweeper.com. How can I help you today?",
+  content: "Hey! Welcome to SunSweeper.com. How can I help you today?",
 });
 
 const SERVICE_TO_UCS_KEY: Record<ServiceKey, UcsServiceKey> = {
@@ -44,9 +44,9 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
 const STAT_ROTATION_MS = 4000;
 const STAT_FADE_MS = 500;
 const STATS_POOL: StatItem[] = [
-  { value: "$8M+", label: "In electricity restored — Projected 2026" },
-  { value: "175K+", label: "Solar panels cleaned — Projected 2026" },
-  { value: "74", label: "Utility-scale sites served" },
+  { value: "$12M+", label: "In electricity restored — Projected 2026" },
+  { value: "245K+", label: "Solar panels cleaned — Projected 2026" },
+  { value: "89", label: "Utility-scale sites served" },
   { value: "23%", label: "Avg. output restored all time" },
   { value: "5★", label: "Customer rating — Yelp & Google ↗", href: "https://www.yelp.com/biz/sun-sweeper-santa-maria?override_cta=Get+pricing" },
 ];
@@ -77,15 +77,6 @@ const weatherCodeToEmoji = (code: number): string => {
 const isSolarCleaningQuestion = (value: string): boolean => {
   const n = value.toLowerCase();
   return /(solar|panel|panels|pv)/.test(n) && /(clean|cleaning|dirty|dust|wash|washing|bird droppings|grime|photos|picture|images)/.test(n);
-};
-
-const sanitizeKnownName = (value: string | null): string | null => {
-  if (!value) return null;
-  const first = value.trim().split(/\s+/)[0] ?? "";
-  const letters = first.replace(/[^A-Za-z]/g, "");
-  if (letters.length < 2 || letters.length > 20) return null;
-  const n = letters.toLowerCase();
-  return n.charAt(0).toUpperCase() + n.slice(1);
 };
 
 const withOptionalName = (followUp: string, knownName: string | null): string =>
@@ -229,7 +220,7 @@ function ReferralForm({ onSubmit, onSkip, isSubmitting }: ReferralFormProps) {
 // ─────────────────────────────────────────────
 
 export default function Page() {
-  const [messages, setMessages] = useState<ChatMessage[]>([getInitialGreeting(null)]);
+  const [messages, setMessages] = useState<ChatMessage[]>([getInitialGreeting()]);
   const [hasUserEngaged, setHasUserEngaged] = useState(false);
   const [chatState, setChatState] = useState<Record<string, unknown>>({});
   const [input, setInput] = useState("");
@@ -264,11 +255,9 @@ export default function Page() {
       window.localStorage.setItem("sunny_session_id", generated);
       setSessionId(generated);
     }
-    const storedName = sanitizeKnownName(window.localStorage.getItem("sunny_known_name"));
     const hasVisited = window.localStorage.getItem("sunny_has_visited") === "true";
     setShowOnboardingModal(!hasVisited);
-    setKnownName(storedName);
-    setMessages((prev) => { if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev; return [getInitialGreeting(storedName)]; });
+    setMessages((prev) => { if (prev.length !== 1 || prev[0]?.role !== "assistant") return prev; return [getInitialGreeting()]; });
   }, []);
 
   // Show date/time modal when Sunny asks for it
@@ -507,11 +496,11 @@ export default function Page() {
   return (
     <main className="page-shell">
       <div className="page-background" />
-      <header className="top-nav" style={{ position: "relative", display: "flex", flexDirection: "row", alignItems: "center", width: "100%" }}>
+      <header className="top-nav">
         <div className="top-nav-left">
           <button type="button" className="new-chat-btn" onClick={() => handleNavClick("New Chat")}>+ New Chat</button>
         </div>
-        <nav className="top-nav-center" aria-label="Site navigation" style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+        <nav className="top-nav-center" aria-label="Site navigation">
           <button type="button" className="service-link" onClick={() => setIsServicesDropdownOpen((prev) => !prev)}>Services</button>
           <button type="button" className="service-link" onClick={() => handleNavClick("SunPass")}>SunPass</button>
           <button type="button" className="service-link" onClick={() => handleNavClick("Contact Us")}>Contact</button>
@@ -525,21 +514,43 @@ export default function Page() {
             </div>
           )}
         </nav>
-        <div className="top-nav-right" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "24px", marginLeft: "auto" }}>
-          <div className="weather-line" style={{ display: "flex", alignItems: "center", gap: "8px", margin: 0, color: "rgba(255,255,255,0.85)", fontSize: "1.02rem", fontWeight: 500 }}>
+        <div className="top-nav-right">
+          <div className="weather-line">
             <span aria-hidden="true" style={{ fontSize: "18px", lineHeight: 1 }}>{weather.icon}</span>
             <span>{`${weather.city} ${weather.temperature}`}</span>
           </div>
-          <div style={{ borderLeft: "1px solid rgba(255,255,255,0.12)", paddingLeft: "24px", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+          <div className="contact-block">
             <a className="phone" href="tel:8059381515" aria-label="Call SunSweeper at 805-938-1515">805-938-1515</a>
             <p className="contact-line">Call or Text a Live Human</p>
           </div>
         </div>
       </header>
 
-      <section className="home-layout" style={{ display: "flex", flexDirection: "row", width: "100%", height: "calc(100vh - 72px)" }}>
-        <aside className="brand-panel" style={{ width: "320px", flexShrink: 0 }}>
-          <Image src="/logo.png" alt="SunSweeper logo" width={120} height={65} className="hero-logo" priority />
+      <section className="mobile-brand-header" aria-hidden="true">
+        <Image src="/logo.png" alt="SunSweeper logo" width={100} height={54} className="mobile-hero-logo" />
+        <p className="mobile-hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
+      </section>
+
+      <nav className="mobile-nav-links" aria-label="Mobile site navigation">
+        <button type="button" className="service-link" onClick={() => setIsServicesDropdownOpen((prev) => !prev)}>Services</button>
+        <button type="button" className="service-link" onClick={() => handleNavClick("SunPass")}>SunPass</button>
+        <button type="button" className="service-link" onClick={() => handleNavClick("Contact Us")}>Contact</button>
+        <a className="service-link" href={reviewDropdownLinks[3]?.href ?? "https://www.yelp.com"} target="_blank" rel="noreferrer">Reviews</a>
+      </nav>
+      {isServicesDropdownOpen && (
+        <div className="mobile-service-dropdown-wrap">
+          <div className="service-dropdown-menu mobile-service-dropdown-menu" role="menu" aria-label="Service menu">
+            {SERVICE_OPTIONS.map((service) => (
+              <button key={service.key} type="button" role="menuitem" className={`service-dropdown-item ${activeService === service.key ? "active" : ""}`}
+                onClick={() => { handleServiceClick(service.key); setIsServicesDropdownOpen(false); }}>{service.label}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <section className="home-layout">
+        <aside className="brand-panel left-sidebar">
+          <Image src="/logo.png" alt="SunSweeper logo" width={160} height={87} className="hero-logo" />
           <p className="hero-kicker">SUNSWEEPER PREMIUM SERVICE</p>
           <h1 className="headline">The Solar Panel and Roof Cleaning Experts.</h1>
           <p className="hero-subtext">Protecting your investment.</p>
@@ -571,8 +582,10 @@ export default function Page() {
           </div>
 
           <div className="left-list">
-            <p className="left-label">Service Area Cities</p>
-            <p className="city-copy">Santa Maria • Orcutt • Nipomo • Arroyo Grande • Pismo Beach • San Luis Obispo • Paso Robles • Cambria</p>
+            <p className="left-label">Santa Barbara County</p>
+            <p className="city-copy">Carpinteria · Summerland · Montecito · Santa Barbara · Goleta · Isla Vista · Gaviota · Lompoc · Buellton · Solvang · Santa Ynez · Los Olivos · Los Alamos · Guadalupe · Santa Maria · Orcutt · Nipomo</p>
+            <p className="left-label">San Luis Obispo County</p>
+            <p className="city-copy">Arroyo Grande · Grover Beach · Pismo Beach · Shell Beach · Oceano · Avila Beach · San Luis Obispo · Los Osos · Morro Bay · Cayucos · Cambria · Templeton · Atascadero · Paso Robles · Shandon · Santa Margarita · Creston</p>
           </div>
         </aside>
 
@@ -642,6 +655,10 @@ export default function Page() {
             Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.
           </p>
           </section>
+          <section className="mobile-chat-footer" aria-hidden="true">
+            <h1 className="mobile-headline">The Solar Panel and Roof Cleaning Experts.</h1>
+            <p className="mobile-subtext">Protecting your investment.</p>
+          </section>
         </section>
       </section>
 
@@ -678,6 +695,127 @@ export default function Page() {
       <Lightbox imagePath={lightboxImagePath} onClose={() => setLightboxImagePath(null)} />
       <ReviewScreenshotsModal isOpen={isReviewScreenshotsOpen} imagePaths={reviewScreenshotPaths} onClose={() => setIsReviewScreenshotsOpen(false)}
         onImageClick={(path) => { setLightboxImagePath(path); setIsReviewScreenshotsOpen(false); }} />
+      <style jsx global>{`
+        .mobile-brand-header,
+        .mobile-nav-links,
+        .mobile-service-dropdown-wrap,
+        .mobile-chat-footer {
+          display: none;
+        }
+
+        .hero-logo {
+          display: block !important;
+          width: 160px !important;
+          height: auto !important;
+          margin: 0 auto 16px auto !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+
+        .page-background {
+          z-index: 0;
+        }
+
+        .top-nav,
+        .home-layout,
+        .mobile-brand-header,
+        .mobile-nav-links,
+        .mobile-service-dropdown-wrap,
+        .mobile-chat-footer {
+          position: relative;
+          z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+          .top-nav-center {
+            display: none;
+          }
+
+          .mobile-brand-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 0 8px;
+            opacity: 1;
+            filter: none;
+            mix-blend-mode: normal;
+          }
+
+          .mobile-hero-logo {
+            width: 100px;
+            height: auto;
+            opacity: 1 !important;
+            position: relative;
+            z-index: 10;
+          }
+
+          .mobile-hero-kicker {
+            margin: 0;
+            color: #f5a623;
+            font-size: 10px;
+            letter-spacing: 0.16em;
+            text-align: center;
+          }
+
+          .mobile-nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          }
+
+          .mobile-service-dropdown-wrap {
+            display: flex;
+            justify-content: center;
+            padding: 8px 0;
+            position: relative;
+            z-index: 50;
+          }
+
+          .mobile-service-dropdown-menu {
+            position: relative;
+            z-index: 100;
+            width: min(92vw, 360px);
+          }
+
+          .left-sidebar,
+          .brand-panel {
+            display: none;
+          }
+
+          .chat-column {
+            width: 100%;
+          }
+
+          .chat-shell {
+            width: 100%;
+            min-height: 60vh;
+            border-radius: 12px;
+          }
+
+          .mobile-chat-footer {
+            display: block;
+            padding: 24px 20px;
+            text-align: center;
+          }
+
+          .mobile-headline {
+            margin: 0;
+            font-family: "DM Serif Display", serif;
+            font-size: 22px;
+            line-height: 1.2;
+          }
+
+          .mobile-subtext {
+            margin: 8px 0 0;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.65);
+          }
+        }
+      `}</style>
     </main>
   );
 }
