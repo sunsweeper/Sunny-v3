@@ -1299,6 +1299,9 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
       state.roofQuoteReady = true;
       state.roofQuotePrice = finalPrice;
       state.roofLastAskedField = undefined;
+      state.quoteReady = false;
+      state.panelCount = undefined;
+      state.price = undefined;
 
       // Build plain-English condition description for output
       let conditionDesc = "good condition";
@@ -1514,8 +1517,11 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
     const price = typeof currentState.price === "number" ? currentState.price : undefined;
 
     if (
+if (
       hasPanelCount &&
       typeof price === "number" &&
+      typeof currentState.panelCount === "number" &&
+      currentState.panelCount > 0 &&
       currentState.quoteReady &&
       !currentState.roofQuoteReady &&
       !currentState.confirmed
