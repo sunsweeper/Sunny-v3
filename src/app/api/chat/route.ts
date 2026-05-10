@@ -21,7 +21,6 @@ const openai = new OpenAI({
 
 // ─────────────────────────────────────────────────────────────────
 // GOOGLE SHEETS LOGGING
-// Single URL handles both conversation logs and booking logs.
 // ─────────────────────────────────────────────────────────────────
 
 const SHEET_URL =
@@ -48,7 +47,6 @@ async function logToSheet(payload: Record<string, unknown>): Promise<void> {
   }
 }
 
-// Fire-and-forget — does not block response
 function logToSheetAsync(payload: Record<string, unknown>): void {
   logToSheet(payload).catch((err) => console.error("[SHEET] async error:", err));
 }
@@ -87,6 +85,17 @@ type BookingState = {
   sunpassAwaitingConfirmation?: boolean;
   activeConversationState?: "sunpass_intro" | "sunpass_role_prompt" | "sunpass_followup";
   sunpassQuickReplies?: string[];
+  // Roof wash quoting sub-fields
+  roofWashIntent?: boolean;
+  roofSqft?: number;
+  roofStorey?: "1" | "2";
+  roofLastCleaned?: "lt2" | "gt2" | "never";
+  roofStreaking?: boolean;
+  roofLichen?: boolean;
+  roofQuoteAddress?: string;
+  roofQuoteReady?: boolean;
+  roofQuotePrice?: number;
+  roofLastAskedField?: string;
   [key: string]: unknown;
 };
 
@@ -292,7 +301,7 @@ function buildSunPassLeadSummary(leadData: Record<string, string>) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// CONVERSATION LOGGING — fires on every single turn
+// CONVERSATION LOGGING
 // ─────────────────────────────────────────────────────────────────
 
 async function writeConversationLog(entry: ConversationLogEntry) {
@@ -348,7 +357,7 @@ function logSunPassLeadCapture(payload: {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// PRICING ENGINE
+// PRICING ENGINE — SHARED
 // ─────────────────────────────────────────────────────────────────
 
 const CORE_ZIPS = new Set([
@@ -386,6 +395,10 @@ function getMileageSurcharge(address: string): number {
   const billableMiles = Math.max(0, miles - FREE_RADIUS_MILES);
   return Math.round(billableMiles * 2 * MILEAGE_RATE * 100) / 100;
 }
+
+// ─────────────────────────────────────────────────────────────────
+// PRICING ENGINE — SOLAR
+// ─────────────────────────────────────────────────────────────────
 
 interface PanelTier {
   min: number;
@@ -461,6 +474,58 @@ function buildFinalQuote(state: BookingState): {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// PRICING ENGINE — ROOF WASH
+// ─────────────────────────────────────────────────────────────────
+
+const ROOF_BASE_RATE = 0.55;
+const ROOF_CONDITION_2_ADDER = 0.10;
+const ROOF_CONDITION_3_ADDER = 0.15;
+const ROOF_STOREY_ADDER = 0.10;
+const ROOF_LICHEN_ADDER = 0.10;
+const ROOF_MINIMUM = 849;
+const ROOF_TRAVEL_RATE = 0.70; // per mile, round trip flat add
+
+function getRoofMileageSurcharge(address: string): number {
+  const zip = extractZip(address);
+  if (!zip) return 0;
+  if (CORE_ZIPS.has(zip)) return 0;
+  const miles = ZIP_DISTANCE_FROM_ORCUTT[zip] ?? 30;
+  const billableMiles = Math.max(0, miles - FREE_RADIUS_MILES);
+  return Math.round(billableMiles * 2 * ROOF_TRAVEL_RATE * 100) / 100;
+}
+
+function buildRoofQuote(state: BookingState): number {
+  const sqft = state.roofSqft ?? 0;
+
+  // Determine condition adder
+  let conditionAdder = 0;
+  const lastCleaned = state.roofLastCleaned;
+  const hasStreaking = state.roofStreaking === true;
+
+  // Level 3: never cleaned OR 5+ years (gt2 covers both) AND significant streaking
+  // Level 2: cleaned 2-5 years ago OR minor streaking
+  // Level 1: cleaned within 2 years AND no streaking
+  if (lastCleaned === "never" || (lastCleaned === "gt2" && hasStreaking)) {
+    conditionAdder = ROOF_CONDITION_3_ADDER;
+  } else if (lastCleaned === "gt2" || hasStreaking) {
+    conditionAdder = ROOF_CONDITION_2_ADDER;
+  }
+  // else lt2 and no streaking = Level 1, no adder
+
+  const storeyAdder = state.roofStorey === "2" ? ROOF_STOREY_ADDER : 0;
+  const lichenAdder = state.roofLichen === true ? ROOF_LICHEN_ADDER : 0;
+
+  const ratePerSqft = ROOF_BASE_RATE + conditionAdder + storeyAdder + lichenAdder;
+  let total = sqft * ratePerSqft;
+
+  // Travel surcharge
+  const travel = state.roofQuoteAddress ? getRoofMileageSurcharge(state.roofQuoteAddress) : 0;
+  total += travel;
+
+  return Math.max(ROOF_MINIMUM, Math.round(total));
+}
+
+// ─────────────────────────────────────────────────────────────────
 // SOLAR QUOTING STATE MACHINE
 // ─────────────────────────────────────────────────────────────────
 
@@ -482,6 +547,75 @@ const QUOTE_QUESTIONS: Record<QuoteField, string> = {
   quoteLastCleaned:
     "When were the panels last cleaned — within the last 2 years, more than 2 years ago, or never?",
 };
+
+// ─────────────────────────────────────────────────────────────────
+// ROOF WASH QUOTING STATE MACHINE
+// ─────────────────────────────────────────────────────────────────
+
+type RoofQuoteField =
+  | "roofSqft"
+  | "roofStorey"
+  | "roofLastCleaned"
+  | "roofStreaking"
+  | "roofLichen"
+  | "roofQuoteAddress";
+
+function getRoofNextField(state: BookingState): RoofQuoteField | null {
+  if (!state.roofSqft) return "roofSqft";
+  if (!state.roofStorey) return "roofStorey";
+  if (state.roofLastCleaned === undefined) return "roofLastCleaned";
+  if (state.roofStreaking === undefined) return "roofStreaking";
+  if (state.roofLichen === undefined) return "roofLichen";
+  if (!state.roofQuoteAddress) return "roofQuoteAddress";
+  return null;
+}
+
+const ROOF_QUOTE_QUESTIONS: Record<RoofQuoteField, string> = {
+  roofSqft: "What is the square footage of your roof?",
+  roofStorey: "Is your home one story or two stories?",
+  roofLastCleaned: "When was the last time you had your roof professionally cleaned?",
+  roofStreaking: "Is there any visible streaking or buildup of organic material on your roof?",
+  roofLichen: "Do you notice any white, grey, or greenish crusty patches on your roof?",
+  roofQuoteAddress: "What is the service address, including city and zip code?",
+};
+
+function parseYesNo(message: string): boolean | null {
+  const m = message.toLowerCase().trim();
+  if (/\b(yes|yeah|yep|yup|correct|affirmative|absolutely|definitely|some|a (little|bit|few)|visible|noticed|there is|there are|i do|i see)\b/i.test(m)) return true;
+  if (/\b(no|nope|none|not really|don't|dont|nothing|clean|clear|not that i|can't see|cant see)\b/i.test(m)) return false;
+  return null;
+}
+
+function parseRoofLastCleaned(message: string): "lt2" | "gt2" | "never" | null {
+  const m = message.toLowerCase();
+  if (/never|not.*clean|first.*time|brand.?new|never been/i.test(m)) return "never";
+  if (/\b(over|more than|greater than|beyond)\s*(2|two)\s*year/i.test(m)) return "gt2";
+  if (/\b[3-9]\s*year|\b[1-9]\d+\s*year/i.test(m)) return "gt2";
+  if (/\b(few|couple|several|some)\s*year/i.test(m)) return "gt2";
+  if (/\b5\s*year|\b4\s*year/i.test(m)) return "gt2";
+  if (/\b\d+\s*(day|days|week|weeks|month|months)\s*(ago)?/i.test(m)) return "lt2";
+  if (/\b(1|one|a)\s*year\s*(ago)?/i.test(m)) return "lt2";
+  if (/\blast\s*year\b/i.test(m)) return "lt2";
+  if (/\b2\s*year/i.test(m)) return "gt2";
+  if (/\b(within|less|under|recent)\s*(the\s*)?(last\s*)?(1|2|one|two)\s*year/i.test(m)) return "lt2";
+  if (/\b(not sure|don.?t know|unsure|no idea|a while|long time|ages|been a while|awhile|can.?t remember|forget|forgot|unknown|not certain)\b/i.test(m)) return "gt2";
+  if (m.trim().length > 0) return "gt2";
+  return null;
+}
+
+function parseRoofSqft(message: string): number | null {
+  // Match patterns like "1500", "1,500", "1500 sq ft", "about 1500"
+  const match = message.replace(/,/g, "").match(/(\d{3,5})/);
+  if (match) {
+    const n = parseInt(match[1], 10);
+    if (n >= 100 && n <= 20000) return n;
+  }
+  return null;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SHARED PARSERS
+// ─────────────────────────────────────────────────────────────────
 
 function parseStorey(message: string): "1" | "2" | null {
   if (/\b(one|1|single|1.?stor)/i.test(message)) return "1";
@@ -819,14 +953,11 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
             sunpassQuickReplies: undefined,
           });
         }
-        return respondWithLoggedReply(
-          SUNPASS_ROLE_PROMPT,
-          {
-            ...currentState,
-            activeConversationState: "sunpass_role_prompt",
-            sunpassQuickReplies: SUNPASS_ROLE_QUICK_REPLIES,
-          }
-        );
+        return respondWithLoggedReply(SUNPASS_ROLE_PROMPT, {
+          ...currentState,
+          activeConversationState: "sunpass_role_prompt",
+          sunpassQuickReplies: SUNPASS_ROLE_QUICK_REPLIES,
+        });
       }
 
       currentState = { ...currentState, activeConversationState: undefined };
@@ -929,7 +1060,6 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
             role: leadData.role || "",
           });
 
-          // Log SunPass lead capture to sheet
           logToSheetAsync({
             type: "sunpass_lead",
             timestamp: timestampIso,
@@ -1004,7 +1134,7 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 1: SOLAR PANEL QUOTING STATE MACHINE
+    // STEP 1A: SOLAR PANEL QUOTING STATE MACHINE
     // ──────────────────────────────────────────────────────────────
 
     const solarQuoteInProgress = currentState.intent === "solar_cleaning";
@@ -1071,6 +1201,125 @@ Does everything look correct? Reply YES to confirm, or tell me what to change.`;
       quoteMsg += " Would you like to proceed with booking?";
 
       return respondWithLoggedReply(quoteMsg, state);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // STEP 1B: ROOF WASH QUOTING STATE MACHINE
+    // ──────────────────────────────────────────────────────────────
+
+    const roofWashInProgress = currentState.roofWashIntent === true;
+    const roofWashMentioned = /roof|wash|pressure wash|soft wash/i.test(message) &&
+      !/solar|panel/i.test(message);
+    const roofQuoteNotReady = !currentState.roofQuoteReady && !currentState.confirmed;
+
+    if ((roofWashInProgress || roofWashMentioned) && roofQuoteNotReady) {
+      const state: BookingState = { ...currentState, roofWashIntent: true };
+      const lastAsked = state.roofLastAskedField as RoofQuoteField | undefined;
+
+      // If this is the very first time we're entering the roof wash flow, announce the questions
+      const isFirstEntry = !roofWashInProgress;
+
+      // Parse the answer to whatever we last asked
+      if (lastAsked === "roofSqft") {
+        const sqft = parseRoofSqft(message);
+        if (sqft) {
+          state.roofSqft = sqft;
+        } else {
+          return respondWithLoggedReply(
+            "I need the roof square footage to calculate your quote. What is the approximate square footage of your roof?",
+            state
+          );
+        }
+      } else if (lastAsked === "roofStorey") {
+        const storey = parseStorey(message);
+        if (storey) {
+          state.roofStorey = storey;
+        } else {
+          return respondWithLoggedReply(
+            "Is your home one story or two stories?",
+            state
+          );
+        }
+      } else if (lastAsked === "roofLastCleaned") {
+        const lc = parseRoofLastCleaned(message);
+        if (lc) {
+          state.roofLastCleaned = lc;
+        } else {
+          return respondWithLoggedReply(
+            "When was the last time you had your roof professionally cleaned?",
+            state
+          );
+        }
+      } else if (lastAsked === "roofStreaking") {
+        const yn = parseYesNo(message);
+        if (yn !== null) {
+          state.roofStreaking = yn;
+        } else {
+          return respondWithLoggedReply(
+            "Is there any visible streaking or buildup of organic material on your roof? A simple yes or no works.",
+            state
+          );
+        }
+      } else if (lastAsked === "roofLichen") {
+        const yn = parseYesNo(message);
+        if (yn !== null) {
+          state.roofLichen = yn;
+        } else {
+          return respondWithLoggedReply(
+            "Do you notice any white, grey, or greenish crusty patches on your roof? A simple yes or no works.",
+            state
+          );
+        }
+      } else if (lastAsked === "roofQuoteAddress") {
+        if (message.length > 5) {
+          state.roofQuoteAddress = message.trim();
+          if (!state.address) state.address = message.trim();
+        }
+      }
+
+      // Determine next field needed
+      const nextField = getRoofNextField(state);
+
+      if (nextField) {
+        state.roofLastAskedField = nextField;
+
+        // Announce question count on first entry
+        if (isFirstEntry) {
+          return respondWithLoggedReply(
+            `I have 6 quick questions for you and then I can give you a quote.\n\n1. ${ROOF_QUOTE_QUESTIONS[nextField]}`,
+            state
+          );
+        }
+
+        return respondWithLoggedReply(ROOF_QUOTE_QUESTIONS[nextField], state);
+      }
+
+      // All fields collected — build the quote
+      const finalPrice = buildRoofQuote(state);
+      state.roofQuoteReady = true;
+      state.roofQuotePrice = finalPrice;
+      state.roofLastAskedField = undefined;
+
+      // Build plain-English condition description for output
+      let conditionDesc = "good condition";
+      if (state.roofLastCleaned === "never" || (state.roofLastCleaned === "gt2" && state.roofStreaking)) {
+        conditionDesc = "significant buildup noted";
+      } else if (state.roofLastCleaned === "gt2" || state.roofStreaking) {
+        conditionDesc = "moderate buildup noted";
+      }
+
+      const storeyDesc = state.roofStorey === "2" ? "two-story" : "one-story";
+      const lichenDesc = state.roofLichen ? " · lichen present" : "";
+
+      const quoteMsg = `Based on what you've shared, here's your estimate:
+
+${state.roofSqft?.toLocaleString()} sq ft roof · ${storeyDesc} · ${conditionDesc}${lichenDesc}
+
+Estimated Total: $${finalPrice.toLocaleString()}
+
+This is an estimate based on the information provided. We'll confirm the final price once we've had a chance to measure the roof. Would you like to move forward with booking?`;
+
+      return respondWithLoggedReply(quoteMsg.trim(), state);
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -1211,7 +1460,6 @@ Does everything look correct before I lock this in? Reply YES to confirm, or tel
           ? `\nReferral: ${referral.firstName} ${referral.lastName}, ${referral.phone}`
           : "";
 
-        // ── Sheet: log booking immediately, independent of email ──
         logToSheetAsync({
           session_id: sessionId,
           type: "booking",
