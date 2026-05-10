@@ -408,7 +408,11 @@ useEffect(() => {
   };
 
   const handleSend = async () => { await sendMessage(input); };
-  const handleDateTimeConfirm = async (dateTimeString: string) => { setShowDateTimeModal(false); await sendMessage(dateTimeString); };
+  const handleDateTimeConfirm = async (dateTimeString: string) => {
+    setShowDateTimeModal(false);
+    setChatState((prev) => ({ ...prev, lastAskedField: undefined, roofLastAskedField: undefined }));
+    await sendMessage(dateTimeString);
+  };
   const handleStreetViewConfirm = () => { setStreetViewAddress(null); };
   const handleStreetViewReenter = async () => {
     setStreetViewAddress(null);
