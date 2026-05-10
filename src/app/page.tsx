@@ -589,8 +589,8 @@ export default function Page() {
           </div>
         </aside>
 
-        <section ref={chatShellRef} className="chat-column">
-          <section className="chat-shell">
+        <section ref={chatShellRef} className="chat-column" style={{ flex: 1, minWidth: 0, height: "100%", overflow: "hidden" }}>
+          <section className="chat-shell" style={{ width: "100%", maxWidth: "760px", margin: "0 auto" }}>
           <div className="chat-header">
             <div className="chat-header-left">
               <span className="online-dot" aria-hidden="true" />
