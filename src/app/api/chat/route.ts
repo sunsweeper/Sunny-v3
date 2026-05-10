@@ -1317,13 +1317,197 @@ ${state.roofSqft?.toLocaleString()} sq ft roof · ${storeyDesc} · ${conditionDe
 
 Estimated Total: $${finalPrice.toLocaleString()}
 
-This is an estimate based on the information provided. We'll confirm the final price once we've had a chance to measure the roof. Would you like to move forward with booking?`;
+Based on this pricing, would you like to schedule your roof cleaning?`;
 
       return respondWithLoggedReply(quoteMsg.trim(), state);
     }
 
     // ──────────────────────────────────────────────────────────────
-    // STEP 2: BOOKING FLOW
+    // STEP 2A: ROOF WASH BOOKING FLOW
+    // ──────────────────────────────────────────────────────────────
+
+    const roofQuotePrice = typeof currentState.roofQuotePrice === "number" ? currentState.roofQuotePrice : undefined;
+
+    if (currentState.roofQuoteReady && typeof roofQuotePrice === "number" && !currentState.confirmed) {
+      let reply = "";
+      let state: BookingState = {
+        ...currentState,
+        // Pre-fill address from roof quote address — never ask again
+        address: currentState.address || currentState.roofQuoteAddress,
+      };
+
+      // Parse any field answers from the current message
+      if (state.roofLastAskedField && message.trim()) {
+        const field = state.roofLastAskedField;
+        if (field === "full name") state.fullName = message.trim();
+        else if (field === "email address" && message.includes("@")) state.email = message.trim();
+        else if (field === "phone number") state.phone = message.trim();
+        else if (field === "preferred date and time") state.dateTime = message.trim();
+      }
+
+      // Also try AI extraction for any fields mentioned naturally
+      const roofParsePrompt = `
+You are extracting structured data from a user's message and recent conversation history.
+Return ONLY valid JSON with these exact keys (null if not found/unclear):
+{
+  "full_name": string or null,
+  "email": string (must contain @) or null,
+  "phone_number": string or null,
+  "preferred_date_time": string or null
+}
+
+Recent conversation history (most recent first):
+${JSON.stringify(body.messages?.slice(-6).reverse() || [], null, 2)}
+
+Current user message: "${message}"
+
+Do not add explanations, do not wrap in code block, output pure JSON only.
+`;
+
+      try {
+        const parseCompletion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "system", content: roofParsePrompt }],
+          temperature: 0.0,
+          max_tokens: 150,
+        });
+        let extractedText = parseCompletion.choices[0]?.message?.content?.trim() || "{}";
+        extractedText = extractedText.replace(/^```json\s*/, "").replace(/\s*```$/, "").trim();
+        const extracted = JSON.parse(extractedText);
+        if (extracted.full_name && !state.fullName) state.fullName = extracted.full_name;
+        if (extracted.email && extracted.email.includes("@") && !state.email) state.email = extracted.email;
+        if (extracted.phone_number && !state.phone) state.phone = extracted.phone_number;
+        if (extracted.preferred_date_time && !state.dateTime) state.dateTime = extracted.preferred_date_time;
+      } catch (parseErr) {
+        console.error("Roof field extraction failed:", parseErr);
+      }
+
+      // Determine missing fields — email is required, rest are collected but not hard-gated
+      const roofMissing: string[] = [];
+      if (!state.email) roofMissing.push("email address");
+      if (!state.fullName) roofMissing.push("full name");
+      if (!state.phone) roofMissing.push("phone number");
+      if (!state.dateTime) roofMissing.push("preferred date and time");
+
+      if (roofMissing.length > 0) {
+        const nextField = roofMissing[0];
+        state.roofLastAskedField = nextField;
+        const name = state.fullName ? ` ${state.fullName.split(" ")[0]}` : "";
+        // Extra note on email since it's required
+        const emailNote = nextField === "email address" ? " — we need this to send your confirmation" : "";
+        const templates = [
+          `Thanks${name}. What is your ${nextField}${emailNote}?`,
+          `Got it${name}. Please share your ${nextField}${emailNote}.`,
+          `I have that noted${name}. What is your ${nextField}${emailNote}?`,
+        ];
+        reply = templates[Math.floor(Math.random() * templates.length)];
+
+      } else if (!state.referralSubmitted && !state.awaitingReferral && !state.awaitingConfirmation) {
+        state.awaitingReferral = true;
+        reply = "One more thing before your summary — SunSweeper has a referral program. If you refer someone and they book service you'll receive a credit for 10% of their bill towards a future service (up to $500). No forms or links needed — just a name and phone number. Got someone in mind?";
+
+      } else if (!state.awaitingConfirmation) {
+        const summary = `Here's what I've got for your booking${state.fullName ? `, ${state.fullName}` : ""}:
+- Name: ${state.fullName || "Not set"}
+- Email: ${state.email || "Not set"}
+- Phone: ${state.phone || "Not set"}
+- Address: ${state.address || "Not set"}
+- Date & Time: ${state.dateTime || "Not set"}
+- Service: Roof wash — $${roofQuotePrice.toLocaleString()}
+
+Does everything look correct? Reply YES to confirm, or tell me what to change.`;
+        reply = summary.trim();
+        state.awaitingConfirmation = true;
+        state.awaitingReferral = false;
+        state.roofLastAskedField = undefined;
+
+      } else if (
+        ["yes", "confirm", "book it", "go ahead", "sure", "okay", "yep", "yeah"].some((w) =>
+          messageLower.includes(w)
+        )
+      ) {
+        const fullName = state.fullName ?? "Customer";
+        const email = state.email!;
+        const phone = state.phone || "N/A";
+        const address = state.address ?? state.roofQuoteAddress ?? "Not provided";
+        const dateTime = state.dateTime ?? "To be confirmed";
+        const priceStr = roofQuotePrice.toLocaleString();
+        const referral = state.referralData;
+
+        const referralSection = referral
+          ? `<hr><p>Thank you for referring ${referral.firstName} ${referral.lastName}. We will reach out to them at ${referral.phone}. If we are able to book a service with them you will receive a 10% credit towards future services once we complete their booking.</p><p><strong>- Aaron, SunSweeper CEO</strong></p>`
+          : "";
+
+        const referralTextSection = referral
+          ? `\nReferral: ${referral.firstName} ${referral.lastName}, ${referral.phone}`
+          : "";
+
+        logToSheetAsync({
+          session_id: sessionId,
+          type: "booking",
+          known_name: fullName,
+          phone,
+          email,
+          text: `Roof wash at ${address} on ${dateTime} — $${priceStr}`,
+          service_key: "roof_wash",
+          lead_detected: true,
+        });
+
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.trim() || "https://www.sunsweeper.com";
+          console.log("[ROOF-BOOKING] Attempting email send to", email, "from", baseUrl);
+
+          const emailRes = await fetch(`${baseUrl}/api/send-email`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              to: [email, "aaron@sunsweeper.com"],
+              subject: `SunSweeper Roof Wash Booking - ${dateTime}`,
+              html: `
+                <h2>Booking Confirmed!</h2>
+                <p>Hi ${fullName},</p>
+                <p>Your roof wash at ${address} is scheduled for ${dateTime}.</p>
+                <p>Estimated Total: $${priceStr}</p>
+                <p>Phone: ${phone}</p>
+                <p>We'll confirm the final price once we've had a chance to measure the roof. Questions? Reply or call.</p>
+                <hr>
+                <h3>Referral Program</h3>
+                <p>If you ever send someone our way and they end up using us, we'll put a credit on your account for 10% of their job (up to $500). No forms needed — just have them mention your name.</p>
+                ${referralSection}
+                <hr>
+                <p><small>Copy for Aaron - new roof wash booking logged.</small></p>
+              `,
+              text: `Roof Wash Booking: ${fullName}, $${priceStr}, ${dateTime} at ${address}. Phone: ${phone}${referralTextSection}`,
+            }),
+          });
+
+          const emailResult = await emailRes.json();
+          console.log("[ROOF-BOOKING] Email result:", emailResult);
+
+          if (emailResult.ok) {
+            reply = `Your roof wash is booked, ${fullName.split(" ")[0]}. A confirmation has been sent to ${email}. We have you down for ${dateTime}. If anything changes, just reach out.`;
+          } else {
+            reply = "Your booking is confirmed. I had an issue sending the confirmation email but Aaron will follow up with you directly.";
+            console.error("Roof booking email failed:", emailResult.error);
+          }
+
+          state = { ...state, confirmed: true, awaitingConfirmation: false };
+
+        } catch (err) {
+          reply = "Your roof wash booking is noted. I hit a snag on the confirmation email — Aaron will follow up to get this finalized.";
+          state = { ...state, confirmed: true, awaitingConfirmation: false };
+          console.error("Roof booking email error:", err);
+        }
+
+      } else {
+        reply = "Quick confirmation: does everything look correct? Reply YES to confirm, or tell me what to update.";
+      }
+
+      return respondWithLoggedReply(reply, state);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // STEP 2B: SOLAR BOOKING FLOW
     // ──────────────────────────────────────────────────────────────
 
     const hasPanelCount = typeof currentState.panelCount === "number";
@@ -1333,6 +1517,7 @@ This is an estimate based on the information provided. We'll confirm the final p
       hasPanelCount &&
       typeof price === "number" &&
       currentState.quoteReady &&
+      !currentState.roofQuoteReady &&
       !currentState.confirmed
     ) {
       let reply = "";
