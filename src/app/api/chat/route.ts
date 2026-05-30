@@ -10,6 +10,7 @@ import {
 } from "../../../lib/frustration";
 
 import { SAFE_FAIL_MESSAGE } from "../../../sunnyRuntime";
+import { solarImagePaths } from "../../../data/solarImagePaths";
 
 import { SUNNY_SYSTEM_PROMPT } from "../../../../sunny-system-prompt";
 
@@ -185,6 +186,17 @@ System Inspection & Valuation — We visually inspect and document your solar ar
 Inverter Reconnection — If your system went offline after a sale or service gap, we get you back online so you can monitor your own production through SolarEdge or Enphase.
 
 Learn more at SunPassSolar.com`;
+
+function getRandomSolarImages(count: number): string[] {
+  return [...solarImagePaths].sort(() => Math.random() - 0.5).slice(0, count);
+}
+
+function shouldShowSolarWorkPhotos(messageLower: string): boolean {
+  const asksForPhotos = /\b(photo|photos|picture|pictures|image|images|pic|pics|show me|see|examples?|portfolio|past work|work)\b/.test(messageLower);
+  const solarContext = /\b(solar|panel|panels|pv|cleaning|clean|washed|wash|sunsweeper|work|job|jobs)\b/.test(messageLower);
+
+  return asksForPhotos && solarContext;
+}
 
 const SUNPASS_HOME_BUYER_RESPONSE = `Buying a home with solar is great — unless nobody can tell you what the system is actually worth or whether it's working.
 
@@ -718,14 +730,18 @@ export async function POST(request: Request) {
     const respondWithLoggedReply = async (
       reply: string,
       state: BookingState,
-      status = 200
+      status = 200,
+      imagePaths?: string[]
     ) => {
       await logConversationTurn({
         sessionId,
         userMessage: message || "[empty-message]",
         assistantMessage: reply,
       });
-      return NextResponse.json({ reply, state }, { status });
+      return NextResponse.json(
+        { reply, state, ...(imagePaths && imagePaths.length > 0 ? { imagePaths } : {}) },
+        { status }
+      );
     };
 
     const sunpassData = loadSunPassData();
@@ -749,6 +765,15 @@ export async function POST(request: Request) {
 
     if (offerHandoff) {
       sessionState.lastHandoffOfferedAt = now;
+    }
+
+    if (shouldShowSolarWorkPhotos(messageLower)) {
+      return respondWithLoggedReply(
+        "Absolutely — here are a couple photos of SunSweeper solar panel cleaning work. Little before/after sunshine flex for you 🌞💦",
+        currentState,
+        200,
+        getRandomSolarImages(2)
+      );
     }
 
     const userAcceptedHandoff =

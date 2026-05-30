@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { ChatImageBubble } from "../components/chat/ChatImageBubble";
 import { Lightbox } from "../components/chat/Lightbox";
 import { ReviewScreenshotsModal } from "../components/reviews/ReviewScreenshotsModal";
 import { reviewDropdownLinks, reviewScreenshotPaths } from "../data/reviewLinks";
@@ -76,10 +77,6 @@ const weatherCodeToEmoji = (code: number): string => {
   return "⛅";
 };
 
-const isSolarCleaningQuestion = (value: string): boolean => {
-  const n = value.toLowerCase();
-  return /(solar|panel|panels|pv)/.test(n) && /(clean|cleaning|dirty|dust|wash|washing|bird droppings|grime|photos|picture|images)/.test(n);
-};
 
 const withOptionalName = (followUp: string, knownName: string | null): string =>
   knownName ? followUp.replace(/\?$/, `, ${knownName}?`) : followUp;
@@ -369,14 +366,17 @@ export default function Page() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text.trim(), state: overrideState ?? chatState, messages: nextMessages, sessionId }),
       });
-      const data = (await response.json()) as { reply?: string; state?: Record<string, unknown>; };
-      const reply = data.reply?.trim() || "I'm sorry—something went wrong while responding.";
-      const imageUrls = isSolarCleaningQuestion(text) ? getRandomSolarImages(2) : [];
-      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply, imagePaths: imageUrls.length > 0 ? imageUrls : undefined }]);
+      const { reply: rawReply, state, imagePaths } = (await response.json()) as {
+        reply?: string;
+        state?: Record<string, unknown>;
+        imagePaths?: string[];
+      };
+      const reply = rawReply?.trim() || "I'm sorry—something went wrong while responding.";
+      setMessages((prev) => [...prev, { role: "assistant", type: "text", content: reply, imagePaths: imagePaths ?? [] }]);
       logSunny({ role: "assistant", type: "message", text: reply, lead_detected: false, lead_reason: "", handoff_requested: false });
-      if (data.state) {
-        setChatState(data.state);
-        if (data.state.awaitingReferral === true && !data.state.referralSubmitted) setShowReferralForm(true);
+      if (state) {
+        setChatState(state);
+        if (state.awaitingReferral === true && !state.referralSubmitted) setShowReferralForm(true);
       }
     } catch (error) {
       console.error("Chat fetch error:", error);
@@ -586,6 +586,9 @@ export default function Page() {
                       {message.content.split("\n").map((line, i) => (
                         <p key={i} style={{ margin: line.trim() ? "0.35em 0" : "0.8em 0" }}>{line}</p>
                       ))}
+                      {!isUser && message.imagePaths && message.imagePaths.length > 0 && (
+                        <ChatImageBubble images={message.imagePaths} onImageClick={setLightboxImagePath} />
+                      )}
                       {quickReplies.length > 0 && (
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
                           {quickReplies.map((option) => (
