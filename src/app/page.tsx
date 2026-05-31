@@ -54,6 +54,13 @@ const STATS_POOL: StatItem[] = [
   { value: "5★", label: "Customer rating — Yelp & Google ↗", href: "https://www.yelp.com/biz/sun-sweeper-santa-maria?override_cta=Get+pricing" },
 ];
 
+const QUICK_ACTIONS = [
+  { label: "Get a Quote", message: "I'd like to get a quote" },
+  { label: "See Photos", message: "Can I see photos of your solar panel cleaning work?" },
+  { label: "Pricing", message: "What are your prices?" },
+  { label: "SunPass Transfer", message: "Tell me about SunPass" },
+] as const;
+
 const NAV_OPENERS: Record<NavLabel, string[]> = {
   "New Chat": ["Welcome back. How can I help you today?", "New conversation started. Need help with services, pricing, or booking?", "How can I help with your property cleaning needs today?"],
   Services: ["I can walk you through each service. Which one are you considering?", "Happy to help. Which service would you like details on?", "We handle solar panels, roofs, gutters, and exterior cleaning. What do you need?"],
@@ -573,6 +580,19 @@ export default function Page() {
                 <span className="online-dot" aria-hidden="true" />
                 <span className="chat-title">Sunny</span>
               </div>
+            </div>
+            <div className="quick-action-row" aria-label="Quick chat actions">
+              {QUICK_ACTIONS.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  className="quick-action-btn"
+                  disabled={isLoading}
+                  onClick={() => void sendMessage(action.message)}
+                >
+                  {action.label}
+                </button>
+              ))}
             </div>
             <div ref={messagesRef} className="messages">
               {messages.map((message, index) => {
