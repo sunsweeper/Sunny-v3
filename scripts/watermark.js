@@ -88,32 +88,40 @@ async function main() {
   console.log(`[watermark] Found ${imageFiles.length} solar image(s) to process.`);
 
   let writtenCount = 0;
+  let skippedCount = 0;
+
   for (const fileName of imageFiles) {
-    const inputPath = path.join(solarImageDir, fileName);
-    const originalOutputPath = path.join(PREFERRED_SOLAR_IMAGE_DIR, fileName);
-    const watermarkedOutputPath = path.join(WATERMARK_DIR, fileName);
-    const image = sharp(inputPath).rotate();
-    const metadata = await image.metadata();
+    try {
+      const inputPath = path.join(solarImageDir, fileName);
+      const originalOutputPath = path.join(PREFERRED_SOLAR_IMAGE_DIR, fileName);
+      const watermarkedOutputPath = path.join(WATERMARK_DIR, fileName);
+      const image = sharp(inputPath).rotate();
+      const metadata = await image.metadata();
 
-    if (!metadata.width || !metadata.height) {
-      console.warn(`[watermark] Skipping ${fileName}: unable to read image dimensions.`);
-      continue;
+      if (!metadata.width || !metadata.height) {
+        console.warn(`[watermark] Skipping ${fileName}: unable to read image dimensions.`);
+        skippedCount += 1;
+        continue;
+      }
+
+      if (solarImageDir !== PREFERRED_SOLAR_IMAGE_DIR) {
+        await fs.copyFile(inputPath, originalOutputPath);
+        console.log(`[watermark] Copied original fallback: public/images/solar/${fileName}`);
+      }
+
+      await image
+        .composite([{ input: Buffer.from(createWatermarkSvg({ width: metadata.width, height: metadata.height })), top: 0, left: 0 }])
+        .toFile(watermarkedOutputPath);
+
+      writtenCount += 1;
+      console.log(`[watermark] Watermarked ${fileName} -> public/images/solar/watermarked/${fileName}`);
+    } catch (err) {
+      console.warn(`[watermark] Skipping ${fileName} — unsupported format or read error: ${err.message}`);
+      skippedCount += 1;
     }
-
-    if (solarImageDir !== PREFERRED_SOLAR_IMAGE_DIR) {
-      await fs.copyFile(inputPath, originalOutputPath);
-      console.log(`[watermark] Copied original fallback: public/images/solar/${fileName}`);
-    }
-
-    await image
-      .composite([{ input: Buffer.from(createWatermarkSvg({ width: metadata.width, height: metadata.height })), top: 0, left: 0 }])
-      .toFile(watermarkedOutputPath);
-
-    writtenCount += 1;
-    console.log(`[watermark] Watermarked ${fileName} -> public/images/solar/watermarked/${fileName}`);
   }
 
-  console.log(`[watermark] Complete. Wrote ${writtenCount} watermarked image(s).`);
+  console.log(`[watermark] Complete. Watermarked: ${writtenCount}, Skipped: ${skippedCount}.`);
 }
 
 main().catch((error) => {
