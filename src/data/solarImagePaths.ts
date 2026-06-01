@@ -3,6 +3,9 @@ export type SolarPhoto = {
   filename: string;
   baseName: string;
   label?: "Before" | "After";
+  originalSrc: string;
+  legacyOriginalSrc: string;
+  watermarkedSrc: string;
 };
 
 export type SolarPhotoGroup = {
@@ -13,6 +16,8 @@ export type SolarPhotoGroup = {
 };
 
 const WATERMARKED_SOLAR_IMAGE_DIR = "/images/solar/watermarked";
+const ORIGINAL_SOLAR_IMAGE_DIR = "/images/solar";
+const LEGACY_ORIGINAL_SOLAR_IMAGE_DIR = "/image/solar";
 
 const solarImageFiles = [
   "ag-after.jpg",
@@ -39,12 +44,16 @@ const parseSolarPhoto = (filename: string): SolarPhoto => {
   const match = filename.match(/^(.*)-(before|after)\.(jpe?g|png)$/i);
   const baseName = match?.[1] ?? filename.replace(/\.(jpe?g|png)$/i, "");
   const label = match?.[2]?.toLowerCase() === "before" ? "Before" : match?.[2]?.toLowerCase() === "after" ? "After" : undefined;
+  const watermarkedSrc = `${WATERMARKED_SOLAR_IMAGE_DIR}/${filename}`;
 
   return {
-    src: `${WATERMARKED_SOLAR_IMAGE_DIR}/${filename}`,
+    src: watermarkedSrc,
     filename,
     baseName,
     label,
+    originalSrc: `${ORIGINAL_SOLAR_IMAGE_DIR}/${filename}`,
+    legacyOriginalSrc: `${LEGACY_ORIGINAL_SOLAR_IMAGE_DIR}/${filename}`,
+    watermarkedSrc,
   };
 };
 

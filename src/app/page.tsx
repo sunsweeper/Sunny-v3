@@ -549,8 +549,6 @@ export default function Page() {
         <h1 className="mobile-headline">The Solar Panel and Roof Cleaning Experts.</h1>
         <p className="mobile-subtext">Protecting your investment.</p>
       </section>
-      <SolarPhotoStrip variant="mobile" onImageClick={setLightboxImagePath} />
-
       <section className="home-layout">
         <aside className="brand-panel left-sidebar">
           <Image src="/logo.png" alt="SunSweeper logo" width={160} height={87} className="hero-logo" />
@@ -581,15 +579,17 @@ export default function Page() {
         </aside>
 
         <section ref={chatShellRef} className="chat-column">
-          <SolarPhotoStrip variant="desktop" onImageClick={setLightboxImagePath} />
-          <section className="chat-shell">
-            <div className="chat-header">
-              <div className="chat-header-left">
-                <span className="online-dot" aria-hidden="true" />
-                <span className="chat-title">Sunny</span>
+          <div className="chat-card">
+            <SolarPhotoStrip variant="desktop" onImageClick={setLightboxImagePath} />
+            <SolarPhotoStrip variant="mobile" onImageClick={setLightboxImagePath} />
+            <section className="chat-shell">
+              <div className="chat-header">
+                <div className="chat-header-left">
+                  <span className="online-dot" aria-hidden="true" />
+                  <span className="chat-title">Sunny</span>
+                </div>
               </div>
-            </div>
-            <div className="quick-action-row" aria-label="Quick chat actions">
+              <div className="quick-action-row" aria-label="Quick chat actions">
               {QUICK_ACTIONS.map((action) => (
                 <button
                   key={action.label}
@@ -645,11 +645,12 @@ export default function Page() {
               </button>
             </div>
             <p className="helper-text">Not getting what you need from Sunny? Ask to speak with a live person and Sunny will take a message and get it to a specialist.</p>
-          </section>
-          <section className="mobile-chat-footer" aria-hidden="true">
-            <h1 className="mobile-headline">The Solar Panel and Roof Cleaning Experts.</h1>
-            <p className="mobile-subtext">Protecting your investment.</p>
-          </section>
+            </section>
+            <section className="mobile-chat-footer" aria-hidden="true">
+              <h1 className="mobile-headline">The Solar Panel and Roof Cleaning Experts.</h1>
+              <p className="mobile-subtext">Protecting your investment.</p>
+            </section>
+          </div>
         </section>
       </section>
 
