@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { mobileSolarBeforeAfterGroups, solarPhotoGroups, type SolarPhoto, type SolarPhotoGroup } from "../../data/solarImagePaths";
 
 type SolarPhotoStripProps = {
@@ -8,24 +9,49 @@ type SolarPhotoStripProps = {
   onImageClick: (path: string) => void;
 };
 
+type SolarPhotoButtonProps = {
+  photo: SolarPhoto;
+  onImageClick: (path: string) => void;
+  showBadge?: boolean;
+};
+
+function SolarPhotoButton({ photo, onImageClick, showBadge = true }: SolarPhotoButtonProps) {
+  const fallbackSources = [photo.originalSrc, photo.legacyOriginalSrc];
+  const [displaySrc, setDisplaySrc] = useState(photo.watermarkedSrc);
+  const [fallbackIndex, setFallbackIndex] = useState(0);
+
+  const handleImageError = () => {
+    const nextFallback = fallbackSources[fallbackIndex];
+    if (!nextFallback || nextFallback === displaySrc) return;
+
+    setDisplaySrc(nextFallback);
+    setFallbackIndex((currentIndex) => currentIndex + 1);
+  };
+
+  return (
+    <button
+      key={photo.filename}
+      type="button"
+      className="solar-strip-photo-btn"
+      onClick={() => onImageClick(displaySrc)}
+      aria-label={`Open ${photo.label ? `${photo.label.toLowerCase()} ` : ""}solar cleaning photo ${photo.filename}`}
+    >
+      <Image
+        src={displaySrc}
+        alt={photo.label ? `${photo.label} solar panel cleaning photo` : "Solar panel cleaning photo"}
+        width={360}
+        height={240}
+        className="solar-strip-image"
+        sizes="(max-width: 768px) 50vw, 220px"
+        onError={handleImageError}
+      />
+      {showBadge && photo.label && <span className="solar-strip-badge">{photo.label}</span>}
+    </button>
+  );
+}
+
 const renderPhotoButton = (photo: SolarPhoto, onImageClick: (path: string) => void, showBadge = true) => (
-  <button
-    key={photo.filename}
-    type="button"
-    className="solar-strip-photo-btn"
-    onClick={() => onImageClick(photo.src)}
-    aria-label={`Open ${photo.label ? `${photo.label.toLowerCase()} ` : ""}solar cleaning photo ${photo.filename}`}
-  >
-    <Image
-      src={photo.src}
-      alt={photo.label ? `${photo.label} solar panel cleaning photo` : "Solar panel cleaning photo"}
-      width={360}
-      height={240}
-      className="solar-strip-image"
-      sizes="(max-width: 768px) 50vw, 220px"
-    />
-    {showBadge && photo.label && <span className="solar-strip-badge">{photo.label}</span>}
-  </button>
+  <SolarPhotoButton key={photo.filename} photo={photo} onImageClick={onImageClick} showBadge={showBadge} />
 );
 
 function SolarPhotoPair({ group, onImageClick }: { group: SolarPhotoGroup; onImageClick: (path: string) => void }) {

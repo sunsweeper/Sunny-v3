@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 const fs = require("node:fs/promises");
 const path = require("node:path");
-const sharp = require("sharp");
-
-const SOLAR_IMAGE_DIR = path.join(process.cwd(), "public", "images", "solar");
-const WATERMARK_DIR = path.join(SOLAR_IMAGE_DIR, "watermarked");
+const PUBLIC_DIR = path.join(process.cwd(), "public");
+const PREFERRED_SOLAR_IMAGE_DIR = path.join(PUBLIC_DIR, "images", "solar");
+const LEGACY_SOLAR_IMAGE_DIR = path.join(PUBLIC_DIR, "image", "solar");
+const WATERMARK_DIR = path.join(PREFERRED_SOLAR_IMAGE_DIR, "watermarked");
 const WATERMARK_TEXT = "SunSweeper.com";
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png"]);
 
@@ -13,6 +13,27 @@ const escapeSvgText = (value) => value
   .replaceAll("<", "&lt;")
   .replaceAll(">", "&gt;")
   .replaceAll('"', "&quot;");
+
+const directoryExists = async (directoryPath) => {
+  try {
+    const stat = await fs.stat(directoryPath);
+    return stat.isDirectory();
+  } catch {
+    return false;
+  }
+};
+
+const resolveSolarImageDir = async () => {
+  if (await directoryExists(PREFERRED_SOLAR_IMAGE_DIR)) {
+    return PREFERRED_SOLAR_IMAGE_DIR;
+  }
+
+  if (await directoryExists(LEGACY_SOLAR_IMAGE_DIR)) {
+    return LEGACY_SOLAR_IMAGE_DIR;
+  }
+
+  return null;
+};
 
 const createWatermarkSvg = ({ width, height }) => {
   const fontSize = Math.max(18, Math.min(24, Math.round(width * 0.026)));
@@ -34,48 +55,68 @@ const createWatermarkSvg = ({ width, height }) => {
 };
 
 async function main() {
-  try {
-    await fs.access(SOLAR_IMAGE_DIR);
-  } catch {
-    console.log(`Solar image source directory not found: ${SOLAR_IMAGE_DIR}`);
+  console.log("[watermark] Starting solar image watermark generation...");
+  console.log(`[watermark] Preferred source: ${PREFERRED_SOLAR_IMAGE_DIR}`);
+  console.log(`[watermark] Legacy fallback source: ${LEGACY_SOLAR_IMAGE_DIR}`);
+
+  const solarImageDir = await resolveSolarImageDir();
+  if (!solarImageDir) {
+    console.log("[watermark] No solar image source directory found. Skipping watermark generation.");
     return;
   }
 
-  await fs.mkdir(WATERMARK_DIR, { recursive: true });
+  console.log(`[watermark] Using source directory: ${solarImageDir}`);
+  console.log("[watermark] Loading sharp image processor...");
+  const sharp = require("sharp");
+  console.log("[watermark] Sharp loaded successfully.");
 
-  const entries = await fs.readdir(SOLAR_IMAGE_DIR, { withFileTypes: true });
+  await fs.mkdir(PREFERRED_SOLAR_IMAGE_DIR, { recursive: true });
+  await fs.mkdir(WATERMARK_DIR, { recursive: true });
+  console.log(`[watermark] Watermarked output directory ready: ${WATERMARK_DIR}`);
+
+  const entries = await fs.readdir(solarImageDir, { withFileTypes: true });
   const imageFiles = entries
     .filter((entry) => entry.isFile() && IMAGE_EXTENSIONS.has(path.extname(entry.name).toLowerCase()))
     .map((entry) => entry.name)
     .sort((a, b) => a.localeCompare(b));
 
   if (imageFiles.length === 0) {
-    console.log(`No .jpg or .png files found in ${SOLAR_IMAGE_DIR}`);
+    console.log(`[watermark] No .jpg, .jpeg, or .png files found in ${solarImageDir}.`);
     return;
   }
 
-  console.log(`Found ${imageFiles.length} solar image(s):`);
+  console.log(`[watermark] Found ${imageFiles.length} solar image(s) to process.`);
 
+  let writtenCount = 0;
   for (const fileName of imageFiles) {
-    const inputPath = path.join(SOLAR_IMAGE_DIR, fileName);
-    const outputPath = path.join(WATERMARK_DIR, fileName);
+    const inputPath = path.join(solarImageDir, fileName);
+    const originalOutputPath = path.join(PREFERRED_SOLAR_IMAGE_DIR, fileName);
+    const watermarkedOutputPath = path.join(WATERMARK_DIR, fileName);
     const image = sharp(inputPath).rotate();
     const metadata = await image.metadata();
 
     if (!metadata.width || !metadata.height) {
-      console.warn(`Skipping ${fileName}: unable to read image dimensions.`);
+      console.warn(`[watermark] Skipping ${fileName}: unable to read image dimensions.`);
       continue;
+    }
+
+    if (solarImageDir !== PREFERRED_SOLAR_IMAGE_DIR) {
+      await fs.copyFile(inputPath, originalOutputPath);
+      console.log(`[watermark] Copied original fallback: public/images/solar/${fileName}`);
     }
 
     await image
       .composite([{ input: Buffer.from(createWatermarkSvg({ width: metadata.width, height: metadata.height })), top: 0, left: 0 }])
-      .toFile(outputPath);
+      .toFile(watermarkedOutputPath);
 
-    console.log(`- ${fileName} -> public/images/solar/watermarked/${fileName}`);
+    writtenCount += 1;
+    console.log(`[watermark] Watermarked ${fileName} -> public/images/solar/watermarked/${fileName}`);
   }
+
+  console.log(`[watermark] Complete. Wrote ${writtenCount} watermarked image(s).`);
 }
 
 main().catch((error) => {
-  console.error(error);
+  console.error("[watermark] Failed to generate watermarked solar images:", error);
   process.exitCode = 1;
 });
