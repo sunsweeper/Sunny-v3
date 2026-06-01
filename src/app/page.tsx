@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ChatImageBubble } from "../components/chat/ChatImageBubble";
 import { Lightbox } from "../components/chat/Lightbox";
 import { ReviewScreenshotsModal } from "../components/reviews/ReviewScreenshotsModal";
+import { SolarPhotoStrip } from "../components/solar/SolarPhotoStrip";
 import { reviewDropdownLinks, reviewScreenshotPaths } from "../data/reviewLinks";
 import { solarImagePaths } from "../data/solarImagePaths";
 import { frustrationDelta, shouldOfferHandoff } from "../lib/frustration";
@@ -544,6 +545,12 @@ export default function Page() {
         </div>
       )}
 
+      <section className="mobile-headline-block">
+        <h1 className="mobile-headline">The Solar Panel and Roof Cleaning Experts.</h1>
+        <p className="mobile-subtext">Protecting your investment.</p>
+      </section>
+      <SolarPhotoStrip variant="mobile" onImageClick={setLightboxImagePath} />
+
       <section className="home-layout">
         <aside className="brand-panel left-sidebar">
           <Image src="/logo.png" alt="SunSweeper logo" width={160} height={87} className="hero-logo" />
@@ -574,6 +581,7 @@ export default function Page() {
         </aside>
 
         <section ref={chatShellRef} className="chat-column">
+          <SolarPhotoStrip variant="desktop" onImageClick={setLightboxImagePath} />
           <section className="chat-shell">
             <div className="chat-header">
               <div className="chat-header-left">
@@ -679,10 +687,10 @@ export default function Page() {
       <ReviewScreenshotsModal isOpen={isReviewScreenshotsOpen} imagePaths={reviewScreenshotPaths} onClose={() => setIsReviewScreenshotsOpen(false)}
         onImageClick={(path) => { setLightboxImagePath(path); setIsReviewScreenshotsOpen(false); }} />
       <style jsx global>{`
-        .mobile-brand-header, .mobile-nav-links, .mobile-service-dropdown-wrap, .mobile-chat-footer { display: none; }
+        .mobile-brand-header, .mobile-nav-links, .mobile-service-dropdown-wrap, .mobile-chat-footer, .mobile-headline-block { display: none; }
         .hero-logo { display: block !important; width: 160px !important; height: auto !important; margin: 0 auto 16px auto !important; opacity: 1 !important; visibility: visible !important; }
         .page-background { z-index: 0; }
-        .top-nav, .home-layout, .mobile-brand-header, .mobile-nav-links, .mobile-service-dropdown-wrap, .mobile-chat-footer { position: relative; z-index: 1; }
+        .top-nav, .home-layout, .mobile-brand-header, .mobile-nav-links, .mobile-service-dropdown-wrap, .mobile-chat-footer, .mobile-headline-block, .solar-photo-strip { position: relative; z-index: 1; }
         @media (max-width: 768px) {
           .top-nav-center { display: none; }
           .mobile-brand-header { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px 0 8px; opacity: 1; filter: none; mix-blend-mode: normal; }
@@ -691,10 +699,13 @@ export default function Page() {
           .mobile-nav-links { display: flex; justify-content: center; gap: 20px; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
           .mobile-service-dropdown-wrap { display: flex; justify-content: center; padding: 8px 0; position: relative; z-index: 50; }
           .mobile-service-dropdown-menu { position: relative; z-index: 100; width: min(92vw, 360px); }
+          .mobile-headline-block { display: block; padding: 12px 18px 6px; text-align: center; }
+          .solar-photo-strip-desktop { display: none; }
+          .solar-photo-strip-mobile { display: block; padding: 8px 12px 12px; }
           .left-sidebar, .brand-panel { display: none; }
           .chat-column { width: 100%; }
           .chat-shell { width: 100%; min-height: 60vh; border-radius: 12px; }
-          .mobile-chat-footer { display: block; padding: 24px 20px; text-align: center; }
+          .mobile-chat-footer { display: none; padding: 24px 20px; text-align: center; }
           .mobile-headline { margin: 0; font-family: "DM Serif Display", serif; font-size: 22px; line-height: 1.2; }
           .mobile-subtext { margin: 8px 0 0; font-size: 13px; color: rgba(255, 255, 255, 0.65); }
         }

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "node scripts/watermark.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -13,7 +14,8 @@
     "next": "14.2.16",
     "openai": "^4.83.0",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "@types/node": "20.14.12",
